@@ -166,7 +166,7 @@
   }
 }
 
-/* Hide the default blue X */
+/* Hide the default X on search bars */
 input[type='search']::-webkit-search-cancel-button {
   -webkit-appearance: none;
   height: 1em;
@@ -176,56 +176,41 @@ input[type='search']::-webkit-search-cancel-button {
   background-size: 100% 100%;
   cursor: pointer;
 }
+
+/* Hide default focus of search bars */
 input[type='search']:focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 7ch;
-  }
+/* Loading Screen */
+.loading-screen-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
 }
 
-@keyframes blinkCaret {
-  50% {
-    border-color: transparent;
-  }
-  100% {
-    border-color: #1d4ed8; /* example primary blue */
-  }
-}
-
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 7ch;
-  }
-}
-
-@keyframes blinkCaret {
-  50% {
-    border-color: transparent;
-  }
-  100% {
-    border-color: #1d4ed8; /* your primaryBlue */
-  }
-}
-
-.typing-text {
+.loading-container {
   font-family: 'Pacifico', cursive;
   font-size: clamp(7rem, 18vw, 11rem);
-  color: #1d4ed8; /* replace with your primaryBlue */
+  color: #1d4ed8;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 4px solid #1d4ed8; /* caret */
-  width: 0;
-  animation:
-    typing 5.6s steps(7) forwards,
-    blinkCaret 0.75s step-end infinite;
+
+  display: inline-block;
+
+  line-height: 1.35;
+  padding-bottom: 0.25em;
+  padding-top: 0.1em;
+
+  clip-path: inset(0 100% 0 0);
+  animation: revealText 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes revealText {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }

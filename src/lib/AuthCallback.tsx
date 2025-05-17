@@ -8,20 +8,19 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      // Get the session after redirection
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
         console.error('Error retrieving session:', error.message);
-        return;
+        return navigate('/login');
       }
 
-      // Type check to ensure session is extracted safely
       const session = data.session;
 
-      // If session exists and user is present
       if (session && session.user) {
-        navigate('/');
+        setTimeout(() => {
+          navigate('/');
+        }, 1000); // match your revealText animation duration
       } else {
         navigate('/login');
       }
