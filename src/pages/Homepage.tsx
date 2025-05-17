@@ -1,10 +1,12 @@
 import LogoutButton from '@/components/SignoutButton';
-import React from 'react';
 
 export default function Homepage() {
   return (
     <div>
-      <LogoutButton />
+      <p>Homepage </p>
+      <div className="mt-[90vh]">
+        <LogoutButton />
+      </div>
     </div>
   );
 }
