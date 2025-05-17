@@ -27,17 +27,25 @@ export function TopBar() {
         <button
           type="button"
           aria-label="Messages"
-          className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue"
+          className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
         >
           <MessageSquare className="w-5 h-5 text-gray-700" />
+
+          <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
+            1
+          </span>
         </button>
 
         <button
           type="button"
           aria-label="Notifications"
-          className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue"
+          className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
         >
           <Bell className="w-5 h-5 text-gray-700" />
+
+          <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
+            9
+          </span>
         </button>
 
         <button

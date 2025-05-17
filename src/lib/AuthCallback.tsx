@@ -1,3 +1,4 @@
+import LoadingScreen from '@/components/LoadingScreen';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -29,7 +30,7 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [navigate]);
 
-  return <div>Loading...</div>;
+  return <LoadingScreen />;
 };
 
 export default AuthCallback;

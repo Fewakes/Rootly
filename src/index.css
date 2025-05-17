@@ -180,3 +180,52 @@ input[type='search']:focus {
   outline: none !important;
   box-shadow: none !important;
 }
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 7ch;
+  }
+}
+
+@keyframes blinkCaret {
+  50% {
+    border-color: transparent;
+  }
+  100% {
+    border-color: #1d4ed8; /* example primary blue */
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 7ch;
+  }
+}
+
+@keyframes blinkCaret {
+  50% {
+    border-color: transparent;
+  }
+  100% {
+    border-color: #1d4ed8; /* your primaryBlue */
+  }
+}
+
+.typing-text {
+  font-family: 'Pacifico', cursive;
+  font-size: clamp(7rem, 18vw, 11rem);
+  color: #1d4ed8; /* replace with your primaryBlue */
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 4px solid #1d4ed8; /* caret */
+  width: 0;
+  animation:
+    typing 5.6s steps(7) forwards,
+    blinkCaret 0.75s step-end infinite;
+}

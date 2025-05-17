@@ -1,9 +1,9 @@
-import { supabase } from '../lib/supabaseClient';
-import { GalleryVerticalEnd } from 'lucide-react';
 import { LoginForm } from '@/components/login-form';
-import loginImage from '../assets/LoginLogo.png';
+import { supabase } from '@/lib/supabaseClient';
+import { GalleryVerticalEnd } from 'lucide-react';
 
-// Initial Login page
+// Make sure you import the Pacifico font in your CSS or via Google Fonts in your project
+
 export default function Login() {
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -13,22 +13,32 @@ export default function Login() {
       },
     });
   };
+
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="relative hidden bg-muted lg:block">
-        <img
-          src={loginImage}
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+    <div className="grid min-h-screen lg:grid-cols-2">
+      <div className="hidden lg:flex flex-col items-center justify-center bg-primaryBlue p-10 min-h-screen">
+        <h1
+          className="text-white font-pacifico whitespace-nowrap leading-[1.1] mb-0"
+          style={{ fontSize: 'clamp(7rem, 18vw, 11rem)' }}
+        >
+          Rootly
+        </h1>
+
+        <div
+          className="text-white text-right text-[0.9rem] mt-[0.2em] whitespace-nowrap select-none"
+          style={{ maxWidth: '26ch' }}
+        >
+          Where connections grow into opportunities
+        </div>
       </div>
+
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Rootly
+            Start your journey with Rootly
           </a>
         </div>
 
@@ -41,14 +51,3 @@ export default function Login() {
     </div>
   );
 }
-// return (
-//   <div className="p-8">
-//     <h1 className="text-2xl font-bold">Login</h1>
-//     <button
-//       onClick={handleLogin}
-//       className="mt-4 bg-black text-white px-4 py-2 rounded"
-//     >
-//       Sign in with Google
-//     </button>
-//   </div>
-// );

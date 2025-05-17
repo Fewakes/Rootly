@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { supabase } from '@/lib/supabaseClient';
 import {
   Contact,
   Home,
@@ -19,7 +20,7 @@ import {
   LucideSettings,
   Plus,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // Navigation links (Main pages)
 const items = [
@@ -45,6 +46,22 @@ const tags = [
 
 export function AppSidebar() {
   const location = useLocation(); // Used to check which route is active
+
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error.message);
+        return;
+      }
+      // Redirect to login page after logout
+      navigate('/login'); // lowercase 'navigate'
+    } catch (err) {
+      console.error('Unexpected logout error:', err);
+    }
+  };
 
   return (
     <Sidebar>
@@ -157,7 +174,10 @@ export function AppSidebar() {
         {/* Logout */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="w-full px-2 py-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-destructive">
+            <SidebarMenuButton
+              onClick={handleLogout}
+              className="w-full px-2 py-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-destructive"
+            >
               <LucideLogOut className="w-4 h-4" />
               <span>Logout</span>
             </SidebarMenuButton>
