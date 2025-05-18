@@ -1,12 +1,14 @@
-import { type ReactNode } from 'react';
+import LoadingScreen from '@/components/LoadingScreen'; // optional
+import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  //if (loading) return <LoadingScreen />;
-  if (!user) return <Navigate to="/login" />;
+  if (loading) return <LoadingScreen />; // or simple: return <div>Loading...</div>;
+
+  if (!user) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }

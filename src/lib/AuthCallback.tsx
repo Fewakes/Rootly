@@ -20,7 +20,7 @@ const AuthCallback = () => {
       if (session && session.user) {
         setTimeout(() => {
           navigate('/');
-        }, 1000); // match your revealText animation duration
+        }, 1200);
       } else {
         navigate('/login');
       }
