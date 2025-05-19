@@ -1,7 +1,7 @@
 import { contacts } from '@/features/contacts/contacts';
 import { useState } from 'react';
 
-import ContactRow from '@/components/ContactRow';
+import ContactRow from '@/features/contacts/ContactRow';
 
 export default function Contacts() {
   const [expandedTags, setExpandedTags] = useState<number[]>([]);
@@ -13,7 +13,8 @@ export default function Contacts() {
   };
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto p-6 space-y-8">
+      <h1 className="text-4xl font-bold">Contacts</h1>
       <table className="w-full table-fixed text-sm text-left border-collapse">
         <thead className="bg-muted text-muted-foreground">
           <tr className="border-b border-border rounded">

@@ -1,4 +1,4 @@
-import { LoginForm } from '@/components/login-form';
+import { LoginForm } from '@/features/auth/login-form';
 import { supabase } from '@/lib/supabaseClient';
 import { GalleryVerticalEnd } from 'lucide-react';
 

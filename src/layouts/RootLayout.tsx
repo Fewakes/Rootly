@@ -1,5 +1,5 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import { TopBar } from '@/components/TopBar';
+import { AppSidebar } from '@/features/Layout/app-sidebar';
+import { TopBar } from '@/features/Layout/TopBar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Outlet } from 'react-router-dom';
 

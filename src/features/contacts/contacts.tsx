@@ -19,7 +19,7 @@ export const contacts = [
       name: 'Apple',
       logo: appleLogo,
     },
-    group: 'Design Team',
+    group: ['Design Team'],
     tags: ['UX', 'Lead', 'Director', 'Influential'],
   },
   {
@@ -31,8 +31,8 @@ export const contacts = [
       name: 'Meta',
       logo: metaLogo,
     },
-    group: 'Engineering',
-    tags: ['React', 'Fullstack'],
+    group: ['Engineering'],
+    tags: ['React', 'Fullstack', 'UX'],
   },
   {
     id: 3,
@@ -43,8 +43,8 @@ export const contacts = [
       name: 'Google',
       logo: googleLogo,
     },
-    group: 'Product',
-    tags: ['Manager', 'Roadmap', 'Strategy'],
+    group: ['Product'],
+    tags: ['Manager', 'Roadmap', 'Director'],
   },
   {
     id: 4,
@@ -55,7 +55,7 @@ export const contacts = [
       name: 'Amazon',
       logo: amazonLogo,
     },
-    group: 'DevOps',
+    group: ['DevOps'],
     tags: ['AWS', 'Terraform', 'CI/CD', 'SRE'],
   },
   {
@@ -67,8 +67,8 @@ export const contacts = [
       name: 'Netflix',
       logo: netflixLogo,
     },
-    group: 'Content Strategy',
-    tags: ['Brand', 'Storytelling', 'SEO'],
+    group: ['Content Strategy'],
+    tags: ['Brand', 'Director', 'SEO'],
   },
   {
     id: 6,
@@ -79,7 +79,7 @@ export const contacts = [
       name: 'Spotify',
       logo: spotifyLogo,
     },
-    group: 'Engineering',
+    group: ['Engineering'],
     tags: ['Backend', 'Node.js', 'Music API'],
   },
   {
@@ -91,7 +91,7 @@ export const contacts = [
       name: 'Tesla',
       logo: teslaLogo,
     },
-    group: 'AI Team',
+    group: ['AI Team'],
     tags: ['AI', 'ML', 'Python', 'Vision'],
   },
   {
@@ -103,7 +103,7 @@ export const contacts = [
       name: 'Microsoft',
       logo: microsoftLogo,
     },
-    group: 'Cloud',
+    group: ['Cloud'],
     tags: ['Azure', 'Kubernetes'],
   },
   {
@@ -115,8 +115,8 @@ export const contacts = [
       name: 'Adobe',
       logo: adobeLogo,
     },
-    group: 'Creative',
-    tags: ['Photoshop', 'Illustrator', 'UI'],
+    group: ['Creative'],
+    tags: ['Photoshop', 'Illustrator', 'UI', 'UX'],
   },
   {
     id: 10,
@@ -127,7 +127,7 @@ export const contacts = [
       name: 'Slack',
       logo: slackLogo,
     },
-    group: 'Communication',
-    tags: ['Collaboration', 'Integration', 'Support'],
+    group: ['Communication'],
+    tags: ['Collaboration', 'Integration', 'Support', 'React'],
   },
 ];
