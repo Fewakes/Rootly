@@ -1,9 +1,9 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './features/auth/ProtectedRoute';
 
-import Layout from './layouts/RootLayout';
+import ProtectedLayout from './features/auth/ProtectedLayout';
 import AuthCallback from './lib/AuthCallback';
+
 import ContactDetails from './pages/ContactDetails';
 import Contacts from './pages/Contacts';
 import Homepage from './pages/Homepage';
@@ -15,21 +15,12 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Login Page */}
+          {/* Public */}
           <Route path="/login" element={<Login />} />
-
-          {/* Auth Callback */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected Routes inside Layout */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          {/* Protected routes under layout */}
+          <Route path="/" element={<ProtectedLayout />}>
             <Route index element={<Homepage />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="contacts/:id" element={<ContactDetails />} />

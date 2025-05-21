@@ -7,26 +7,20 @@ const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const checkSession = async () => {
       const { data, error } = await supabase.auth.getSession();
 
-      if (error) {
-        console.error('Error retrieving session:', error.message);
+      if (error || !data.session?.user) {
         return navigate('/login');
       }
 
-      const session = data.session;
-
-      if (session && session.user) {
-        setTimeout(() => {
-          navigate('/');
-        }, 1200);
-      } else {
-        navigate('/login');
-      }
+      //  delay to let LoadingScreen animation play
+      setTimeout(() => {
+        navigate('/');
+      }, 1200); // 1.2 seconds
     };
 
-    handleAuthCallback();
+    checkSession();
   }, [navigate]);
 
   return <LoadingScreen />;

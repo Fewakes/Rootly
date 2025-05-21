@@ -20,12 +20,12 @@ export default function Homepage() {
             value: contacts.length,
           },
           {
-            icon: <Tag className="w-8 h-8 text-muted-foreground" />,
+            icon: <Tag className="w-8 h-8  text-green-600" />,
             label: 'Total Tags',
             value: <TagsCount contacts={contacts} />,
           },
           {
-            icon: <Calendar className="w-8 h-8 text-muted-foreground" />,
+            icon: <Calendar className="w-8 h-8 text-purple-600" />,
             label: 'Total Groups',
             value: <GroupCount contacts={contacts} />,
           },
