@@ -1,29 +1,25 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
+import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import type { Contact } from '@/types/types';
 import { Link } from 'react-router-dom';
 
 interface ContactRowProps {
   contact: Contact;
-  showAll: boolean;
-  toggleTags: (id: number) => void;
 }
 
-export default function ContactRow({
-  contact,
-  showAll,
-  toggleTags,
-}: ContactRowProps) {
-  const visibleTags = showAll ? contact.tags : contact.tags.slice(0, 2);
-  const hiddenCount = contact.tags.length - 2;
-
+export default function ContactRow({ contact }: ContactRowProps) {
   return (
     <TableRow>
+      {/* Person */}
       <TableCell className="px-4 py-3">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={contact.avatar} alt={contact.name} />
+            <AvatarImage
+              src={contact.avatar_url || undefined}
+              alt={contact.name}
+            />
             <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
@@ -35,37 +31,58 @@ export default function ContactRow({
         </div>
       </TableCell>
 
+      {/* Company */}
       <TableCell className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <img
-            src={contact.company.logo}
-            alt={contact.company.name}
-            className="h-5 w-5"
-          />
-          <span className="text-foreground">{contact.company.name}</span>
-        </div>
+        {contact.company ? (
+          <div className="flex items-center gap-3">
+            {contact.company.logo_url && (
+              <img
+                src={contact.company.logo_url}
+                alt={contact.company.name}
+                className="h-5 w-5"
+              />
+            )}
+            <span className="text-foreground">{contact.company.name}</span>
+          </div>
+        ) : (
+          <span className="text-muted-foreground italic">No company</span>
+        )}
       </TableCell>
 
+      {/* Groups */}
       <TableCell className="px-4 py-3">
-        <Badge variant="outline">{contact.group}</Badge>
+        {contact.contact_groups.length > 0 ? (
+          contact.contact_groups.map((g, idx) => (
+            <Badge key={idx} variant="outline">
+              {g.name}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-muted-foreground italic">No groups</span>
+        )}
       </TableCell>
 
+      {/* Tags */}
       <TableCell className="px-4 py-3">
-        <div className="flex gap-2 flex-wrap items-center">
-          {visibleTags.map((tag, idx) => (
-            <Badge key={idx} variant="secondary">
-              {tag}
-            </Badge>
-          ))}
-          {!showAll && hiddenCount > 0 && (
-            <Badge
-              onClick={() => toggleTags(contact.id)}
-              className="bg-primaryBlue opacity-90 cursor-pointer hover:opacity-100"
-            >
-              +{hiddenCount}
-            </Badge>
-          )}
-        </div>
+        {contact.contact_tags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {contact.contact_tags.map((t, idx) => (
+              <Badge
+                key={idx}
+                className={`
+    ${TAG_BG_CLASSES[t.color]} 
+    ${TAG_TEXT_CLASSES[t.color]} 
+    outline-none ring-0 focus:outline-none focus:ring-0 
+    border-none shadow-none
+  `}
+              >
+                {t.name}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <span className="text-muted-foreground italic">No tags</span>
+        )}
       </TableCell>
     </TableRow>
   );

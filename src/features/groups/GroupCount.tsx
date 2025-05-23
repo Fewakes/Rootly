@@ -1,18 +1,21 @@
-import type ContactsProps from '@/types/types';
-import { useMemo } from 'react';
+import { getAllGroups } from '@/lib/supabase/supabase';
+import { useEffect, useState } from 'react';
 
-export default function GroupCount({ contacts }: ContactsProps) {
-  const groupCount = useMemo(() => {
-    const uniqueGroups = new Set();
+export default function GroupCount() {
+  const [groupsCount, setGroupsCount] = useState<number | null>(null);
 
-    contacts.forEach(c => {
-      c.group.forEach(group => {
-        uniqueGroups.add(group);
-      });
-    });
+  useEffect(() => {
+    async function fetchGroups() {
+      const groups = await getAllGroups();
+      setGroupsCount(groups.length);
+    }
 
-    return uniqueGroups.size;
-  }, [contacts]);
+    fetchGroups();
+  }, []);
 
-  return <div>{groupCount}</div>;
+  if (groupsCount === null) {
+    return <div>Loading...</div>;
+  }
+
+  return <div>{groupsCount}</div>;
 }

@@ -1,7 +1,13 @@
 import ContactRow from '@/features/contacts/ContactRow';
-import { contacts as contactsData } from '@/features/contacts/contacts';
-import { useState } from 'react';
+
+import { useExpandedTags } from '@/hooks/useExpandedTags';
+import { useSortedContacts } from '@/hooks/useSortedContacts';
 import { LuArrowDown, LuArrowUp, LuArrowUpDown } from 'react-icons/lu';
+
+import {
+  getContactsByUser,
+  getCurrentUserId,
+} from '@/lib/supabase/supabase.js';
 
 import {
   Table,
@@ -10,55 +16,48 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-type SortKey = 'name' | 'companyName';
+import type { Contact } from '@/types/types';
+import { useEffect, useState } from 'react';
 
 export default function Contacts() {
-  const [expandedTags, setExpandedTags] = useState<number[]>([]);
-  const [sortBy, setSortBy] = useState<SortKey>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
-  const toggleTags = (id: number) => {
-    setExpandedTags(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id],
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        setLoading(true);
+        const userId = await getCurrentUserId();
+        if (!userId) {
+          throw new Error('User not logged in');
+        }
+
+        const results = await getContactsByUser(userId);
+        setContacts(results);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, []);
+
+  const { expandedTags, toggleTags } = useExpandedTags();
+  const { sortedContacts, sortBy, sortDirection, handleSortChange } =
+    useSortedContacts(contacts);
+
+  const renderSortIcon = (key: 'name' | 'companyName') => {
+    if (sortBy !== key) return <LuArrowUpDown className="inline" />;
+    return sortDirection === 'asc' ? (
+      <LuArrowUp className="inline" />
+    ) : (
+      <LuArrowDown className="inline" />
     );
   };
-
-  const handleSortChange = (key: SortKey) => {
-    if (sortBy === key) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(key);
-      setSortDirection('asc');
-    }
-  };
-
-  const renderSortIcon = (key: SortKey) => {
-    if (sortBy !== key) return <LuArrowUpDown className="inline" />;
-    if (sortDirection === 'asc') return <LuArrowUp className="inline" />;
-    return <LuArrowDown className="inline" />;
-  };
-
-  // Sort contacts based on current sort settings
-  const sortedContacts = [...contactsData].sort((a, b) => {
-    let aValue: string | number = '';
-    let bValue: string | number = '';
-
-    switch (sortBy) {
-      case 'name':
-        aValue = a.name.toLowerCase();
-        bValue = b.name.toLowerCase();
-        break;
-      case 'companyName':
-        aValue = a.company.name.toLowerCase();
-        bValue = b.company.name.toLowerCase();
-        break;
-    }
-
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
 
   return (
     <div className="w-full p-6 space-y-8">
@@ -86,7 +85,6 @@ export default function Contacts() {
             </TableHeadCell>
 
             <TableHeadCell>Groups</TableHeadCell>
-
             <TableHeadCell>Tags</TableHeadCell>
           </TableRow>
         </TableHeader>

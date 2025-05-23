@@ -1,18 +1,21 @@
-import type ContactsProps from '@/types/types';
-import { useMemo } from 'react';
+import { getAllTags } from '@/lib/supabase/supabase';
+import { useEffect, useState } from 'react';
 
-export default function TagsCount({ contacts }: ContactsProps) {
-  const tagsCount = useMemo(() => {
-    const uniqueTags = new Set();
+export default function TagsCount() {
+  const [tagsCount, setTagsCount] = useState<number | null>(null);
 
-    contacts.forEach(c => {
-      c.tags.forEach(tag => {
-        uniqueTags.add(tag);
-      });
-    });
+  useEffect(() => {
+    async function fetchTags() {
+      const tags = await getAllTags();
+      setTagsCount(tags.length);
+    }
 
-    return uniqueTags.size;
-  }, [contacts]);
+    fetchTags();
+  }, []);
+
+  if (tagsCount === null) {
+    return <div>Loading...</div>;
+  }
 
   return <div>{tagsCount}</div>;
 }

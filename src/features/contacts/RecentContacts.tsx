@@ -1,31 +1,46 @@
-import ContactListItem from '@/features/contacts/RecentContactsListItem';
-import type { Contact } from '@/types/types';
-import { useMemo } from 'react';
+import {
+  getCurrentUserId,
+  getRecentContactsByUser,
+} from '@/lib/supabase/supabase';
+import type { Contact, RecentContactsProps } from '@/types/types';
+import { useEffect, useState } from 'react';
+import RecentContactsListItem from './RecentContactsListItem';
 
-interface RecentContactsProps {
-  contacts: Contact[];
-  number: number;
-}
+export default function RecentContacts({ number }: RecentContactsProps) {
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState<true | false>();
 
-export default function RecentContacts({
-  contacts,
-  number,
-}: RecentContactsProps) {
-  const recentContacts = useMemo(() => {
-    return contacts
-      .slice()
-      .sort((a, b) => {
-        // Ensure both have createdAt and fallback to 0 if missing
-        return (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
-      })
-      .slice(0, number);
-  }, [contacts]);
+  useEffect(() => {
+    const fetchRecentContacts = async () => {
+      setLoading(true);
+
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        console.error('No user ID found');
+        setContacts([]);
+        setLoading(false);
+        return;
+      }
+
+      const recent = await getRecentContactsByUser(userId, number);
+      setContacts(recent);
+      setLoading(false);
+    };
+
+    fetchRecentContacts();
+  }, [number]);
+
+  if (loading) return <div>Loading recent contacts...</div>;
 
   return (
     <div className="space-y-2">
-      {recentContacts.map(contact => (
-        <ContactListItem key={contact.id} contact={contact} />
-      ))}
+      {contacts.length > 0 ? (
+        contacts.map(contact => (
+          <RecentContactsListItem key={contact.id} contact={contact} />
+        ))
+      ) : (
+        <div className="text-muted-foreground italic">No recent contacts</div>
+      )}
     </div>
   );
 }

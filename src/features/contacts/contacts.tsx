@@ -128,6 +128,6 @@ export const contacts = [
       logo: slackLogo,
     },
     group: ['Communication'],
-    tags: ['Collaboration', 'Integration', 'Support', 'React'],
+    tags: ['Collaboration', 'Integration', 'Support', 'influential'],
   },
 ];

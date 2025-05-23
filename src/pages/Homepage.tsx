@@ -22,12 +22,12 @@ export default function Homepage() {
           {
             icon: <Tag className="w-8 h-8  text-green-600" />,
             label: 'Total Tags',
-            value: <TagsCount contacts={contacts} />,
+            value: <TagsCount />,
           },
           {
             icon: <Calendar className="w-8 h-8 text-purple-600" />,
             label: 'Total Groups',
-            value: <GroupCount contacts={contacts} />,
+            value: <GroupCount />,
           },
         ].map(({ icon, label, value }) => (
           <div
@@ -53,7 +53,7 @@ export default function Homepage() {
           <h2 className="text-2xl font-semibold border-b border-muted pb-3">
             Recent Contacts
           </h2>
-          <RecentContacts contacts={contacts} number={5} />
+          <RecentContacts number={5} />
         </div>
 
         <div className="space-y-10 sm:mt-17">
