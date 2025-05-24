@@ -54,3 +54,10 @@ export interface Group {
   name: string;
   created_at: string; // or Date
 }
+
+export interface PopularTag {
+  id: string;
+  name: string;
+  color: string;
+  count: number;
+}

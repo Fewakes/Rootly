@@ -1,22 +1,27 @@
-import type { Contact } from '@/types/types';
+'use client';
+
+import { Badge } from '@/components/ui/badge'; // Assuming your Badge component lives here
+import { getPopularTags } from '@/lib/supabase/supabase';
+import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils.ts';
+import type { PopularTag, TagColor } from '@/types/types';
 import { Tag } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-interface PopularTagsProps {
-  contacts: Contact[];
-  tags: number;
-}
+export default function PopularTags() {
+  const [tags, setTags] = useState<PopularTag[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-export default function PopularTags({ contacts, tags }: PopularTagsProps) {
-  const tagCounts = contacts.reduce<Record<string, number>>((acc, contact) => {
-    contact.tags.forEach(tag => {
-      acc[tag] = (acc[tag] || 0) + 1;
-    });
-    return acc;
-  }, {});
+  useEffect(() => {
+    const fetchTags = async () => {
+      const topTags = await getPopularTags(5); // Top 5 tags
+      setTags(topTags);
+      setLoading(false);
+    };
 
-  const sortedTags = Object.entries(tagCounts)
-    .sort(([, countA], [, countB]) => countB - countA)
-    .slice(0, tags);
+    fetchTags();
+  }, []);
+
+  if (loading) return <div>Loading top tags...</div>;
 
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-background">
@@ -25,18 +30,25 @@ export default function PopularTags({ contacts, tags }: PopularTagsProps) {
         <h3 className="text-lg font-semibold">Top Tags</h3>
       </div>
       <div className="flex flex-wrap gap-2">
-        {sortedTags.map(([tag, count]) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground"
-            title={`${count} member${count > 1 ? 's' : ''} have this tag`}
-          >
-            {tag}
-            <span className="inline-block rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
-              {count}
-            </span>
-          </span>
-        ))}
+        {tags.length > 0 ? (
+          tags.map(t => (
+            <Badge
+              key={t.id}
+              variant="outline"
+              className={`
+                ${TAG_BG_CLASSES[t.color as TagColor]} 
+                ${TAG_TEXT_CLASSES[t.color as TagColor]} 
+                outline-none ring-0 focus:outline-none focus:ring-0 
+                border-none shadow-none text-sm font-medium px-3 py-1 
+              `}
+              title={`${t.count} contact${t.count > 1 ? 's' : ''} have this tag`}
+            >
+              {t.name} ({t.count})
+            </Badge>
+          ))
+        ) : (
+          <div className="text-muted-foreground italic">No tags found</div>
+        )}
       </div>
     </div>
   );

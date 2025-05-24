@@ -1,14 +1,47 @@
 import HeaderSection from '@/features/contact/HeaderSection';
 import InfoTabs from '@/features/contact/InfoTabs';
 import SidebarInfo from '@/features/contact/SidebarInfo';
-import { contacts } from '@/features/contacts/contacts';
+import { getContactById } from '@/lib/supabase/supabase';
+import type { Contact } from '@/types/types';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function ContactDetail() {
-  const { id } = useParams();
-  const contact = contacts.find(c => c.id === parseInt(id || '', 10));
+  const { id } = useParams<{ id: string }>();
+  const [contact, setContact] = useState<Contact | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!contact) return <div className="p-6">Contact not found.</div>;
+  useEffect(() => {
+    const fetchContact = async () => {
+      try {
+        if (!id) {
+          throw new Error('No contact ID provided.');
+        }
+
+        setLoading(true);
+        const contactData = await getContactById(id);
+
+        if (!contactData) {
+          throw new Error('Contact not found.');
+        }
+
+        setContact(contactData);
+        setError(null);
+      } catch (err) {
+        setError((err as Error).message);
+        setContact(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContact();
+  }, [id]);
+
+  if (loading) return <p>Loading contact...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
+  if (!contact) return <p>No contact data found.</p>;
 
   return (
     <div className="p-6 space-y-8">

@@ -1,28 +1,27 @@
-import type { Contact } from '@/types/types';
+'use client';
+
+import { Badge } from '@/components/ui/badge';
+
+import { getPopularGroups } from '@/lib/supabase/supabase';
+import type { PopularGroup } from '@/types/types';
 import { Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-interface PopularGroupsProps {
-  contacts: Contact[];
-  groups: number;
-}
+export default function PopularGroups() {
+  const [groups, setGroups] = useState<PopularGroup[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-export default function PopularGroups({
-  contacts,
-  groups,
-}: PopularGroupsProps) {
-  const groupCounts = contacts.reduce<Record<string, number>>(
-    (acc, contact) => {
-      contact.group.forEach(group => {
-        acc[group] = (acc[group] || 0) + 1;
-      });
-      return acc;
-    },
-    {},
-  );
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const topGroups = await getPopularGroups(5); // Top 5 groups
+      setGroups(topGroups);
+      setLoading(false);
+    };
 
-  const sortedGroups = Object.entries(groupCounts)
-    .sort(([, countA], [, countB]) => countB - countA)
-    .slice(0, groups);
+    fetchGroups();
+  }, []);
+
+  if (loading) return <div>Loading top groups...</div>;
 
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-background">
@@ -31,18 +30,24 @@ export default function PopularGroups({
         <h3 className="text-lg font-semibold">Top Groups</h3>
       </div>
       <div className="flex flex-wrap gap-2">
-        {sortedGroups.map(([group, count]) => (
-          <span
-            key={group}
-            className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground"
-            title={`${count} member${count > 1 ? 's' : ''} in this group`}
-          >
-            {group}
-            <span className="inline-block rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
-              {count}
-            </span>
-          </span>
-        ))}
+        {groups.length > 0 ? (
+          groups.map(group => (
+            <Badge
+              key={group.id}
+              variant="outline"
+              className={`
+               
+                outline-none ring-0 focus:outline-none focus:ring-0 
+                border-none shadow-none inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground"
+              `}
+              title={`${group.count} contact${group.count > 1 ? 's' : ''} in this group`}
+            >
+              {group.name} ({group.count})
+            </Badge>
+          ))
+        ) : (
+          <div className="text-muted-foreground italic">No groups found</div>
+        )}
       </div>
     </div>
   );

@@ -32,37 +32,38 @@ export const getCurrentUserId = async () => {
  * @returns {Promise<Array>} - A promise that resolves to an array of contacts.
  */
 
-export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
+/**
+ * Fetch all contacts for the currently authenticated user.
+ * Returns contacts with related company, groups, and tags.
+ *
+ * @returns {Promise<Contact[]>} - Promise resolving to an array of contacts.
+ */
+export const getContactsByUser = async (): Promise<Contact[]> => {
   try {
     const { data, error } = await supabase
       .from('contacts')
       .select(
         `
-  id,
-  name,
-  email,
-  avatar_url,
-  created_at,
-  company:companies!company_id(name, logo_url),
-  contact_groups:contact_groups!inner(groups(id, name)),
-  contact_tags:contact_tags!inner(tags(id, name, color))
-`,
+        id,
+        name,
+        email,
+        avatar_url,
+        created_at,
+        company:companies!company_id(name, logo_url),
+        contact_groups:contact_groups!inner(groups(id, name)),
+        contact_tags:contact_tags!inner(tags(id, name, color))
+      `,
       )
-
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching contacts:', error.message);
       throw new Error(error.message);
     }
-    // 🔍 Log the raw Supabase response
-    console.log('Raw Supabase data:', data);
 
     const fixedData: Contact[] = (data ?? []).map((contact: any) => ({
       ...contact,
       company: contact.company ?? null,
-
       contact_groups: contact.contact_groups.map((g: any) => g.groups),
       contact_tags: contact.contact_tags.map((t: any) => t.tags),
     }));
@@ -73,36 +74,23 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
       'Unexpected error fetching contacts:',
       (err as Error).message,
     );
-
     return [];
   }
 };
 
-/**
- * Fetch recent contacts for a specific user, limited by number.
- * Returns only id, name, avatar_url, and contact_tags.
- *
- * @param {string} userId - The user ID whose recent contacts to retrieve.
- * @param {number} limit - The max number of recent contacts to fetch.
- * @returns {Promise<Contact[]>} - Promise resolving to an array of recent contacts.
- */
-export const getRecentContactsByUser = async (
-  userId: string,
-  limit: number,
-): Promise<Contact[]> => {
+export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
   try {
     const { data, error } = await supabase
       .from('contacts')
       .select(
         `
-    id,
-    name,
-    avatar_url,
-    contact_tags:contact_tags!inner(tags(id, name, color))
-  `,
+      id,
+      name,
+      avatar_url,
+      contact_tags:contact_tags!inner(tags(id, name, color))
+    `,
       )
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false }) // <-- This is the key line
+      .order('created_at', { ascending: false }) // most recent first
       .limit(limit);
 
     if (error) {
@@ -114,7 +102,7 @@ export const getRecentContactsByUser = async (
       ...contact,
       contact_tags: Array.isArray(contact.contact_tags)
         ? contact.contact_tags.map((ct: any) => ct.tags)
-        : [], // default to empty array if undefined or not an array
+        : [],
     }));
 
     return fixedData;
@@ -155,4 +143,153 @@ export const getAllGroups = async (): Promise<Group[]> => {
   }
 
   return data;
+};
+
+export interface PopularTag extends Tag {
+  user_count: number;
+}
+
+// lib/supabase/supabase.ts
+import type { PopularTag } from '@/types/types';
+
+export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
+  const { data, error } = await supabase.from('tags').select(`
+      id,
+      name,
+      color,
+      contact_tags(
+        contact_id
+      )
+    `);
+
+  if (error) {
+    console.error('Error fetching popular tags:', error.message);
+    return [];
+  }
+
+  // Count how many contacts are using each tag
+  const sortedTags = (data ?? [])
+    .map(tag => ({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color,
+      count: tag.contact_tags.length,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+
+  return sortedTags;
+};
+
+// supabase.ts or wherever your Supabase functions live
+
+export interface PopularGroup {
+  id: string;
+  name: string;
+  count: number;
+}
+
+/**
+ * Fetch the top 5 most popular groups based on number of contacts assigned.
+ * @returns Promise<PopularGroup[]>
+ */
+export const getPopularGroups = async (): Promise<PopularGroup[]> => {
+  const { data, error } = await supabase
+    .from('contact_groups')
+    .select(
+      `
+      group_id,
+      groups (
+        id,
+        name
+      )
+    `,
+    )
+    .limit(1000); // arbitrary large limit to avoid excessive querying
+
+  if (error) {
+    console.error('Error fetching group contact data:', error.message);
+    return [];
+  }
+
+  // Count how many times each group_id appears
+  const groupCountMap: Record<string, { name: string; count: number }> = {};
+
+  data?.forEach((entry: any) => {
+    const groupId = entry.groups.id;
+    const groupName = entry.groups.name;
+
+    if (!groupCountMap[groupId]) {
+      groupCountMap[groupId] = { name: groupName, count: 1 };
+    } else {
+      groupCountMap[groupId].count++;
+    }
+  });
+
+  // Convert to array and sort by count descending
+  const sortedGroups: PopularGroup[] = Object.entries(groupCountMap)
+    .map(([id, { name, count }]) => ({ id, name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5); // top 5
+
+  return sortedGroups;
+};
+
+/**
+ * Fetch a single contact by ID with all associated data.
+ * Includes company, contact groups, and tags.
+ *
+ * @param {string} contactId - The ID of the contact to fetch.
+ * @returns {Promise<Contact | null>} - Promise resolving to a single contact object, or null if not found.
+ */
+export const getContactById = async (
+  contactId: string,
+): Promise<Contact | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select(
+        `
+        id,
+        name,
+        email,
+        avatar_url,
+        created_at,
+        contact_number,
+        Town,
+        Country,
+        Birthday,
+        link_name,
+        link_url,
+        company:companies!company_id(name, logo_url),
+        contact_groups:contact_groups!inner(groups(id, name)),
+        contact_tags:contact_tags!inner(tags(id, name, color))
+      `,
+      )
+      .eq('id', contactId)
+      .single(); // Get exactly one row
+
+    if (error) {
+      console.error(
+        `Error fetching contact with ID ${contactId}:`,
+        error.message,
+      );
+      throw new Error(error.message);
+    }
+
+    if (!data) return null;
+
+    const contact: Contact = {
+      ...data,
+      company: data.company ?? null,
+      contact_groups: data.contact_groups.map((g: any) => g.groups),
+      contact_tags: data.contact_tags.map((t: any) => t.tags),
+    };
+    console.log('CONTACT DATA:', contact);
+
+    return contact;
+  } catch (err) {
+    console.error('Unexpected error fetching contact:', (err as Error).message);
+    return null;
+  }
 };

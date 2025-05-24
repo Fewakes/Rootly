@@ -1,4 +1,5 @@
 import { contacts } from '@/features/contacts/contacts';
+import ContactsCount from '@/features/contacts/ContactsCount';
 import RecentContacts from '@/features/contacts/RecentContacts';
 import GroupCount from '@/features/groups/GroupCount';
 import PopularGroups from '@/features/groups/PopularGroups';
@@ -17,7 +18,7 @@ export default function Homepage() {
           {
             icon: <Users className="w-8 h-8 text-blue-600" />,
             label: 'Total Contacts',
-            value: contacts.length,
+            value: <ContactsCount />,
           },
           {
             icon: <Tag className="w-8 h-8  text-green-600" />,
@@ -56,7 +57,7 @@ export default function Homepage() {
           <RecentContacts number={5} />
         </div>
 
-        <div className="space-y-10 sm:mt-17">
+        <div className="flex flex-col justify-between mt-17">
           <PopularTags contacts={contacts} tags={5} />
           <PopularGroups contacts={contacts} groups={5} />
         </div>

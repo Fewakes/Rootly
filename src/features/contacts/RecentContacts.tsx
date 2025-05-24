@@ -1,29 +1,19 @@
-import {
-  getCurrentUserId,
-  getRecentContactsByUser,
-} from '@/lib/supabase/supabase';
+import { getRecentContacts } from '@/lib/supabase/supabase';
 import type { Contact, RecentContactsProps } from '@/types/types';
 import { useEffect, useState } from 'react';
 import RecentContactsListItem from './RecentContactsListItem';
 
 export default function RecentContacts({ number }: RecentContactsProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState<true | false>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRecentContacts = async () => {
       setLoading(true);
 
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        console.error('No user ID found');
-        setContacts([]);
-        setLoading(false);
-        return;
-      }
-
-      const recent = await getRecentContactsByUser(userId, number);
+      const recent = await getRecentContacts(number);
       setContacts(recent);
+
       setLoading(false);
     };
 
