@@ -1,7 +1,8 @@
 import HeaderSection from '@/features/contact/HeaderSection';
 import InfoTabs from '@/features/contact/InfoTabs';
 import SidebarInfo from '@/features/contact/SidebarInfo';
-import { getContactById } from '@/lib/supabase/supabase';
+import { getContactById } from '@/services/contacts';
+
 import type { Contact } from '@/types/types';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';

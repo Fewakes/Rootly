@@ -33,10 +33,12 @@ import { v4 as uuidv4 } from 'uuid';
 import * as z from 'zod';
 
 import { useDialog } from '@/contexts/DialogContext';
-import { getCurrentUserId, insertContact } from '@/lib/supabase/supabase';
+
 import { useNavigate } from 'react-router-dom';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
+import { insertContact } from '@/services/contacts';
+import { getCurrentUserId } from '@/services/users';
 
 const formSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),

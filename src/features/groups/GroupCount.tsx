@@ -1,4 +1,4 @@
-import { getAllGroups } from '@/lib/supabase/supabase';
+import { getAllGroups } from '@/services/groups';
 import { useEffect, useState } from 'react';
 
 export default function GroupCount() {

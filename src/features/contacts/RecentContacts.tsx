@@ -1,7 +1,7 @@
-import { getRecentContacts } from '@/lib/supabase/supabase';
 import type { Contact, RecentContactsProps } from '@/types/types';
 import { useEffect, useState } from 'react';
 import RecentContactsListItem from './RecentContactsListItem';
+import { getRecentContacts } from '@/services/contacts';
 
 export default function RecentContacts({ number }: RecentContactsProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);

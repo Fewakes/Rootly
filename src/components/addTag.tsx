@@ -1,36 +1,42 @@
-import { useDialog } from '@/contexts/DialogContext';
-import { getCurrentUserId, insertTag } from '@/lib/supabase/supabase';
-import { TAG_COLORS } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
+// React hook form and validation
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+
+// Utilities
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
+
+// Routing and context
+import { useNavigate } from 'react-router-dom';
+import { useDialog } from '@/contexts/DialogContext';
+
+// App constants and services
+import { TAG_COLORS } from '@/lib/utils';
+import { insertTag } from '@/services/tags';
+import { getCurrentUserId } from '@/services/users';
+
+// UI Components (grouped from a single barrel file)
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+  Button,
+} from '@/components/ui';
 
 const formSchema = z.object({
   tagName: z.string().min(1, 'Tag name is required'),

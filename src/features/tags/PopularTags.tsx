@@ -1,8 +1,9 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge'; // Assuming your Badge component lives here
-import { getPopularTags } from '@/lib/supabase/supabase';
+import { Badge } from '@/components/ui/badge';
+
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils.ts';
+import { getPopularTags } from '@/services/tags';
 import type { PopularTag, TagColor } from '@/types/types';
 import { Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';

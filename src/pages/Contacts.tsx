@@ -5,11 +5,6 @@ import { useSortedContacts } from '@/hooks/useSortedContacts';
 import { LuArrowDown, LuArrowUp, LuArrowUpDown } from 'react-icons/lu';
 
 import {
-  getContactsByUser,
-  getCurrentUserId,
-} from '@/lib/supabase/supabase.js';
-
-import {
   Table,
   TableBody,
   TableHead as TableHeadCell,
@@ -18,6 +13,8 @@ import {
 } from '@/components/ui/table';
 import type { Contact } from '@/types/types';
 import { useEffect, useState } from 'react';
+import { getContactsByUser } from '@/services/contacts';
+import { getCurrentUserId } from '@/services/users';
 
 export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);

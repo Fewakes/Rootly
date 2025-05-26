@@ -1,6 +1,7 @@
 'use client';
 
-import { getContactsByUser, getCurrentUserId } from '@/lib/supabase/supabase';
+import { getContactsByUser } from '@/services/contacts';
+import { getCurrentUserId } from '@/services/users';
 import { useEffect, useState } from 'react';
 
 export default function ContactsCount() {

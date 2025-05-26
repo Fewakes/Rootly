@@ -1,4 +1,4 @@
-import { getAllTags } from '@/lib/supabase/supabase';
+import { getAllTags } from '@/services/tags';
 import { useEffect, useState } from 'react';
 
 export default function TagsCount() {
