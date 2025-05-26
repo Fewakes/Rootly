@@ -1,22 +1,21 @@
-// context/DialogContext.tsx
 import { createContext, ReactNode, useContext, useState } from 'react';
 
 type DialogContextType = {
-  open: boolean;
-  openDialog: () => void;
+  openDialogName: string | null;
+  openDialog: (name: string) => void;
   closeDialog: () => void;
 };
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const [openDialogName, setOpenDialogName] = useState<string | null>(null);
 
-  const openDialog = () => setOpen(true);
-  const closeDialog = () => setOpen(false);
+  const openDialog = (name: string) => setOpenDialogName(name);
+  const closeDialog = () => setOpenDialogName(null);
 
   return (
-    <DialogContext.Provider value={{ open, openDialog, closeDialog }}>
+    <DialogContext.Provider value={{ openDialogName, openDialog, closeDialog }}>
       {children}
     </DialogContext.Provider>
   );

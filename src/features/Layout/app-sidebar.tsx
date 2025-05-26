@@ -69,7 +69,7 @@ export function AppSidebar() {
     <Sidebar>
       {/* Header with "Add new contact" button */}
       <SidebarHeader>
-        <ButtonWithIcon onClick={openDialog}>
+        <ButtonWithIcon onClick={() => openDialog('addContact')}>
           <div className="flex gap-3 cursor-pointer">
             <UserRoundPlus /> New Contact
           </div>
@@ -137,7 +137,10 @@ export function AppSidebar() {
           </SidebarGroupLabel>
 
           {/* Button to add new tags */}
-          <SidebarGroupAction title="Add Tags">
+          <SidebarGroupAction
+            title="Add Tags"
+            onClick={() => openDialog('addTag')}
+          >
             <Plus className="w-4 h-4" />
             <span className="sr-only">Add Tags</span>
           </SidebarGroupAction>

@@ -44,3 +44,23 @@ export const TAG_TEXT_CLASSES = {
   pink: 'text-pink-600',
   rose: 'text-rose-600',
 };
+
+export const TAG_COLORS = [
+  'red',
+  'orange',
+  'amber',
+  'yellow',
+  'lime',
+  'green',
+  'emerald',
+  'teal',
+  'cyan',
+  'sky',
+  'blue',
+  'indigo',
+  'violet',
+  'purple',
+  'fuchsia',
+  'pink',
+  'rose',
+];

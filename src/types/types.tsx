@@ -77,3 +77,12 @@ export type NewContact = {
   link_name: string | null;
   link_url: string | null;
 };
+
+export interface NewTag {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  created_at: string;
+  logo?: string | null;
+}

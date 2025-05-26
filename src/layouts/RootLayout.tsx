@@ -1,4 +1,5 @@
-import AddContactDialog from '@/components/addContact';
+import AddContactDialog from '@/components/AddContact';
+import AddTag from '@/components/addTag';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { AppSidebar } from '@/features/Layout/app-sidebar';
@@ -20,6 +21,7 @@ export default function Layout() {
             <main className="flex-1 min-h-0 overflow-auto p-6 bg-background relative">
               <Outlet />
               <AddContactDialog />
+              <AddTag />
             </main>
           </div>
         </SidebarProvider>

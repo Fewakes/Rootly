@@ -1,12 +1,8 @@
 // Function to read current Users ID
 
 import { supabase } from '@/lib/supabaseClient';
-import type { Contact, NewContact } from '@/types/types';
+import type { Contact, NewContact, NewTag } from '@/types/types';
 
-/**
- * Get the currently logged-in user's ID from Supabase Auth.
- * @returns {Promise<string|null>} - A promise that resolves to the user ID, or null if not logged in or error occurs.
- */
 export const getCurrentUserId = async () => {
   try {
     const {
@@ -319,6 +315,32 @@ export const insertContact = async (
       'Unexpected error inserting contact:',
       (err as Error).message,
     );
+    return null;
+  }
+};
+
+/**
+ * Insert a new tag into the database.
+ *
+ * @param {NewTag} tag - The full tag object to insert.
+ * @returns {Promise<object | null>} - The inserted tag or null on failure.
+ */
+export const insertTag = async (tag: NewTag): Promise<object | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('tags')
+      .insert([tag])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error inserting tag:', error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Unexpected error inserting tag:', (err as Error).message);
     return null;
   }
 };
