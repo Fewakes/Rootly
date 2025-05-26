@@ -11,14 +11,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useDialog } from '@/contexts/DialogContext';
+import { ButtonWithIcon } from '@/features/Layout/button-with-icon';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Contact,
   Home,
-  LucideCircleUser,
   LucideLogOut,
   LucideSettings,
   Plus,
+  UserRoundPlus,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -46,8 +48,8 @@ const tags = [
 
 export function AppSidebar() {
   const location = useLocation(); // Used to check which route is active
-
   const navigate = useNavigate();
+  const { openDialog } = useDialog();
 
   const handleLogout = async () => {
     try {
@@ -67,10 +69,11 @@ export function AppSidebar() {
     <Sidebar>
       {/* Header with "Add new contact" button */}
       <SidebarHeader>
-        <button className="bg-primaryBlue hover:bg-primaryBlue/90 transition-colors rounded-md h-10 px-5 text-white flex items-center justify-center gap-2 mt-5 mx-auto text-sm font-medium">
-          <LucideCircleUser className="w-5 h-5" />
-          <span>Add new contact</span>
-        </button>
+        <ButtonWithIcon onClick={openDialog}>
+          <div className="flex gap-3 cursor-pointer">
+            <UserRoundPlus /> New Contact
+          </div>
+        </ButtonWithIcon>
       </SidebarHeader>
 
       <SidebarContent>

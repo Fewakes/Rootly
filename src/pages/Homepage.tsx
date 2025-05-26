@@ -1,4 +1,3 @@
-import { contacts } from '@/features/contacts/contacts';
 import ContactsCount from '@/features/contacts/ContactsCount';
 import RecentContacts from '@/features/contacts/RecentContacts';
 import GroupCount from '@/features/groups/GroupCount';
@@ -58,8 +57,8 @@ export default function Homepage() {
         </div>
 
         <div className="flex flex-col justify-between mt-17">
-          <PopularTags contacts={contacts} tags={5} />
-          <PopularGroups contacts={contacts} groups={5} />
+          <PopularTags />
+          <PopularGroups />
         </div>
       </section>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { getContactsByUser } from '@/lib/supabase/supabase';
+import { getContactsByUser, getCurrentUserId } from '@/lib/supabase/supabase';
 import { useEffect, useState } from 'react';
 
 export default function ContactsCount() {
@@ -8,7 +8,8 @@ export default function ContactsCount() {
 
   useEffect(() => {
     async function fetchContacts() {
-      const contacts = await getContactsByUser();
+      const id = await getCurrentUserId();
+      const contacts = await getContactsByUser(id);
       setContactsCount(contacts.length);
     }
 

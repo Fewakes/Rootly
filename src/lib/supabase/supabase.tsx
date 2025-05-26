@@ -1,7 +1,7 @@
 // Function to read current Users ID
 
 import { supabase } from '@/lib/supabaseClient';
-import type { Contact } from '@/types/types';
+import type { Contact, NewContact } from '@/types/types';
 
 /**
  * Get the currently logged-in user's ID from Supabase Auth.
@@ -38,44 +38,42 @@ export const getCurrentUserId = async () => {
  *
  * @returns {Promise<Contact[]>} - Promise resolving to an array of contacts.
  */
-export const getContactsByUser = async (): Promise<Contact[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('contacts')
-      .select(
-        `
-        id,
-        name,
-        email,
-        avatar_url,
-        created_at,
-        company:companies!company_id(name, logo_url),
-        contact_groups:contact_groups!inner(groups(id, name)),
-        contact_tags:contact_tags!inner(tags(id, name, color))
-      `,
-      )
-      .order('created_at', { ascending: false });
+export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      `
+      id,
+      name,
+      email,
+      avatar_url,
+      created_at,
+      contact_number,
+      town,
+      country,
+      birthday,
+      link_name,
+      link_url,
+      gender,
+      company:companies!company_id(name, logo_url),
+      contact_groups(groups(id, name)),
+      contact_tags(tags(id, name, color))
+    `,
+    )
+    .eq('user_id', userId) // Adjust if you're using some other auth logic
+    .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching contacts:', error.message);
-      throw new Error(error.message);
-    }
-
-    const fixedData: Contact[] = (data ?? []).map((contact: any) => ({
-      ...contact,
-      company: contact.company ?? null,
-      contact_groups: contact.contact_groups.map((g: any) => g.groups),
-      contact_tags: contact.contact_tags.map((t: any) => t.tags),
-    }));
-
-    return fixedData;
-  } catch (err) {
-    console.error(
-      'Unexpected error fetching contacts:',
-      (err as Error).message,
-    );
+  if (error) {
+    console.error('Error fetching contacts:', error.message);
     return [];
   }
+
+  return data.map((c: any) => ({
+    ...c,
+    company: c.company ?? null,
+    contact_groups: c.contact_groups?.map((g: any) => g.groups) ?? [],
+    contact_tags: c.contact_tags?.map((t: any) => t.tags) ?? [],
+  }));
 };
 
 export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
@@ -256,18 +254,19 @@ export const getContactById = async (
         avatar_url,
         created_at,
         contact_number,
-        Town,
-        Country,
-        Birthday,
+        town,
+        country,
+        birthday,
         link_name,
         link_url,
+        gender,
         company:companies!company_id(name, logo_url),
-        contact_groups:contact_groups!inner(groups(id, name)),
-        contact_tags:contact_tags!inner(tags(id, name, color))
+        contact_groups:contact_groups(groups(id, name)),
+        contact_tags:contact_tags(tags(id, name, color))
       `,
       )
       .eq('id', contactId)
-      .single(); // Get exactly one row
+      .single();
 
     if (error) {
       console.error(
@@ -282,14 +281,44 @@ export const getContactById = async (
     const contact: Contact = {
       ...data,
       company: data.company ?? null,
-      contact_groups: data.contact_groups.map((g: any) => g.groups),
-      contact_tags: data.contact_tags.map((t: any) => t.tags),
+      contact_groups: data.contact_groups?.map((g: any) => g.groups) ?? [],
+      contact_tags: data.contact_tags?.map((t: any) => t.tags) ?? [],
     };
-    console.log('CONTACT DATA:', contact);
 
     return contact;
   } catch (err) {
     console.error('Unexpected error fetching contact:', (err as Error).message);
+    return null;
+  }
+};
+
+/**
+ * Insert a new contact into the database.
+ *
+ * @param {object} contact - The full contact object to insert.
+ * @returns {Promise<object | null>} - The inserted contact or null on failure.
+ */
+export const insertContact = async (
+  contact: NewContact,
+): Promise<object | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('contacts')
+      .insert([contact])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error inserting contact:', error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (err) {
+    console.error(
+      'Unexpected error inserting contact:',
+      (err as Error).message,
+    );
     return null;
   }
 };

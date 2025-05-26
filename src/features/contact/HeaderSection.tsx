@@ -1,6 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
+import default_woman from '@/assets/default_woman.svg';
+import default_man from '@/assets/default_man.svg';
 
 export default function HeaderSection({ contact }: { contact: any }) {
   return (
