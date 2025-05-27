@@ -4,7 +4,7 @@ import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 
-export default function HeaderSection({ contact }: { contact: any }) {
+export default function ContactHeader({ contact }: { contact: any }) {
   return (
     <div className="flex items-center gap-4">
       <Avatar className="h-20 w-20">

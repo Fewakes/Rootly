@@ -1,6 +1,6 @@
-import HeaderSection from '@/features/contact/HeaderSection';
-import InfoTabs from '@/features/contact/InfoTabs';
-import SidebarInfo from '@/features/contact/SidebarInfo';
+import HeaderSection from '@/features/contact/ContactHeader';
+import InfoTabs from '@/features/contact/ContactBody';
+import SidebarInfo from '@/features/contact/ContatInformation';
 import { getContactById } from '@/services/contacts';
 
 import type { Contact } from '@/types/types';

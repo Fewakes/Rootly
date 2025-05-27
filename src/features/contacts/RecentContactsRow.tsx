@@ -12,7 +12,7 @@ interface RecentContactsListItemProps {
   contact: Contact;
 }
 
-export default function RecentContactsListItem({
+export default function RecentContactsRow({
   contact,
 }: RecentContactsListItemProps) {
   // Defensive fallback for tags

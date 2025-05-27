@@ -1,12 +1,12 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-
-import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils.ts';
-import { getPopularTags } from '@/services/tags';
-import type { PopularTag, TagColor } from '@/types/types';
-import { Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Tag } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
+import { getPopularTags } from '@/logic/getPopularTags';
+import type { PopularTag, TagColor } from '@/types/types';
 
 export default function PopularTags() {
   const [tags, setTags] = useState<PopularTag[]>([]);
@@ -14,7 +14,7 @@ export default function PopularTags() {
 
   useEffect(() => {
     const fetchTags = async () => {
-      const topTags = await getPopularTags(5); // Top 5 tags
+      const topTags = await getPopularTags(5);
       setTags(topTags);
       setLoading(false);
     };

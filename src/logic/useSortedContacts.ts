@@ -19,10 +19,15 @@ export const useSortedContacts = (contacts: Contact[]) => {
 
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) => {
+      // Defensive fallback values if company or name missing
       const aValue =
-        sortBy === 'name' ? a.name.toLowerCase() : a.company.name.toLowerCase();
+        sortBy === 'name'
+          ? (a.name ?? '').toLowerCase()
+          : (a.company?.name ?? '').toLowerCase();
       const bValue =
-        sortBy === 'name' ? b.name.toLowerCase() : b.company.name.toLowerCase();
+        sortBy === 'name'
+          ? (b.name ?? '').toLowerCase()
+          : (b.company?.name ?? '').toLowerCase();
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;

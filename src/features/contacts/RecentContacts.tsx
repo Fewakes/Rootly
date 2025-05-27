@@ -1,32 +1,20 @@
-import type { Contact, RecentContactsProps } from '@/types/types';
-import { useEffect, useState } from 'react';
-import RecentContactsListItem from './RecentContactsListItem';
-import { getRecentContacts } from '@/services/contacts';
+import type { RecentContactsProps } from '@/types/types';
+
+import { useRecentContacts } from '@/logic/useRecentContacts';
+import RecentContactsRow from './RecentContactsRow';
 
 export default function RecentContacts({ number }: RecentContactsProps) {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { contacts, loading } = useRecentContacts(number);
 
-  useEffect(() => {
-    const fetchRecentContacts = async () => {
-      setLoading(true);
-
-      const recent = await getRecentContacts(number);
-      setContacts(recent);
-
-      setLoading(false);
-    };
-
-    fetchRecentContacts();
-  }, [number]);
-
-  if (loading) return <div>Loading recent contacts...</div>;
+  if (loading) {
+    return <div>Loading recent contacts...</div>;
+  }
 
   return (
     <div className="space-y-2">
       {contacts.length > 0 ? (
         contacts.map(contact => (
-          <RecentContactsListItem key={contact.id} contact={contact} />
+          <RecentContactsRow key={contact.id} contact={contact} />
         ))
       ) : (
         <div className="text-muted-foreground italic">No recent contacts</div>

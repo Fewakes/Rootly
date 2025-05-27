@@ -1,16 +1,18 @@
-import { getAllTags } from '@/services/tags';
+'use client';
+
 import { useEffect, useState } from 'react';
+import { getTagsCount } from '@/logic/getTagsCount';
 
 export default function TagsCount() {
   const [tagsCount, setTagsCount] = useState<number | null>(null);
 
   useEffect(() => {
-    async function fetchTags() {
-      const tags = await getAllTags();
-      setTagsCount(tags.length);
+    async function fetchCount() {
+      const count = await getTagsCount();
+      setTagsCount(count);
     }
 
-    fetchTags();
+    fetchCount();
   }, []);
 
   if (tagsCount === null) {

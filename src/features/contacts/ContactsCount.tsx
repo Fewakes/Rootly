@@ -1,21 +1,9 @@
 'use client';
 
-import { getContactsByUser } from '@/services/contacts';
-import { getCurrentUserId } from '@/services/users';
-import { useEffect, useState } from 'react';
+import { useContactsCount } from '@/logic/useContactsCount';
 
 export default function ContactsCount() {
-  const [contactsCount, setContactsCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    async function fetchContacts() {
-      const id = await getCurrentUserId();
-      const contacts = await getContactsByUser(id);
-      setContactsCount(contacts.length);
-    }
-
-    fetchContacts();
-  }, []);
+  const contactsCount = useContactsCount();
 
   if (contactsCount === null) {
     return <div>Loading...</div>;

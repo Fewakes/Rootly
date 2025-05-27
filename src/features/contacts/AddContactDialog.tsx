@@ -1,3 +1,4 @@
+// AddContactDialog.tsx
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,86 +27,16 @@ import {
 } from '@/components/ui/select';
 
 import { Building2, Tags, UserIcon, Users } from 'lucide-react';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
-import * as z from 'zod';
-
 import { useDialog } from '@/contexts/DialogContext';
-
-import { useNavigate } from 'react-router-dom';
-import default_woman from '@/assets/default_woman.svg';
-import default_man from '@/assets/default_man.svg';
-import { insertContact } from '@/services/contacts';
-import { getCurrentUserId } from '@/services/users';
-
-const formSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  surname: z.string().min(1, 'Surname is required'),
-  gender: z.enum(['male', 'female'], {
-    required_error: 'Gender is required',
-  }),
-  email: z.string().email('Invalid email'),
-  contactNumber: z.string().optional(),
-});
+import { useAddContactForm } from '@/logic/useAddContactForm';
 
 export default function AddContactDialog() {
   const { openDialogName, closeDialog } = useDialog();
-  const navigate = useNavigate();
-
-  // Open dialog only if context name matches 'addContact'
   const open = openDialogName === 'addContact';
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      firstName: '',
-      surname: '',
-      gender: 'male',
-      email: '',
-      contactNumber: '',
-    },
-  });
-
-  const onSubmit = async data => {
-    const avatarUrl = data.gender === 'male' ? default_man : default_woman;
-
-    const newContact = {
-      id: uuidv4(),
-      user_id: await getCurrentUserId(),
-      name: `${data.firstName} ${data.surname}`,
-      email: data.email,
-      gender: data.gender,
-      avatar_url: avatarUrl,
-      company_id: null,
-      created_at: new Date().toISOString(),
-      contact_number: data.contactNumber || null,
-      town: null,
-      country: null,
-      birthday: null,
-      link_name: null,
-      link_url: null,
-    };
-
-    const saved = await insertContact(newContact);
-
-    if (saved) {
-      form.reset();
-      closeDialog();
-      navigate(`/contacts/${saved.id}`);
-    } else {
-      console.error('Failed to create contact');
-    }
-  };
+  const { form, onSubmit } = useAddContactForm();
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={isOpen => {
-        if (!isOpen) closeDialog();
-      }}
-    >
+    <Dialog open={open} onOpenChange={isOpen => !isOpen && closeDialog()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Contact</DialogTitle>
@@ -228,48 +159,29 @@ export default function AddContactDialog() {
                   />
                 </div>
 
-                {/* Disabled placeholders */}
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Group
-                    </span>
+                {/* Placeholder sections */}
+                {[
+                  { icon: Users, label: 'Group' },
+                  { icon: Tags, label: 'Tags' },
+                  { icon: Building2, label: 'Company' },
+                ].map(({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="border rounded-xl p-4 bg-muted/30"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {label}
+                      </span>
+                    </div>
+                    <Select disabled>
+                      <SelectTrigger>
+                        <SelectValue placeholder="coming soon" />
+                      </SelectTrigger>
+                    </Select>
                   </div>
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="coming soon" />
-                    </SelectTrigger>
-                  </Select>
-                </div>
-
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Tags className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Tags
-                    </span>
-                  </div>
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="coming soon" />
-                    </SelectTrigger>
-                  </Select>
-                </div>
-
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Company
-                    </span>
-                  </div>
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="coming soon" />
-                    </SelectTrigger>
-                  </Select>
-                </div>
+                ))}
               </div>
             </div>
 

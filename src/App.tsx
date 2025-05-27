@@ -8,7 +8,6 @@ import ContactDetails from './pages/ContactDetails';
 import Contacts from './pages/Contacts';
 import Homepage from './pages/Homepage';
 import Login from './pages/Login';
-import NewGroups from './pages/NewGroups';
 
 function App() {
   return (
@@ -24,7 +23,6 @@ function App() {
             <Route index element={<Homepage />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="contacts/:id" element={<ContactDetails />} />
-            <Route path="groups" element={<NewGroups />} />
           </Route>
         </Routes>
       </AuthProvider>

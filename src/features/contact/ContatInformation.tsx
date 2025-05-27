@@ -1,7 +1,7 @@
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Globe, Mail, MapPin, Phone, Users } from 'lucide-react';
 
-export default function SidebarInfo({ contact }: { contact: any }) {
+export default function ContactInformation({ contact }: { contact: any }) {
   return (
     <aside className="w-full md:w-80 h-fit border rounded-xl p-6 shadow-sm space-y-6 bg-background">
       {/* Socials */}

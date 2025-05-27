@@ -1,18 +1,25 @@
+import QuickStats from '@/components/QuickStats';
 import ContactsCount from '@/features/contacts/ContactsCount';
 import RecentContacts from '@/features/contacts/RecentContacts';
 import GroupCount from '@/features/groups/GroupCount';
 import PopularGroups from '@/features/groups/PopularGroups';
 import PopularTags from '@/features/tags/PopularTags';
 import TagsCount from '@/features/tags/TagsCount';
-import { Calendar, Tag, Users } from 'lucide-react';
+import { Users, Tag, Calendar } from 'lucide-react';
 
 export default function Homepage() {
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-12">
+    <main className="max-w-7xl mx-auto p-6 space-y-12">
       <h1 className="text-4xl font-bold text-center md:text-left">Dashboard</h1>
 
       {/* Quick Stats */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <section
+        aria-labelledby="stats-heading"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-8"
+      >
+        <h2 id="stats-heading" className="sr-only">
+          Quick Stats
+        </h2>
         {[
           {
             icon: <Users className="w-8 h-8 text-blue-600" />,
@@ -30,25 +37,18 @@ export default function Homepage() {
             value: <GroupCount />,
           },
         ].map(({ icon, label, value }) => (
-          <div
-            key={label}
-            className="flex items-center gap-4 p-5 border rounded-lg shadow-sm bg-background"
-          >
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted text-muted-foreground">
-              {icon}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">
-                {label}
-              </p>
-              <p className="text-2xl font-semibold">{value}</p>
-            </div>
-          </div>
+          <QuickStats key={label} icon={icon} label={label} value={value} />
         ))}
       </section>
 
       {/* Featured */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+      <section
+        aria-labelledby="featured-heading"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-10"
+      >
+        <h2 id="featured-heading" className="sr-only">
+          Featured Sections
+        </h2>
         <div className="sm:col-span-2 space-y-6">
           <h2 className="text-2xl font-semibold border-b border-muted pb-3">
             Recent Contacts
@@ -56,11 +56,11 @@ export default function Homepage() {
           <RecentContacts number={5} />
         </div>
 
-        <div className="flex flex-col justify-between mt-17">
+        <div className="flex flex-col justify-between mt-16">
           <PopularTags />
           <PopularGroups />
         </div>
       </section>
-    </div>
+    </main>
   );
 }

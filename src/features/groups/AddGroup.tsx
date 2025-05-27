@@ -1,26 +1,11 @@
-// React hook form and validation
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-
-// Utilities
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
-
-// Routing and context
-import { useNavigate } from 'react-router-dom';
-import { useDialog } from '@/contexts/DialogContext';
-
-// App constants and services
-import { getCurrentUserId } from '@/services/users';
-
-// UI Components
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+} from '@/components/ui';
+import {
   Form,
   FormField,
   FormItem,
@@ -30,51 +15,11 @@ import {
   Input,
   Button,
 } from '@/components/ui';
-import { insertGroup } from '@/services/groups';
 
-const formSchema = z.object({
-  groupName: z.string().min(1, 'Group name is required'),
-});
+import { useAddGroupForm } from '@/logic/useAddGroupForm';
 
 export default function AddGroup() {
-  const { openDialogName, closeDialog } = useDialog();
-  const navigate = useNavigate();
-
-  const open = openDialogName === 'addGroup';
-
-  // Open dialog only if context name matches 'addGroup'
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      groupName: '',
-    },
-  });
-
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const newGroup = {
-      id: uuidv4(),
-      user_id: await getCurrentUserId(),
-      name: data.groupName,
-      created_at: new Date().toISOString(),
-      logo: null,
-    };
-
-    const saved = await insertGroup(newGroup);
-
-    if (saved) {
-      toast.success('Group created successfully', {
-        action: {
-          label: 'View Groups',
-          onClick: () => navigate('/groups'),
-        },
-      });
-      form.reset();
-      closeDialog();
-    } else {
-      toast.error('Failed to create group');
-    }
-  };
+  const { open, form, handleSubmit, closeDialog } = useAddGroupForm();
 
   return (
     <Dialog
@@ -88,7 +33,7 @@ export default function AddGroup() {
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4 py-4"
           >
             <FormField

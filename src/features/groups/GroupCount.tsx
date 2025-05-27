@@ -1,16 +1,16 @@
-import { getAllGroups } from '@/services/groups';
 import { useEffect, useState } from 'react';
+import { getGroupCount } from '@/logic/getGroupCount';
 
 export default function GroupCount() {
   const [groupsCount, setGroupsCount] = useState<number | null>(null);
 
   useEffect(() => {
-    async function fetchGroups() {
-      const groups = await getAllGroups();
-      setGroupsCount(groups.length);
+    async function fetchCount() {
+      const count = await getGroupCount();
+      setGroupsCount(count);
     }
 
-    fetchGroups();
+    fetchCount();
   }, []);
 
   if (groupsCount === null) {

@@ -1,4 +1,4 @@
-import AddContactDialog from '@/features/contacts/AddContact';
+import AddContactDialog from '@/features/contacts/AddContactDialog';
 import AddTag from '@/features/tags/AddTag';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DialogProvider } from '@/contexts/DialogContext';

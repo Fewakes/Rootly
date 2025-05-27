@@ -11,7 +11,7 @@ interface ContactRowProps {
   contact: Contact;
 }
 
-export default function ContactRow({ contact }: ContactRowProps) {
+export default function ContactTableRow({ contact }: ContactRowProps) {
   return (
     <TableRow>
       {/* Person */}
