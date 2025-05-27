@@ -111,7 +111,10 @@ export function AppSidebar() {
           </SidebarGroupLabel>
 
           {/* Button to add new groups */}
-          <SidebarGroupAction title="Add Groups">
+          <SidebarGroupAction
+            title="Add Groups"
+            onClick={() => openDialog('addGroup')}
+          >
             <Plus className="w-4 h-4" />
             <span className="sr-only">Add Groups</span>
           </SidebarGroupAction>

@@ -1,10 +1,11 @@
-import AddContactDialog from '@/components/AddContact';
-import AddTag from '@/components/addTag';
+import AddContactDialog from '@/features/contacts/AddContact';
+import AddTag from '@/features/tags/AddTag';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { AppSidebar } from '@/features/Layout/app-sidebar';
 import { TopBar } from '@/features/Layout/TopBar';
 import { Outlet } from 'react-router-dom';
+import AddGroup from '@/features/groups/AddGroup';
 
 export default function Layout() {
   return (
@@ -22,6 +23,7 @@ export default function Layout() {
               <Outlet />
               <AddContactDialog />
               <AddTag />
+              <AddGroup />
             </main>
           </div>
         </SidebarProvider>

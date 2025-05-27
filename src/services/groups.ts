@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Group } from '@/types/types';
-import type { PopularGroup } from '@/lib/supabase/supabase';
+import type { Group, NewGroup } from '@/types/types';
 
 /**
  * Fetches all groups from the database.
@@ -62,4 +61,30 @@ export const getPopularGroups = async (): Promise<PopularGroup[]> => {
     .slice(0, 5);
 
   return sortedGroups;
+};
+
+/**
+ * Inserts a new group into the database.
+ *
+ * @param {NewGroup} group - Group data to insert.
+ * @returns {Promise<object | null>} The inserted group object or null on failure.
+ */
+export const insertGroup = async (group: NewGroup): Promise<object | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .insert([group])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error inserting group:', error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Unexpected error inserting group:', (err as Error).message);
+    return null;
+  }
 };

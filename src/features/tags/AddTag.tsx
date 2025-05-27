@@ -51,7 +51,7 @@ export default function AddTag() {
 
   const open = openDialogName === 'addTag';
 
-  // Open dialog only if context name matches 'addContact'
+  // Open dialog only if context name matches 'addTag'
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -79,7 +79,7 @@ export default function AddTag() {
       toast.success('Tag created successfully', {
         action: {
           label: 'View Tags',
-          onClick: () => navigate('/tags'), // Replace `/tags` with your route
+          onClick: () => navigate('/tags'),
         },
       });
       form.reset();

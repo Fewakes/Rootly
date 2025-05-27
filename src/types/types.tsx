@@ -86,3 +86,11 @@ export interface NewTag {
   created_at: string;
   logo?: string | null;
 }
+
+export type NewGroup = {
+  id: string;
+  user_id: string;
+  name: string;
+  logo?: string | null;
+  created_at: string;
+};

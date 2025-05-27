@@ -13,15 +13,15 @@ export async function syncUserToDB(user: User | null) {
 
   if (error) {
     console.error('Failed to sync user to DB:', error);
-  } else {
-    console.log('User synced to DB');
   }
 }
 
-supabase.auth.onAuthStateChange(
-  (event: AuthChangeEvent, session: Session | null) => {
-    if (event === 'SIGNED_IN') {
-      syncUserToDB(session?.user ?? null);
-    }
-  },
-);
+export function setupAuthListener() {
+  supabase.auth.onAuthStateChange(
+    (event: AuthChangeEvent, session: Session | null) => {
+      if (event === 'SIGNED_IN') {
+        syncUserToDB(session?.user ?? null);
+      }
+    },
+  );
+}
