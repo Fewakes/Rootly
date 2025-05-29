@@ -1,7 +1,7 @@
 import { useContactDetail } from '@/logic/useContactDetails';
-import HeaderSection from './ContactHeader';
-import InfoTabs from './ContactBody';
-import SidebarInfo from './ContatInformation';
+import ContactInformation from './ContatInformation';
+import ContactBody from './ContactBody';
+import ContactHeader from './ContactHeader';
 
 export default function Contact() {
   const contact = useContactDetail();
@@ -11,10 +11,10 @@ export default function Contact() {
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6">
       <div className="flex-1 space-y-6">
-        <HeaderSection contact={contact} />
-        <InfoTabs />
+        <ContactHeader contact={contact} />
+        <ContactBody />
       </div>
-      <SidebarInfo contact={contact} />
+      <ContactInformation contact={contact} />
     </div>
   );
 }

@@ -14,6 +14,9 @@ import {
 import { useDialog } from '@/contexts/DialogContext';
 import { ButtonWithIcon } from '@/features/Layout/button-with-icon';
 import { supabase } from '@/lib/supabaseClient';
+import { getPopularGroups } from '@/services/groups';
+import { getPopularTags } from '@/services/tags';
+import type { Tag } from '@/types/types';
 import {
   Contact,
   Home,
@@ -22,6 +25,7 @@ import {
   Plus,
   UserRoundPlus,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // Navigation links (Main pages)
@@ -30,26 +34,30 @@ const items = [
   { title: 'Contacts', url: '/contacts', icon: Contact },
 ];
 
-// Contact groups
-const groups = [
-  { title: '🥰 Close Friends' },
-  { title: '💰 Investors' },
-  { title: '👓 Geek Friends' },
-  { title: '👑 Royalties' },
-];
-
-// Tag categories with associated color indicators
-const tags = [
-  { title: 'Family', color: 'bg-blue-500' },
-  { title: 'Tech Expert', color: 'bg-green-500' },
-  { title: 'Elite', color: 'bg-yellow-500' },
-  { title: 'Important', color: 'bg-red-500' },
-];
-
 export function AppSidebar() {
-  const location = useLocation(); // Used to check which route is active
+  const location = useLocation();
   const navigate = useNavigate();
   const { openDialog } = useDialog();
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [groups, setGroups] = useState<Tag[]>([]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      const popularTags = await getPopularTags(5);
+      setTags(popularTags);
+    };
+
+    fetchTags();
+  }, []);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const popularGroups = await getPopularGroups(5);
+      setGroups(popularGroups);
+    };
+
+    fetchGroups();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -107,7 +115,7 @@ export function AppSidebar() {
         {/* Groups Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
-            Groups
+            Groups (Most Popular)
           </SidebarGroupLabel>
 
           {/* Button to add new groups */}
@@ -122,10 +130,10 @@ export function AppSidebar() {
           {/* Group List */}
           <SidebarGroupContent>
             <SidebarMenu>
-              {groups.map(item => (
-                <SidebarMenuItem key={item.title}>
+              {groups.map(group => (
+                <SidebarMenuItem key={group.id}>
                   <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
-                    <span>{item.title}</span>
+                    <span>{group.name}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -136,7 +144,7 @@ export function AppSidebar() {
         {/* Tags Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
-            Tags
+            Tags (Most Popular)
           </SidebarGroupLabel>
 
           {/* Button to add new tags */}
@@ -151,14 +159,14 @@ export function AppSidebar() {
           {/* Tag List */}
           <SidebarGroupContent>
             <SidebarMenu>
-              {tags.map(item => (
-                <SidebarMenuItem key={item.title}>
+              {tags.map(tag => (
+                <SidebarMenuItem key={tag.id}>
                   <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
                     <span className="flex items-center gap-2">
                       <span
-                        className={`w-1 h-5 ${item.color} rounded-3xl`}
+                        className={`w-1 h-5 bg-${tag.color}-500 rounded-3xl`}
                       ></span>
-                      {item.title}
+                      {tag.name}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

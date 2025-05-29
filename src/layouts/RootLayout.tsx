@@ -6,6 +6,7 @@ import { AppSidebar } from '@/features/Layout/app-sidebar';
 import { TopBar } from '@/features/Layout/TopBar';
 import { Outlet } from 'react-router-dom';
 import AddGroup from '@/features/groups/AddGroup';
+import { Toaster } from 'sonner';
 
 export default function Layout() {
   return (
@@ -21,9 +22,19 @@ export default function Layout() {
 
             <main className="flex-1 min-h-0 overflow-auto p-6 bg-background relative">
               <Outlet />
+              {/* Dialogs and Toasters */}
               <AddContactDialog />
               <AddTag />
               <AddGroup />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    background: '#fff',
+                    color: '#005df4',
+                  },
+                }}
+              />
             </main>
           </div>
         </SidebarProvider>

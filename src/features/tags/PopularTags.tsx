@@ -5,18 +5,23 @@ import { Tag } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import { getPopularTags } from '@/logic/getPopularTags';
+import { getPopularTags } from '@/services/tags'; // ✅ Use service directly
 import type { PopularTag, TagColor } from '@/types/types';
 
 export default function PopularTags() {
   const [tags, setTags] = useState<PopularTag[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTags = async () => {
-      const topTags = await getPopularTags(5);
-      setTags(topTags);
-      setLoading(false);
+      try {
+        const topTags = await getPopularTags(5);
+        setTags(topTags);
+      } catch (error) {
+        console.error('Failed to fetch tags:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTags();
@@ -32,19 +37,19 @@ export default function PopularTags() {
       </div>
       <div className="flex flex-wrap gap-2">
         {tags.length > 0 ? (
-          tags.map(t => (
+          tags.map(tag => (
             <Badge
-              key={t.id}
+              key={tag.id}
               variant="outline"
               className={`
-                ${TAG_BG_CLASSES[t.color as TagColor]} 
-                ${TAG_TEXT_CLASSES[t.color as TagColor]} 
+                ${TAG_BG_CLASSES[tag.color as TagColor]} 
+                ${TAG_TEXT_CLASSES[tag.color as TagColor]} 
                 outline-none ring-0 focus:outline-none focus:ring-0 
                 border-none shadow-none text-sm font-medium px-3 py-1 
               `}
-              title={`${t.count} contact${t.count > 1 ? 's' : ''} have this tag`}
+              title={`${tag.count} contact${tag.count > 1 ? 's' : ''} have this tag`}
             >
-              {t.name} ({t.count})
+              {tag.name} ({tag.count})
             </Badge>
           ))
         ) : (

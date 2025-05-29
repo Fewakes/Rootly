@@ -58,7 +58,7 @@ export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
         id,
         name,
         avatar_url,
-        contact_tags:contact_tags!inner(tags(id, name, color))
+        contact_tags:contact_tags(tags(id, name, color))
       `,
       )
       .order('created_at', { ascending: false })
@@ -140,31 +140,122 @@ export const getContactById = async (
 };
 
 /**
- * Insert a new contact into the database.
- * @param contact - The new contact data to insert.
- * @returns The inserted contact object or null on error.
+ * Inserts a new contact into the database, and links it to selected tags and groups.
+ *
+ * @param contact - The contact data to be inserted.
+ * @param tagIds - An array of tag IDs to assign to this contact.
+ * @param groupIds - An array of group IDs to assign to this contact.
+ * @returns The inserted contact object or null if an error occurred.
  */
 export const insertContact = async (
   contact: NewContact,
+  tagIds: string[] = [],
+  groupIds: string[] = [],
 ): Promise<object | null> => {
   try {
-    const { data, error } = await supabase
+    // 1. Insert the contact into the 'contacts' table
+    const { data: contactData, error: contactError } = await supabase
       .from('contacts')
-      .insert([contact])
-      .select()
-      .single();
+      .insert([contact]) // Insert as an array
+      .select() // Return the inserted row(s)
+      .single(); // Expect only one result
 
-    if (error) {
-      console.error('Error inserting contact:', error.message);
-      throw new Error(error.message);
+    if (contactError || !contactData) {
+      console.error('Error inserting contact:', contactError?.message);
+      throw new Error(contactError?.message);
     }
 
-    return data;
+    const contactId = contactData.id;
+
+    // 2. Insert assigned tags into 'contact_tags' table
+    if (tagIds.length > 0) {
+      // Create an array of { contact_id, tag_id } objects
+      const tagInserts = tagIds.map(tagId => ({
+        contact_id: contactId,
+        tag_id: tagId,
+      }));
+
+      const { error: tagError } = await supabase
+        .from('contact_tags')
+        .insert(tagInserts);
+
+      if (tagError) {
+        console.error('Error linking tags to contact:', tagError.message);
+        throw new Error(tagError.message);
+      }
+    }
+
+    // 3. Insert assigned groups into 'contact_groups' table
+    if (groupIds.length > 0) {
+      // Create an array of { contact_id, group_id } objects
+      const groupInserts = groupIds.map(groupId => ({
+        contact_id: contactId,
+        group_id: groupId,
+      }));
+
+      const { error: groupError } = await supabase
+        .from('contact_groups')
+        .insert(groupInserts);
+
+      if (groupError) {
+        console.error('Error linking groups to contact:', groupError.message);
+        throw new Error(groupError.message);
+      }
+    }
+
+    // 4. Return the newly created contact data
+    return contactData;
   } catch (err) {
     console.error(
-      'Unexpected error inserting contact:',
+      'Unexpected error inserting contact with tags/groups:',
       (err as Error).message,
     );
     return null;
   }
 };
+
+export async function insertContactGroups(
+  contactId: string,
+  groupIds: string[],
+) {
+  if (!groupIds?.length) return;
+  const entries = groupIds.map(groupId => ({
+    contact_id: contactId,
+    group_id: groupId,
+  }));
+  const { error } = await supabase.from('contact_groups').insert(entries);
+  if (error) throw error;
+}
+
+export async function insertContactTags(contactId: string, tagIds: string[]) {
+  if (!tagIds?.length) return;
+  const entries = tagIds.map(tagId => ({
+    contact_id: contactId,
+    tag_id: tagId,
+  }));
+  const { error } = await supabase.from('contact_tags').insert(entries);
+  if (error) throw error;
+}
+
+export async function uploadAvatar(
+  file: File,
+  contactId: string,
+): Promise<string> {
+  const filePath = `${contactId}.png`;
+
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, {
+      upsert: true,
+      cacheControl: '3600',
+      contentType: file.type,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+  if (!data?.publicUrl) throw new Error('Failed to get public URL');
+
+  return data.publicUrl;
+}

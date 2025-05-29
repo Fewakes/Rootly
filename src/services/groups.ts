@@ -9,7 +9,7 @@ import type { Group, NewGroup } from '@/types/types';
 export const getAllGroups = async (): Promise<Group[]> => {
   const { data, error } = await supabase
     .from('groups')
-    .select('name, created_at');
+    .select('id, name, created_at');
 
   if (error) {
     console.error('Error fetching groups:', error.message);
@@ -24,7 +24,9 @@ export const getAllGroups = async (): Promise<Group[]> => {
  *
  * @returns {Promise<PopularGroup[]>} Sorted array of the top 5 most popular groups.
  */
-export const getPopularGroups = async (): Promise<PopularGroup[]> => {
+export const getPopularGroups = async (
+  limit: number,
+): Promise<PopularGroup[]> => {
   const { data, error } = await supabase.from('contact_groups').select(
     `
       group_id,
@@ -58,7 +60,7 @@ export const getPopularGroups = async (): Promise<PopularGroup[]> => {
   const sortedGroups: PopularGroup[] = Object.entries(groupCountMap)
     .map(([id, { name, count }]) => ({ id, name, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+    .slice(0, limit);
 
   return sortedGroups;
 };

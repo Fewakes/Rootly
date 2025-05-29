@@ -4,8 +4,6 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import type { Contact } from '@/types/types';
 import { Link } from 'react-router-dom';
-import default_woman from '@/assets/default_woman.svg';
-import default_man from '@/assets/default_man.svg';
 
 interface ContactRowProps {
   contact: Contact;

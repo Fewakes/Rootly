@@ -62,22 +62,37 @@ export interface PopularTag {
   count: number;
 }
 
-export type NewContact = {
+// export type NewContact = {
+//   id: string;
+//   user_id: string;
+//   name: string;
+//   email: string;
+//   avatar_url: string;
+//   company_id: string | null;
+//   created_at: string;
+//   contact_number: string | null;
+//   town: string | null;
+//   country: string | null;
+//   birthday: string | null; // ISO 8601 date string
+//   link_name: string | null;
+//   link_url: string | null;
+//};
+export interface NewContact {
   id: string;
   user_id: string;
   name: string;
   email: string;
+  gender: string;
   avatar_url: string;
   company_id: string | null;
   created_at: string;
   contact_number: string | null;
   town: string | null;
   country: string | null;
-  birthday: string | null; // ISO 8601 date string
+  birthday: string | null;
   link_name: string | null;
   link_url: string | null;
-};
-
+}
 export interface NewTag {
   id: string;
   user_id: string;

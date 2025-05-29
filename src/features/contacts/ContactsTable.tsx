@@ -1,5 +1,3 @@
-// ContactsTable.tsx
-import ContactRow from '@/features/contacts/ContactTableRow';
 import {
   Table,
   TableBody,
