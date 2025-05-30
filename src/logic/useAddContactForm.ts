@@ -81,10 +81,7 @@ export function useAddContactForm() {
     if (data.avatarUrl instanceof File) {
       try {
         finalAvatarUrl = await uploadAvatar(data.avatarUrl, contactId);
-        console.log('Uploaded avatar URL:', finalAvatarUrl);
       } catch (err) {
-        console.error('Upload avatar failed:', err);
-        toast.error('Failed to upload avatar');
         return;
       }
     } else if (

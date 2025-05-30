@@ -39,11 +39,7 @@ export default function AddContactDialog() {
 
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
-
-  // Avatar preview URL for showing image preview
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
-  // State to track avatar file uploading (optional, used to disable submit button)
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
