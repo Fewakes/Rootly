@@ -259,3 +259,17 @@ export async function uploadAvatar(
 
   return data.publicUrl;
 }
+
+export async function deleteContactById(contactId: string) {
+  const { error } = await supabase
+    .from('contacts')
+    .delete()
+    .eq('id', contactId);
+
+  if (error) {
+    console.error('Error deleting contact:', error.message);
+    throw error;
+  }
+
+  return true;
+}

@@ -20,7 +20,7 @@ export default function Layout() {
               <AppSidebar />
             </div>
 
-            <main className="flex-1 min-h-0 overflow-auto p-6 bg-background relative">
+            <main className="flex-1 min-h-screen overflow-auto p-6 bg-background relative">
               <Outlet />
               {/* Dialogs and Toasters */}
               <AddContactDialog />

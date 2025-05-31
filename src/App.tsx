@@ -8,7 +8,8 @@ import ContactDetails from './pages/ContactDetails';
 import Contacts from './pages/Contacts';
 import Homepage from './pages/Homepage';
 import Login from './pages/Login';
-
+import Tags from './pages/Tags';
+import Groups from './pages/Groups';
 function App() {
   return (
     <Router>
@@ -23,6 +24,8 @@ function App() {
             <Route index element={<Homepage />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="contacts/:id" element={<ContactDetails />} />
+            <Route path="tags" element={<Tags />} />
+            <Route path="Groups" element={<Groups />} />
           </Route>
         </Routes>
       </AuthProvider>

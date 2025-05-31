@@ -24,14 +24,22 @@ import {
   LucideSettings,
   Plus,
   UserRoundPlus,
+  Tags,
+  Users,
+  Building,
 } from 'lucide-react';
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { TAG_BG } from '@/lib/utils';
 
 // Navigation links (Main pages)
 const items = [
   { title: 'Home', url: '/', icon: Home },
   { title: 'Contacts', url: '/contacts', icon: Contact },
+  { title: 'Tags', url: '/tags', icon: Tags },
+  { title: 'Groups', url: '/groups', icon: Users },
+  { title: 'Companies', url: '/companies', icon: Building },
 ];
 
 export function AppSidebar() {
@@ -43,7 +51,7 @@ export function AppSidebar() {
 
   useEffect(() => {
     const fetchTags = async () => {
-      const popularTags = await getPopularTags(5);
+      const popularTags = await getPopularTags(4);
       setTags(popularTags);
     };
 
@@ -52,7 +60,7 @@ export function AppSidebar() {
 
   useEffect(() => {
     const fetchGroups = async () => {
-      const popularGroups = await getPopularGroups(5);
+      const popularGroups = await getPopularGroups(4);
       setGroups(popularGroups);
     };
 
@@ -67,7 +75,7 @@ export function AppSidebar() {
         return;
       }
       // Redirect to login page after logout
-      navigate('/login'); // lowercase 'navigate'
+      navigate('/login');
     } catch (err) {
       console.error('Unexpected logout error:', err);
     }
@@ -112,6 +120,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
         {/* Groups Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
@@ -164,7 +173,7 @@ export function AppSidebar() {
                   <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
                     <span className="flex items-center gap-2">
                       <span
-                        className={`w-1 h-5 bg-${tag.color}-500 rounded-3xl`}
+                        className={`${TAG_BG[tag.color] ?? 'bg-gray-500'} w-1 h-5 rounded-3xl`}
                       ></span>
                       {tag.name}
                     </span>
@@ -175,32 +184,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      {/* Footer Section with Settings and Logout */}
-      <SidebarFooter className="flex justify-between px-3 py-2">
-        {/* Settings */}
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="w-full px-2 py-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-              <LucideSettings className="w-4 h-4" />
-              <span>Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        {/* Logout */}
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              className="w-full px-2 py-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-destructive"
-            >
-              <LucideLogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
