@@ -1,9 +1,9 @@
 import {
   TableHeader,
-  TableHead as TableHeadCell,
   TableRow,
+  TableHead as TableHeadCell,
 } from '@/components/ui/table';
-import { LuArrowUp, LuArrowDown } from 'react-icons/lu';
+import { LuArrowUp, LuArrowDown, LuArrowUpDown } from 'react-icons/lu';
 
 type Props = {
   sortBy: 'name' | 'created_at' | 'user_count';
@@ -16,8 +16,9 @@ export default function TagsTableHeader({
   sortDirection,
   onSortChange,
 }: Props) {
-  const renderSortIcon = (key: 'name' | 'created_at' | 'user_count') => {
-    if (sortBy !== key) return <LuArrowUp className="inline opacity-40" />;
+  const renderSortIcon = (key: typeof sortBy) => {
+    if (sortBy !== key)
+      return <LuArrowUpDown className="inline text-gray-400" />;
     return sortDirection === 'asc' ? (
       <LuArrowUp className="inline" />
     ) : (
@@ -26,38 +27,38 @@ export default function TagsTableHeader({
   };
 
   return (
-    <TableHeader className="bg-gray-50">
+    <TableHeader>
       <TableRow>
         <TableHeadCell
-          className="cursor-pointer px-5 py-3 text-left text-sm font-semibold text-gray-700"
+          className="cursor-pointer select-none"
           onClick={() => onSortChange('name')}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             Name {renderSortIcon('name')}
           </div>
         </TableHeadCell>
-        <TableHeadCell className="px-5 py-3 text-left text-sm font-semibold text-gray-700">
-          Color
-        </TableHeadCell>
+
+        <TableHeadCell>Color</TableHeadCell>
+
         <TableHeadCell
-          className="cursor-pointer px-5 py-3 text-left text-sm font-semibold text-gray-700"
+          className="cursor-pointer select-none"
           onClick={() => onSortChange('created_at')}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             Created {renderSortIcon('created_at')}
           </div>
         </TableHeadCell>
+
         <TableHeadCell
-          className="cursor-pointer px-5 py-3 text-left text-sm font-semibold text-gray-700"
+          className="cursor-pointer select-none"
           onClick={() => onSortChange('user_count')}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             Users {renderSortIcon('user_count')}
           </div>
         </TableHeadCell>
-        <TableHeadCell className="px-5 py-3 text-right text-sm font-semibold text-gray-700">
-          Actions
-        </TableHeadCell>
+
+        <TableHeadCell className="text-right">Actions</TableHeadCell>
       </TableRow>
     </TableHeader>
   );

@@ -1,45 +1,46 @@
 import { Table, TableBody } from '@/components/ui/table';
-import GroupsTableHeader from './GroupsTableHeader';
-import GroupsTableRow from './GroupsTableRow';
+import { CompaniesTableHeader } from './CompaniesTableHeader';
+import { CompaniesTableRow } from './CompaniesTableRow';
 
-type Group = {
+interface Company {
   id: string;
   name: string;
+  logo_url?: string;
   created_at: string;
   user_count: number;
-};
+}
 
-type Props = {
-  groups: Group[];
+interface CompaniesTableProps {
+  companies: Company[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onAddUser: (id: string) => void;
   sortBy: 'name' | 'created_at' | 'user_count';
   sortDirection: 'asc' | 'desc';
   onSortChange: (key: 'name' | 'created_at' | 'user_count') => void;
-};
+}
 
-export default function GroupsTable({
-  groups,
+export function CompaniesTable({
+  companies,
   onEdit,
   onDelete,
   onAddUser,
   sortBy,
   sortDirection,
   onSortChange,
-}: Props) {
+}: CompaniesTableProps) {
   return (
     <Table className="w-full border-collapse border border-gray-200 shadow-sm rounded-md overflow-hidden">
-      <GroupsTableHeader
+      <CompaniesTableHeader
         sortBy={sortBy}
         sortDirection={sortDirection}
         onSortChange={onSortChange}
       />
       <TableBody>
-        {groups.map(group => (
-          <GroupsTableRow
-            key={group.id}
-            group={group}
+        {companies.map(company => (
+          <CompaniesTableRow
+            key={company.id}
+            company={company}
             onEdit={onEdit}
             onDelete={onDelete}
             onAddUser={onAddUser}

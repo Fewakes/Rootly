@@ -10,6 +10,7 @@ import Homepage from './pages/Homepage';
 import Login from './pages/Login';
 import Tags from './pages/Tags';
 import Groups from './pages/Groups';
+import Companies from './pages/Companies';
 function App() {
   return (
     <Router>
@@ -26,6 +27,7 @@ function App() {
             <Route path="contacts/:id" element={<ContactDetails />} />
             <Route path="tags" element={<Tags />} />
             <Route path="Groups" element={<Groups />} />
+            <Route path="Companies" element={<Companies />} />
           </Route>
         </Routes>
       </AuthProvider>

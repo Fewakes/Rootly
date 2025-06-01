@@ -10,6 +10,7 @@ interface ContactRowProps {
 }
 
 export default function ContactTableRow({ contact }: ContactRowProps) {
+  console.log(contact);
   return (
     <TableRow>
       {/* Person */}
@@ -31,23 +32,49 @@ export default function ContactTableRow({ contact }: ContactRowProps) {
         </div>
       </TableCell>
 
-      {/* Company */}
+      {/* Companies */}
       <TableCell className="px-4 py-3">
-        {contact.company ? (
-          <div className="flex items-center gap-3">
-            {contact.company.logo_url && (
-              <img
-                src={contact.company.logo_url}
-                alt={contact.company.name}
-                className="h-5 w-5"
-              />
-            )}
-            <span className="text-foreground">{contact.company.name}</span>
+        {contact.contact_companies && contact.contact_companies.length > 0 ? (
+          <div className="flex flex-wrap gap-3 items-center">
+            {contact.contact_companies.map((company, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                {company.company_logo && (
+                  <img
+                    src={company.company_logo}
+                    alt={company.name}
+                    className="h-5 w-5"
+                  />
+                )}
+                <span className="text-foreground text-sm">{company.name}</span>
+              </div>
+            ))}
           </div>
         ) : (
           <span className="text-muted-foreground italic">No company</span>
         )}
       </TableCell>
+
+      {/* Companies
+      <TableCell className="px-4 py-3">
+        {contact.companies && contact.companies.length > 0 ? (
+          <div className="flex flex-wrap gap-3 items-center">
+            {contact.companies.map((company, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                {company.company_logo && (
+                  <img
+                    src={company.company_logo}
+                    alt={company.name}
+                    className="h-5 w-5"
+                  />
+                )}
+                <span className="text-foreground text-sm">{company.name}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-muted-foreground italic">No company</span>
+        )}
+      </TableCell> */}
 
       {/* Groups */}
       <TableCell className="px-4 py-3">
@@ -70,11 +97,11 @@ export default function ContactTableRow({ contact }: ContactRowProps) {
               <Badge
                 key={idx}
                 className={`
-    ${TAG_BG_CLASSES[t.color]} 
-    ${TAG_TEXT_CLASSES[t.color]} 
-    outline-none ring-0 focus:outline-none focus:ring-0 
-    border-none shadow-none
-  `}
+                  ${TAG_BG_CLASSES[t.color]} 
+                  ${TAG_TEXT_CLASSES[t.color]} 
+                  outline-none ring-0 focus:outline-none focus:ring-0 
+                  border-none shadow-none
+                `}
               >
                 {t.name}
               </Badge>

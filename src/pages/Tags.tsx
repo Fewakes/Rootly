@@ -1,46 +1,32 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { useDialog } from '@/contexts/DialogContext';
 import TagsTable from '@/features/tags/TagsTable';
+import { useAllTags } from '@/logic/useAllTags';
 
 export default function Tags() {
-  const tags = [
-    {
-      id: '1',
-      name: 'Marketing',
-      color: '#f87171', // example red-400 hex color
-      created_at: '2023-05-01T10:00:00Z',
-      user_count: 7,
-    },
-    {
-      id: '2',
-      name: 'Aws',
-      color: '#f33211', // example red-400 hex color
-      created_at: '2024-05-01T10:00:00Z',
-      user_count: 1,
-    },
-    {
-      id: '3',
-      name: 'Dpd',
-      color: '#f9321', // example red-400 hex color
-      created_at: '2022-11-01T10:00:00Z',
-      user_count: 2,
-    },
-    {
-      id: '4',
-      name: 'Hola',
-      color: '#d37911', // example red-400 hex color
-      created_at: '2023-05-01T10:00:00Z',
-      user_count: 3,
-    },
-    // more tags...
-  ];
+  const { openDialog } = useDialog();
+  const { tags, loading, error } = useAllTags();
+
+  //add loading !
 
   const handleEdit = (id: string) => {
     console.log('Edit tag with id:', id);
-    // open your edit dialog/modal here
   };
 
   return (
     <div className="w-full p-6 space-y-8">
-      <h1 className="text-4xl font-bold">Tags</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-4xl font-bold">Tags</h1>
+        <Button
+          className="bg-primaryBlue text-white hover:bg-primaryBlue/90"
+          onClick={() => openDialog('addTag')}
+        >
+          + Create New
+        </Button>
+      </div>
+
       <TagsTable tags={tags} onEdit={handleEdit} />
     </div>
   );

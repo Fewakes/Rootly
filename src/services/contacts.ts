@@ -3,6 +3,8 @@ import type { Contact, NewContact } from '@/types/types';
 
 /**
  * Fetch all contacts that belong to a specific user.
+ * Includes contact groups, tags, and companies.
+ *
  * @param userId - The ID of the user.
  * @returns A list of Contact objects.
  */
@@ -23,9 +25,9 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
       link_name,
       link_url,
       gender,
-      company:companies!company_id(name, logo_url),
       contact_groups(groups(id, name)),
-      contact_tags(tags(id, name, color))
+      contact_tags(tags(id, name, color)),
+      contact_companies(companies(id, name, company_logo))
     `,
     )
     .eq('user_id', userId)
@@ -38,9 +40,9 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
 
   return data.map((c: any) => ({
     ...c,
-    company: c.company ?? null,
     contact_groups: c.contact_groups?.map((g: any) => g.groups) ?? [],
     contact_tags: c.contact_tags?.map((t: any) => t.tags) ?? [],
+    contact_companies: c.contact_companies?.map((c: any) => c.companies) ?? [],
   }));
 };
 
@@ -109,9 +111,9 @@ export const getContactById = async (
         link_name,
         link_url,
         gender,
-        company:companies!company_id(name, logo_url),
-        contact_groups:contact_groups(groups(id, name)),
-        contact_tags:contact_tags(tags(id, name, color))
+        contact_groups(groups(id, name)),
+        contact_tags(tags(id, name, color)),
+        contact_companies(companies(id, name, company_logo))
       `,
       )
       .eq('id', contactId)
@@ -129,9 +131,10 @@ export const getContactById = async (
 
     return {
       ...data,
-      company: data.company ?? null,
       contact_groups: data.contact_groups?.map((g: any) => g.groups) ?? [],
       contact_tags: data.contact_tags?.map((t: any) => t.tags) ?? [],
+      contact_companies:
+        data.contact_companies?.map((c: any) => c.companies) ?? [],
     };
   } catch (err) {
     console.error('Unexpected error fetching contact:', (err as Error).message);

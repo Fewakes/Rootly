@@ -1,9 +1,6 @@
-'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { getPopularGroups } from '@/services/groups';
 
-import type { PopularGroup } from '@/types/types';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

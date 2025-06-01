@@ -18,7 +18,7 @@ import {
 
 import { useAddGroupForm } from '@/logic/useAddGroupForm';
 
-export default function AddGroup() {
+export default function AddGroupDialog() {
   const { open, form, handleSubmit, closeDialog } = useAddGroupForm();
 
   return (

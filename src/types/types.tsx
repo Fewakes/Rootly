@@ -1,20 +1,20 @@
-export type Company = {
-  name: string;
-  logo_url: string | null;
-};
-
 export interface Contact {
   id: string;
   name: string;
   email: string;
-  avatar_url: string | null;
+  avatar_url?: string | null;
+  contact_number?: string | null;
+  town?: string | null;
+  country?: string | null;
+  birthday?: string | null;
+  link_name?: string | null;
+  link_url?: string | null;
+  gender?: string | null;
   created_at: string;
-  company: {
-    name: string;
-    logo_url: string | null;
-  } | null;
-  contact_groups: { id: string; name: string }[];
-  contact_tags: { id: string; name: string; color: string }[];
+
+  contact_groups: Group[];
+  contact_tags: Tag[];
+  contact_companies: Company[];
 }
 
 export interface RecentContactsProps {
@@ -43,13 +43,6 @@ export type TagColor =
   | 'pink'
   | 'rose';
 
-export interface Tag {
-  id?: string;
-  name: string;
-  color: TagColor;
-  created_at?: string;
-}
-
 export interface Group {
   name: string;
   created_at: string; // or Date
@@ -62,21 +55,6 @@ export interface PopularTag {
   count: number;
 }
 
-// export type NewContact = {
-//   id: string;
-//   user_id: string;
-//   name: string;
-//   email: string;
-//   avatar_url: string;
-//   company_id: string | null;
-//   created_at: string;
-//   contact_number: string | null;
-//   town: string | null;
-//   country: string | null;
-//   birthday: string | null; // ISO 8601 date string
-//   link_name: string | null;
-//   link_url: string | null;
-//};
 export interface NewContact {
   id: string;
   user_id: string;
@@ -84,7 +62,6 @@ export interface NewContact {
   email: string;
   gender: string;
   avatar_url: string;
-  company_id: string | null;
   created_at: string;
   contact_number: string | null;
   town: string | null;
@@ -108,4 +85,27 @@ export type NewGroup = {
   name: string;
   logo?: string | null;
   created_at: string;
+};
+
+export type Tag = {
+  id: string;
+  name: string;
+  color: string;
+  created_at: string;
+  contact_count: number;
+};
+
+export interface Group {
+  id: string;
+  name: string;
+  created_at: string;
+  contact_count: number;
+}
+
+export type Company = {
+  id: string;
+  name: string;
+  company_logo: string | null;
+  created_at: string;
+  contact_count?: number;
 };

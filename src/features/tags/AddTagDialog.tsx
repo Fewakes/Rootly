@@ -23,7 +23,7 @@ import {
 
 import { useAddTagForm } from '@/logic/useAddTagForm';
 
-export default function AddTag() {
+export default function AddTagDialog() {
   const { open, form, TAG_COLORS, handleSubmit, closeDialog } = useAddTagForm();
 
   return (

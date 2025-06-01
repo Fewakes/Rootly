@@ -1,22 +1,26 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { Group, NewGroup } from '@/types/types';
-
-/**
- * Fetches all groups from the database.
- *
- * @returns {Promise<Group[]>} An array of all groups or an empty array on error.
- */
-export const getAllGroups = async (): Promise<Group[]> => {
+export const getAllGroups = async (): Promise<
+  (Group & { contact_count: number })[]
+> => {
   const { data, error } = await supabase
     .from('groups')
-    .select('id, name, created_at');
+    .select('id, name, created_at, contact_groups(count)');
 
   if (error) {
     console.error('Error fetching groups:', error.message);
     return [];
   }
 
-  return data;
+  const groupsWithCount = data.map((group: any) => ({
+    ...group,
+
+    contact_count: group.contact_groups?.[0]?.count
+      ? Number(group.contact_groups[0].count)
+      : 0,
+  }));
+
+  return groupsWithCount;
 };
 
 /**

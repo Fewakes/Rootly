@@ -1,22 +1,22 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { NewTag, Tag, PopularTag } from '@/types/types';
 
-/**
- * Fetches all tags from the database.
- *
- * @returns {Promise<Tag[]>} An array of all tags, or an empty array on failure.
- */
 export const getAllTags = async (): Promise<Tag[]> => {
   const { data, error } = await supabase
     .from('tags')
-    .select('id, name, color, created_at');
+    .select(`id, name, color, created_at, contact_tags(count)`);
 
   if (error) {
     console.error('Error fetching tags:', error.message);
     return [];
   }
 
-  return data;
+  const tagsWithCount = data.map((tag: any) => ({
+    ...tag,
+    contact_count: tag.contact_tags[0]?.count ?? 0,
+  }));
+
+  return tagsWithCount;
 };
 
 /**

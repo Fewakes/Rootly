@@ -44,7 +44,7 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { openDialog } = useDialog();
   const [tags, setTags] = useState<Tag[]>([]);
   const [groups, setGroups] = useState<Tag[]>([]);
@@ -67,30 +67,30 @@ export function AppSidebar() {
     fetchGroups();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error.message);
-        return;
-      }
-      // Redirect to login page after logout
-      navigate('/login');
-    } catch (err) {
-      console.error('Unexpected logout error:', err);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     const { error } = await supabase.auth.signOut();
+  //     if (error) {
+  //       console.error('Error signing out:', error.message);
+  //       return;
+  //     }
+  //     // Redirect to login page after logout
+  //     navigate('/login');
+  //   } catch (err) {
+  //     console.error('Unexpected logout error:', err);
+  //   }
+  // };
 
   return (
     <Sidebar>
-      {/* Header with "Add new contact" button */}
+      {/* Header with "Add new contact" button
       <SidebarHeader>
         <ButtonWithIcon onClick={() => openDialog('addContact')}>
           <div className="flex gap-3 cursor-pointer">
             <UserRoundPlus /> New Contact
           </div>
         </ButtonWithIcon>
-      </SidebarHeader>
+      </SidebarHeader> */}
 
       <SidebarContent>
         {/* Main Dashboard Navigation */}

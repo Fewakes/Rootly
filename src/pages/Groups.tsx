@@ -1,33 +1,42 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { useDialog } from '@/contexts/DialogContext';
 import GroupsTable from '@/features/groups/GroupsTable';
+import { useAllGroups } from '@/logic/useAllGroups';
 import { useState } from 'react';
 
 export default function Groups() {
-  const groups = [
-    {
-      id: '1',
-      name: 'Sales Team',
-      created_at: '2023-03-15T09:00:00Z',
-      user_count: 5,
-    },
-    {
-      id: '2',
-      name: 'Engineering',
-      created_at: '2024-01-22T12:30:00Z',
-      user_count: 12,
-    },
-    {
-      id: '3',
-      name: 'Designers',
-      created_at: '2022-08-10T14:15:00Z',
-      user_count: 4,
-    },
-    {
-      id: '4',
-      name: 'Product',
-      created_at: '2023-11-05T08:45:00Z',
-      user_count: 7,
-    },
-  ];
+  const { openDialog } = useDialog();
+
+  const { groups, loading, error } = useAllGroups();
+
+  // const groups = [
+  //   {
+  //     id: '1',
+  //     name: 'Sales Team',
+  //     created_at: '2023-03-15T09:00:00Z',
+  //     user_count: 5,
+  //   },
+  //   {
+  //     id: '2',
+  //     name: 'Engineering',
+  //     created_at: '2024-01-22T12:30:00Z',
+  //     user_count: 12,
+  //   },
+  //   {
+  //     id: '3',
+  //     name: 'Designers',
+  //     created_at: '2022-08-10T14:15:00Z',
+  //     user_count: 4,
+  //   },
+  //   {
+  //     id: '4',
+  //     name: 'Product',
+  //     created_at: '2023-11-05T08:45:00Z',
+  //     user_count: 7,
+  //   },
+  // ];
 
   const handleEdit = (id: string) => {
     console.log('Edit group with id:', id);
@@ -74,7 +83,16 @@ export default function Groups() {
 
   return (
     <div className="w-full p-6 space-y-8">
-      <h1 className="text-4xl font-bold">Groups</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-4xl font-bold">Groups</h1>
+        <Button
+          className="bg-primaryBlue text-white hover:bg-primaryBlue/90"
+          onClick={() => openDialog('addGroup')}
+        >
+          + Create New
+        </Button>
+      </div>
+
       <GroupsTable
         groups={sortedGroups}
         onEdit={handleEdit}

@@ -34,7 +34,7 @@ export default function TagsTableRow({
           day: 'numeric',
         })}
       </td>
-      <td className="px-5 py-3 text-sm text-gray-500">{tag.user_count}</td>
+      <td className="px-5 py-3 text-sm text-gray-500">{tag.contact_count}</td>
       <td className="px-5 py-3 text-right">
         <TagsRowAction
           tagId={tag.id}

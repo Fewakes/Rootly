@@ -80,20 +80,21 @@ export default function ContactInformation({ contact }: { contact: any }) {
       </div>
 
       {/* Company */}
+      {/* Company */}
       <div>
         <h4 className="text-xs uppercase text-muted-foreground mb-1">
           Company
         </h4>
-        {contact.company ? (
+        {contact.contact_companies && contact.contact_companies.length > 0 ? (
           <div className="flex items-center gap-2 text-sm">
-            {contact.company.logo_url && (
+            {contact.contact_companies[0].company_logo && (
               <img
-                src={contact.company.logo_url}
-                alt={contact.company.name}
+                src={contact.contact_companies[0].company_logo}
+                alt={contact.contact_companies[0].name}
                 className="h-5 w-5"
               />
             )}
-            <span>{contact.company.name || 'Company name missing'}</span>
+            <span>{contact.contact_companies[0].name}</span>
           </div>
         ) : (
           <span className="text-sm text-muted-foreground">

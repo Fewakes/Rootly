@@ -5,17 +5,17 @@ import {
 } from '@/components/ui/table';
 import { LuArrowUp, LuArrowDown, LuArrowUpDown } from 'react-icons/lu';
 
-type Props = {
+interface CompaniesTableHeaderProps {
   sortBy: 'name' | 'created_at' | 'user_count';
   sortDirection: 'asc' | 'desc';
   onSortChange: (key: 'name' | 'created_at' | 'user_count') => void;
-};
+}
 
-export default function GroupsTableHeader({
+export function CompaniesTableHeader({
   sortBy,
   sortDirection,
   onSortChange,
-}: Props) {
+}: CompaniesTableHeaderProps) {
   const renderSortIcon = (key: typeof sortBy) => {
     if (sortBy !== key)
       return <LuArrowUpDown className="inline text-gray-400" />;
@@ -29,6 +29,8 @@ export default function GroupsTableHeader({
   return (
     <TableHeader>
       <TableRow>
+        <TableHeadCell>Logo</TableHeadCell>
+
         <TableHeadCell
           className="cursor-pointer select-none"
           onClick={() => onSortChange('name')}
