@@ -1,13 +1,6 @@
 import { TableRow } from '@/components/ui/table';
 import CompaniesRowAction from './CompaniesRowAction';
-
-interface Company {
-  id: string;
-  name: string;
-  logo_url?: string;
-  created_at: string;
-  user_count: number;
-}
+import type { Company } from '@/types/types';
 
 interface CompaniesTableRowProps {
   company: Company;
@@ -22,12 +15,13 @@ export function CompaniesTableRow({
   onDelete,
   onAddUser,
 }: CompaniesTableRowProps) {
+  console.log(company);
   return (
     <TableRow key={company.id} className="hover:bg-gray-50 transition-colors">
       <td className="px-5 py-3">
-        {company.logo_url ? (
+        {company.company_logo ? (
           <img
-            src={company.logo_url}
+            src={company.company_logo}
             alt={`${company.name} logo`}
             className="h-8 w-8 object-cover rounded-md"
           />
@@ -45,7 +39,9 @@ export function CompaniesTableRow({
           day: 'numeric',
         })}
       </td>
-      <td className="px-5 py-3 text-sm text-gray-500">{company.user_count}</td>
+      <td className="px-5 py-3 text-sm text-gray-500">
+        {company.contact_count}
+      </td>
       <td className="px-5 py-3 text-right">
         <CompaniesRowAction
           companyId={company.id}

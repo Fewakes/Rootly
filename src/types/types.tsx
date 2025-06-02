@@ -55,21 +55,6 @@ export interface PopularTag {
   count: number;
 }
 
-export interface NewContact {
-  id: string;
-  user_id: string;
-  name: string;
-  email: string;
-  gender: string;
-  avatar_url: string;
-  created_at: string;
-  contact_number: string | null;
-  town: string | null;
-  country: string | null;
-  birthday: string | null;
-  link_name: string | null;
-  link_url: string | null;
-}
 export interface NewTag {
   id: string;
   user_id: string;
@@ -102,10 +87,52 @@ export interface Group {
   contact_count: number;
 }
 
+export type NewCompanyData = {
+  id: string;
+  created_at: string;
+  company_logo: string;
+  name: string;
+  user_id: string;
+};
+
+// export type NewContact = {
+//   id: string;
+//   user_id: string;
+//   name: string;
+//   email: string;
+//   gender: string;
+//   avatar_url: string;
+//   company_id: string | null;
+//   created_at: string;
+//   contact_number: string | null;
+//   town: string | null;
+//   country: string | null;
+//   birthday: string | null;
+//   link_name: string | null;
+//   link_url: string | null;
+// };
+
+export interface NewContact {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  gender: string;
+  avatar_url: string;
+  created_at: string;
+  contact_number: string | null;
+  town: string | null;
+  country: string | null;
+  birthday: string | null;
+  link_name: string | null;
+  link_url: string | null;
+}
+
 export type Company = {
   id: string;
   name: string;
-  company_logo: string | null;
+  company_logo?: string;
   created_at: string;
-  contact_count?: number;
+  user_count: number;
+  contact_count: number;
 };

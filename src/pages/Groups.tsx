@@ -11,33 +11,6 @@ export default function Groups() {
 
   const { groups, loading, error } = useAllGroups();
 
-  // const groups = [
-  //   {
-  //     id: '1',
-  //     name: 'Sales Team',
-  //     created_at: '2023-03-15T09:00:00Z',
-  //     user_count: 5,
-  //   },
-  //   {
-  //     id: '2',
-  //     name: 'Engineering',
-  //     created_at: '2024-01-22T12:30:00Z',
-  //     user_count: 12,
-  //   },
-  //   {
-  //     id: '3',
-  //     name: 'Designers',
-  //     created_at: '2022-08-10T14:15:00Z',
-  //     user_count: 4,
-  //   },
-  //   {
-  //     id: '4',
-  //     name: 'Product',
-  //     created_at: '2023-11-05T08:45:00Z',
-  //     user_count: 7,
-  //   },
-  // ];
-
   const handleEdit = (id: string) => {
     console.log('Edit group with id:', id);
     // open your edit dialog/modal here

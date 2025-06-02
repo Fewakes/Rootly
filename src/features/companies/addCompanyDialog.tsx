@@ -1,38 +1,25 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useDialog } from '@/contexts/DialogContext';
 import { useAddCompanyForm } from '@/logic/useAddCompanyForm';
 
 export default function AddCompanyDialog() {
-  const { openDialogName, closeDialog } = useDialog();
-  const open = openDialogName === 'addCompany';
-
-  const { form, onSubmit } = useAddCompanyForm();
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-
-  const onLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      form.setValue('logo', file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
+  const { open, form, handleSubmit, closeDialog, logoPreview, onLogoChange } =
+    useAddCompanyForm();
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && closeDialog()}>
@@ -40,12 +27,12 @@ export default function AddCompanyDialog() {
         <DialogHeader>
           <DialogTitle>Add New Company</DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 py-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4 py-4"
           >
-            {/* Company Name */}
             <FormField
               control={form.control}
               name="companyName"
@@ -53,14 +40,13 @@ export default function AddCompanyDialog() {
                 <FormItem>
                   <FormLabel>Company Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder="Enter company name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Logo Upload */}
             <FormItem>
               <FormLabel>Company Logo</FormLabel>
               <FormControl>
@@ -68,12 +54,7 @@ export default function AddCompanyDialog() {
                   type="file"
                   accept="image/*"
                   onChange={onLogoChange}
-                  className="block w-full text-sm text-muted-foreground
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-full file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-primary file:text-primary-foreground
-                    hover:file:bg-primary/80"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
                 />
               </FormControl>
               {logoPreview && (
@@ -85,9 +66,19 @@ export default function AddCompanyDialog() {
               )}
             </FormItem>
 
-            <DialogFooter>
+            <DialogFooter className="space-x-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  form.reset();
+                  closeDialog();
+                }}
+              >
+                Cancel
+              </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                Add Company
+                {form.formState.isSubmitting ? 'Adding...' : 'Add Company'}
               </Button>
             </DialogFooter>
           </form>

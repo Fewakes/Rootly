@@ -1,12 +1,13 @@
 import AddContactDialog from '@/features/contacts/AddContactDialog';
-import AddTag from '@/features/tags/AddTagDialog';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { AppSidebar } from '@/features/Layout/app-sidebar';
 import { TopBar } from '@/features/Layout/TopBar';
 import { Outlet } from 'react-router-dom';
-import AddGroup from '@/features/groups/AddGroupDialog';
 import { Toaster } from 'sonner';
+import AddTagDialog from '@/features/tags/AddTagDialog';
+import AddCompanyDialog from '@/features/companies/addCompanyDialog';
+import AddGroupDialog from '@/features/groups/AddGroupDialog';
 
 export default function Layout() {
   return (
@@ -24,8 +25,9 @@ export default function Layout() {
               <Outlet />
               {/* Dialogs and Toasters */}
               <AddContactDialog />
-              <AddTag />
-              <AddGroup />
+              <AddTagDialog />
+              <AddGroupDialog />
+              <AddCompanyDialog />
               <Toaster
                 position="top-center"
                 toastOptions={{

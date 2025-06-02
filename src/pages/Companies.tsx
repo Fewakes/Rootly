@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import type { Company } from '@/types/types';
 import { CompaniesTable } from '@/features/companies/CompaniesTable';
 import { useAllCompanies } from '@/logic/useAllCompanies';
+import { useDialog } from '@/contexts/DialogContext';
 
 type SortKey = 'name' | 'created_at' | 'user_count';
 type SortDirection = 'asc' | 'desc';
@@ -11,6 +12,7 @@ type SortDirection = 'asc' | 'desc';
 type CompanyWithCount = Company & { user_count: number };
 
 export default function CompaniesPage() {
+  const { openDialog } = useDialog();
   const { companies, loading, error } = useAllCompanies();
 
   const handleEdit = (id: string) => {
@@ -58,7 +60,10 @@ export default function CompaniesPage() {
     <div className="w-full p-6 space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold">Companies</h1>
-        <Button className="bg-primaryBlue text-white hover:bg-primaryBlue/90">
+        <Button
+          onClick={() => openDialog('addCompany')}
+          className="bg-primaryBlue text-white hover:bg-primaryBlue/90"
+        >
           + Create New
         </Button>
       </div>

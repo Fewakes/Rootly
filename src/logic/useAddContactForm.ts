@@ -14,6 +14,7 @@ import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
+import type { NewContact } from '@/types/types';
 
 const phoneRegex =
   /^(\+?\d{1,3})?[-.\s]?(\(?\d{1,4}\)?)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}$/;
@@ -37,23 +38,6 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-type NewContact = {
-  id: string;
-  user_id: string;
-  name: string;
-  email: string;
-  gender: string;
-  avatar_url: string;
-  company_id: string | null;
-  created_at: string;
-  contact_number: string | null;
-  town: string | null;
-  country: string | null;
-  birthday: string | null;
-  link_name: string | null;
-  link_url: string | null;
-};
 
 export function useAddContactForm() {
   const navigate = useNavigate();
@@ -98,7 +82,6 @@ export function useAddContactForm() {
       console.error('User not authenticated');
       return;
     }
-    console.log('User ID:', userId);
 
     const newContact: NewContact = {
       id: contactId,

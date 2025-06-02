@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Company } from '@/types/types';
+import type { Company, NewCompanyData } from '@/types/types';
 
 /**
  * Fetches all companies from the database with a count of how many contacts are assigned to each.
@@ -23,3 +23,21 @@ export async function getAllCompanies(): Promise<Company[]> {
 
   return companiesWithCount;
 }
+
+export const insertCompany = async (
+  company: NewCompanyData,
+): Promise<object | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .insert([company])
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  } catch (err) {
+    console.error('Error inserting company:', (err as Error).message);
+    return null;
+  }
+};
