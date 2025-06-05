@@ -1,16 +1,9 @@
-import { useState } from 'react';
 import { TableRow } from '@/components/ui/table';
 import RowActionsMenu from '@/components/RowActionMenu';
 import { useDeleteCompany } from '@/logic/useDeleteCompany';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
-import { useContacts } from '@/logic/useContacts';
-import { AssignContactDialog } from '@/components/AssignContactDialog';
 
 export function CompaniesTableRow({ company }) {
-  const { contacts: allContacts } = useContacts();
   const { deleteCompany } = useDeleteCompany();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     const confirmed = confirm(
@@ -21,39 +14,7 @@ export function CompaniesTableRow({ company }) {
     }
   };
 
-  const handleAddUser = () => {
-    setIsDialogOpen(true);
-  };
-
-  const handleAddContact = async (contactId: string, companyId: string) => {
-    // Check if user already has a company
-    const { data, error } = await supabase
-      .from('contact_companies')
-      .select('*')
-      .eq('contact_id', contactId);
-
-    if (error) {
-      toast.error(`Error checking company assignment: ${error.message}`);
-      return false;
-    }
-
-    if (data.length >= 1) {
-      toast.error('This contact is already assigned to a company.');
-      return false;
-    }
-
-    const { error: insertError } = await supabase
-      .from('contact_companies')
-      .insert({ contact_id: contactId, company_id: companyId });
-
-    if (insertError) {
-      toast.error(`Failed to assign contact: ${insertError.message}`);
-      return false;
-    }
-
-    toast.success('Contact assigned to company!');
-    return true;
-  };
+  const handleEdit = () => {};
 
   return (
     <>
@@ -86,22 +47,11 @@ export function CompaniesTableRow({ company }) {
           <RowActionsMenu
             id={company.id}
             name={company.name}
-            onEdit={null}
+            onEdit={handleEdit}
             onDelete={handleDelete}
-            onAddUser={handleAddUser}
           />
         </td>
       </TableRow>
-
-      <AssignContactDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        entityId={company.id}
-        entityType="company"
-        allContacts={allContacts}
-        addContact={handleAddContact}
-        company={company}
-      />
     </>
   );
 }

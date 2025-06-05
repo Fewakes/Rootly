@@ -4,7 +4,6 @@ import { useSafeDialog } from '@/logic/useSafeDialog';
 import { useCallback } from 'react';
 import type { Group } from '@/types/types';
 import { useDeleteGroup } from '@/logic/useDeleteGroup';
-import { useAssignContact } from '@/contexts/AssignContactContext';
 
 type Props = {
   group: Group;
@@ -13,7 +12,6 @@ type Props = {
 export default function GroupsTableRow({ group }: Props) {
   const { deleteGroup } = useDeleteGroup();
   const { safeOpenDialog } = useSafeDialog();
-  const { openDialog } = useAssignContact();
 
   const editHandler = useCallback(() => {
     safeOpenDialog('addGroup', {
@@ -27,10 +25,6 @@ export default function GroupsTableRow({ group }: Props) {
     if (confirmed) {
       await deleteGroup(group.id);
     }
-  };
-
-  const addUserHandler = () => {
-    openDialog(group.id, 'group'); // Open the assign contact dialog for this group
   };
 
   return (
@@ -52,7 +46,7 @@ export default function GroupsTableRow({ group }: Props) {
           name={group.name}
           onEdit={editHandler}
           onDelete={deleteHandler}
-          onAddUser={addUserHandler}
+          onAddUser={null}
         />
       </td>
     </TableRow>
