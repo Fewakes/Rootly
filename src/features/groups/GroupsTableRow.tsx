@@ -1,20 +1,38 @@
 import { TableRow } from '@/components/ui/table';
-import { GroupsRowAction } from './GroupsRowAction';
+import RowActionsMenu from '@/components/RowActionMenu';
+import { useSafeDialog } from '@/logic/useSafeDialog';
+import { useCallback } from 'react';
 import type { Group } from '@/types/types';
+import { useDeleteGroup } from '@/logic/useDeleteGroup';
+import { useAssignContact } from '@/contexts/AssignContactContext';
 
 type Props = {
   group: Group;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onAddUser: (id: string) => void;
 };
 
-export default function GroupsTableRow({
-  group,
-  onEdit,
-  onDelete,
-  onAddUser,
-}: Props) {
+export default function GroupsTableRow({ group }: Props) {
+  const { deleteGroup } = useDeleteGroup();
+  const { safeOpenDialog } = useSafeDialog();
+  const { openDialog } = useAssignContact();
+
+  const editHandler = useCallback(() => {
+    safeOpenDialog('addGroup', {
+      id: group.id,
+      name: group.name,
+    });
+  }, [group.id, group.name, safeOpenDialog]);
+
+  const deleteHandler = async () => {
+    const confirmed = confirm(`Are you sure you want to delete ${group.name}?`);
+    if (confirmed) {
+      await deleteGroup(group.id);
+    }
+  };
+
+  const addUserHandler = () => {
+    openDialog(group.id, 'group'); // Open the assign contact dialog for this group
+  };
+
   return (
     <TableRow key={group.id} className="hover:bg-gray-50 transition-colors">
       <td className="px-5 py-3 text-sm font-medium text-gray-800">
@@ -29,12 +47,12 @@ export default function GroupsTableRow({
       </td>
       <td className="px-5 py-3 text-sm text-gray-500">{group.contact_count}</td>
       <td className="px-5 py-3 text-right">
-        <GroupsRowAction
+        <RowActionsMenu
           id={group.id}
           name={group.name}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onAddUser={onAddUser}
+          onEdit={editHandler}
+          onDelete={deleteHandler}
+          onAddUser={addUserHandler}
         />
       </td>
     </TableRow>

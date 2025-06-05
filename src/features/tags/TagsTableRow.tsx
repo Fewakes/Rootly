@@ -1,6 +1,6 @@
 import { TableRow } from '@/components/ui/table';
-import TagsRowAction from './TagsRowAction';
 import type { Tag } from '@/types/types';
+import RowActionsMenu from '@/components/RowActionMenu';
 
 type Props = {
   tag: Tag;
@@ -36,9 +36,9 @@ export default function TagsTableRow({
       </td>
       <td className="px-5 py-3 text-sm text-gray-500">{tag.contact_count}</td>
       <td className="px-5 py-3 text-right">
-        <TagsRowAction
-          tagId={tag.id}
-          tagName={tag.name}
+        <RowActionsMenu
+          id={tag.id}
+          name={tag.name}
           onEdit={onEdit}
           onDelete={onDelete}
           onAddUser={onAddUser}

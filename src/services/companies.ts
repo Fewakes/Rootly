@@ -1,11 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { Company, NewCompanyData } from '@/types/types';
 
-/**
- * Fetches all companies from the database with a count of how many contacts are assigned to each.
- *
- * @returns {Promise<Company[]>} An array of companies with contact counts.
- */
 export async function getAllCompanies(): Promise<Company[]> {
   const { data, error } = await supabase
     .from('companies')
@@ -41,3 +36,51 @@ export const insertCompany = async (
     return null;
   }
 };
+
+export async function deleteCompany(companyId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('companies')
+    .delete()
+    .eq('id', companyId);
+
+  if (error) {
+    console.error('Error deleting company:', error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function getCompanyById(
+  companyId: string,
+): Promise<Company | null> {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id, created_at, company_logo, name, user_count')
+    .eq('id', companyId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching company by ID:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
+export async function updateCompany(
+  companyId: string,
+  updates: Partial<Omit<Company, 'id' | 'created_at' | 'user_count'>>,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('companies')
+    .update(updates)
+    .eq('id', companyId);
+
+  if (error) {
+    console.error('Error updating company:', error.message);
+    return false;
+  }
+
+  return true;
+}

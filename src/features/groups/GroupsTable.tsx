@@ -11,9 +11,6 @@ type Group = {
 
 type Props = {
   groups: Group[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onAddUser: (id: string) => void;
   sortBy: 'name' | 'created_at' | 'user_count';
   sortDirection: 'asc' | 'desc';
   onSortChange: (key: 'name' | 'created_at' | 'user_count') => void;
@@ -21,9 +18,6 @@ type Props = {
 
 export default function GroupsTable({
   groups,
-  onEdit,
-  onDelete,
-  onAddUser,
   sortBy,
   sortDirection,
   onSortChange,
@@ -37,13 +31,7 @@ export default function GroupsTable({
       />
       <TableBody>
         {groups.map(group => (
-          <GroupsTableRow
-            key={group.id}
-            group={group}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onAddUser={onAddUser}
-          />
+          <GroupsTableRow key={group.id} group={group} />
         ))}
       </TableBody>
     </Table>

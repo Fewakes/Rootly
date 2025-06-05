@@ -11,21 +11,6 @@ export default function Groups() {
 
   const { groups, loading, error } = useAllGroups();
 
-  const handleEdit = (id: string) => {
-    console.log('Edit group with id:', id);
-    // open your edit dialog/modal here
-  };
-
-  const handleDelete = (id: string) => {
-    console.log('Delete group with id:', id);
-    // trigger delete logic/modal
-  };
-
-  const handleAddUser = (id: string) => {
-    console.log('Add user to group with id:', id);
-    // open add user dialog/modal
-  };
-
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'user_count'>(
     'name',
   );
@@ -68,9 +53,6 @@ export default function Groups() {
 
       <GroupsTable
         groups={sortedGroups}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddUser={handleAddUser}
         sortBy={sortBy}
         sortDirection={sortDirection}
         onSortChange={handleSortChange}

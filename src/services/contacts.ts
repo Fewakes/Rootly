@@ -1,13 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { Contact, NewContact } from '@/types/types';
 
-/**
- * Fetch all contacts that belong to a specific user.
- * Includes contact groups, tags, and companies.
- *
- * @param userId - The ID of the user.
- * @returns A list of Contact objects.
- */
 export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
   const { data, error } = await supabase
     .from('contacts')
@@ -46,11 +39,6 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
   }));
 };
 
-/**
- * Fetch the most recent contacts, limited by a given number.
- * @param limit - The maximum number of contacts to return.
- * @returns A list of recent Contact objects.
- */
 export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
   try {
     const { data, error } = await supabase
@@ -86,11 +74,6 @@ export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
   }
 };
 
-/**
- * Fetch a single contact by ID.
- * @param contactId - The ID of the contact.
- * @returns The Contact object or null if not found.
- */
 export const getContactById = async (
   contactId: string,
 ): Promise<Contact | null> => {
@@ -142,26 +125,17 @@ export const getContactById = async (
   }
 };
 
-/**
- * Inserts a new contact into the database, and links it to selected tags and groups.
- *
- * @param contact - The contact data to be inserted.
- * @param tagIds - An array of tag IDs to assign to this contact.
- * @param groupIds - An array of group IDs to assign to this contact.
- * @returns The inserted contact object or null if an error occurred.
- */
 export const insertContact = async (
   contact: NewContact,
   tagIds: string[] = [],
   groupIds: string[] = [],
 ): Promise<object | null> => {
   try {
-    // 1. Insert the contact into the 'contacts' table
     const { data: contactData, error: contactError } = await supabase
       .from('contacts')
-      .insert([contact]) // Insert as an array
-      .select() // Return the inserted row(s)
-      .single(); // Expect only one result
+      .insert([contact])
+      .select()
+      .single();
 
     if (contactError || !contactData) {
       console.error('Error inserting contact:', contactError?.message);
@@ -170,9 +144,7 @@ export const insertContact = async (
 
     const contactId = contactData.id;
 
-    // 2. Insert assigned tags into 'contact_tags' table
     if (tagIds.length > 0) {
-      // Create an array of { contact_id, tag_id } objects
       const tagInserts = tagIds.map(tagId => ({
         contact_id: contactId,
         tag_id: tagId,
@@ -188,9 +160,7 @@ export const insertContact = async (
       }
     }
 
-    // 3. Insert assigned groups into 'contact_groups' table
     if (groupIds.length > 0) {
-      // Create an array of { contact_id, group_id } objects
       const groupInserts = groupIds.map(groupId => ({
         contact_id: contactId,
         group_id: groupId,
@@ -206,7 +176,6 @@ export const insertContact = async (
       }
     }
 
-    // 4. Return the newly created contact data
     return contactData;
   } catch (err) {
     console.error(
@@ -275,4 +244,108 @@ export async function deleteContactById(contactId: string) {
   }
 
   return true;
+}
+
+type EntityType = 'group' | 'tag' | 'company';
+
+export async function getAssignableContactsForEntity(
+  entityId: string,
+  entityType: EntityType,
+) {
+  try {
+    let assignedIds: string[] = [];
+
+    if (entityType === 'group') {
+      const { data, error } = await supabase
+        .from('contact_groups')
+        .select('contact_id');
+
+      if (error) throw error;
+      assignedIds = data.map(entry => entry.contact_id);
+    }
+
+    if (entityType === 'company') {
+      const { data, error } = await supabase
+        .from('contact_companies')
+        .select('contact_id');
+
+      if (error) throw error;
+      assignedIds = data.map(entry => entry.contact_id);
+    }
+
+    if (entityType === 'tag') {
+      const { data, error } = await supabase
+        .from('contact_tags')
+        .select('contact_id')
+        .eq('tag_id', entityId); // Only exclude contacts that already have THIS tag
+
+      if (error) throw error;
+      assignedIds = data.map(entry => entry.contact_id);
+    }
+
+    // Now fetch all contacts not in assignedIds
+    const { data: contacts, error: contactsError } = await supabase
+      .from('contacts')
+      .select('*')
+      .not('id', 'in', `(${assignedIds.join(',') || 'NULL'})`);
+
+    if (contactsError) throw contactsError;
+
+    return contacts;
+  } catch (e) {
+    console.error('Error fetching assignable contacts:', e);
+    return [];
+  }
+}
+
+export async function getContactsAssignedToEntity(
+  entityId: string,
+  entityType: EntityType,
+) {
+  try {
+    let contactIds: string[] = [];
+
+    if (entityType === 'group') {
+      const { data, error } = await supabase
+        .from('contact_groups')
+        .select('contact_id')
+        .eq('group_id', entityId);
+
+      if (error) throw error;
+      contactIds = data.map(entry => entry.contact_id);
+    }
+
+    if (entityType === 'company') {
+      const { data, error } = await supabase
+        .from('contact_companies')
+        .select('contact_id')
+        .eq('company_id', entityId);
+
+      if (error) throw error;
+      contactIds = data.map(entry => entry.contact_id);
+    }
+
+    if (entityType === 'tag') {
+      const { data, error } = await supabase
+        .from('contact_tags')
+        .select('contact_id')
+        .eq('tag_id', entityId);
+
+      if (error) throw error;
+      contactIds = data.map(entry => entry.contact_id);
+    }
+
+    // Fetch contact details for those IDs
+    const { data: contacts, error: contactError } = await supabase
+      .from('contacts')
+      .select('*')
+      .in('id', contactIds.length ? contactIds : ['NULL']);
+
+    if (contactError) throw contactError;
+
+    return contacts;
+  } catch (e) {
+    console.error('Error fetching assigned contacts:', e);
+    return [];
+  }
 }

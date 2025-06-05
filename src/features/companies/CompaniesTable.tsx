@@ -12,9 +12,6 @@ interface Company {
 
 interface CompaniesTableProps {
   companies: Company[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onAddUser: (id: string) => void;
   sortBy: 'name' | 'created_at' | 'user_count';
   sortDirection: 'asc' | 'desc';
   onSortChange: (key: 'name' | 'created_at' | 'user_count') => void;
@@ -22,9 +19,6 @@ interface CompaniesTableProps {
 
 export function CompaniesTable({
   companies,
-  onEdit,
-  onDelete,
-  onAddUser,
   sortBy,
   sortDirection,
   onSortChange,
@@ -38,13 +32,7 @@ export function CompaniesTable({
       />
       <TableBody>
         {companies.map(company => (
-          <CompaniesTableRow
-            key={company.id}
-            company={company}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onAddUser={onAddUser}
-          />
+          <CompaniesTableRow key={company.id} company={company} />
         ))}
       </TableBody>
     </Table>

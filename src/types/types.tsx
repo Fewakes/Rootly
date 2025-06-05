@@ -43,11 +43,6 @@ export type TagColor =
   | 'pink'
   | 'rose';
 
-export interface Group {
-  name: string;
-  created_at: string; // or Date
-}
-
 export interface PopularTag {
   id: string;
   name: string;
@@ -80,12 +75,12 @@ export type Tag = {
   contact_count: number;
 };
 
-export interface Group {
+export type Group = {
   id: string;
   name: string;
   created_at: string;
-  contact_count: number;
-}
+  contact_count?: number;
+};
 
 export type NewCompanyData = {
   id: string;
@@ -134,5 +129,14 @@ export type Company = {
   company_logo?: string;
   created_at: string;
   user_count: number;
-  contact_count: number;
+  contact_count?: number;
+};
+
+type DialogPayload = Record<string, any> | null;
+
+export type DialogContextType = {
+  openDialogName: string | null;
+  dialogPayload: DialogPayload;
+  openDialog: (name: string, payload?: DialogPayload) => void;
+  closeDialog: () => void;
 };

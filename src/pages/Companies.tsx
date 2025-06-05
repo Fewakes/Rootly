@@ -8,24 +8,11 @@ import { useDialog } from '@/contexts/DialogContext';
 type SortKey = 'name' | 'created_at' | 'user_count';
 type SortDirection = 'asc' | 'desc';
 
-// Extend Company to ensure user_count exists for sorting
 type CompanyWithCount = Company & { user_count: number };
 
 export default function CompaniesPage() {
   const { openDialog } = useDialog();
   const { companies, loading, error } = useAllCompanies();
-
-  const handleEdit = (id: string) => {
-    console.log('Edit company with id:', id);
-  };
-
-  const handleDelete = (id: string) => {
-    console.log('Delete company with id:', id);
-  };
-
-  const handleAddUser = (id: string) => {
-    console.log('Add user to company with id:', id);
-  };
 
   const [sortBy, setSortBy] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -73,9 +60,6 @@ export default function CompaniesPage() {
       {!loading && !error && (
         <CompaniesTable
           companies={sortedCompanies}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onAddUser={handleAddUser}
           sortBy={sortBy}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}

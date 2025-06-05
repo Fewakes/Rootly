@@ -94,3 +94,50 @@ export const insertGroup = async (group: NewGroup): Promise<object | null> => {
     return null;
   }
 };
+
+export async function updateGroup(id: string, updates: { name: string }) {
+  const { data, error } = await supabase
+    .from('groups')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to update group:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function deleteGroup(id: string) {
+  const { data, error } = await supabase
+    .from('groups')
+    .delete()
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to delete group:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
+export async function getGroupById(groupId: string): Promise<Group | null> {
+  const { data, error } = await supabase
+    .from('groups')
+    .select('*')
+    .eq('id', groupId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching group:', error);
+    return null;
+  }
+
+  return data;
+}

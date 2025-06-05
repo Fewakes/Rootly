@@ -19,12 +19,6 @@ export const getAllTags = async (): Promise<Tag[]> => {
   return tagsWithCount;
 };
 
-/**
- * Fetches the most popular tags based on the number of contacts using each tag.
- *
- * @param {number} limit - Maximum number of tags to return.
- * @returns {Promise<PopularTag[]>} Sorted array of popular tags.
- */
 export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
   const { data, error } = await supabase.from('tags').select(`
       id,
@@ -38,7 +32,6 @@ export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
     return [];
   }
 
-  // Map tags with contact usage count and sort descending
   const sortedTags = (data ?? [])
     .map(tag => ({
       id: tag.id,
@@ -52,12 +45,6 @@ export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
   return sortedTags;
 };
 
-/**
- * Inserts a new tag into the database.
- *
- * @param {NewTag} tag - Tag data to insert.
- * @returns {Promise<object | null>} The inserted tag object or null on failure.
- */
 export const insertTag = async (tag: NewTag): Promise<object | null> => {
   try {
     const { data, error } = await supabase
@@ -77,3 +64,18 @@ export const insertTag = async (tag: NewTag): Promise<object | null> => {
     return null;
   }
 };
+
+export async function getTagById(tagId: string): Promise<Tag | null> {
+  const { data, error } = await supabase
+    .from('tags')
+    .select('*')
+    .eq('id', tagId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching tag:', error);
+    return null;
+  }
+
+  return data;
+}
