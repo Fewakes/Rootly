@@ -4,6 +4,7 @@ import { useSafeDialog } from '@/logic/useSafeDialog';
 import { useCallback } from 'react';
 import type { Group } from '@/types/types';
 import { useDeleteGroup } from '@/logic/useDeleteGroup';
+import { useAssignContact } from '@/contexts/AssignContactContext';
 
 type Props = {
   group: Group;
@@ -12,6 +13,7 @@ type Props = {
 export default function GroupsTableRow({ group }: Props) {
   const { deleteGroup } = useDeleteGroup();
   const { safeOpenDialog } = useSafeDialog();
+  const { openDialog } = useAssignContact();
 
   const editHandler = useCallback(() => {
     safeOpenDialog('addGroup', {
@@ -26,6 +28,10 @@ export default function GroupsTableRow({ group }: Props) {
       await deleteGroup(group.id);
     }
   };
+
+  const addUserHandler = useCallback(() => {
+    openDialog({ type: 'group', id: group.id, name: group.name });
+  }, [group.id, group.name, openDialog]);
 
   return (
     <TableRow key={group.id} className="hover:bg-gray-50 transition-colors">
@@ -46,7 +52,7 @@ export default function GroupsTableRow({ group }: Props) {
           name={group.name}
           onEdit={editHandler}
           onDelete={deleteHandler}
-          onAddUser={null}
+          onAddUser={addUserHandler}
         />
       </td>
     </TableRow>
