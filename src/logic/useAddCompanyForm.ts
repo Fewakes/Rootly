@@ -1,7 +1,9 @@
+// useAddCompanyForm.ts (or inside the file where you have this hook)
+
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
@@ -19,7 +21,7 @@ type AddCompanyFormValues = z.infer<typeof formSchema>;
 const DEFAULT_LOGO_URL = '/src/assets/company-default.png';
 
 export function useAddCompanyForm() {
-  const { openDialogName, closeDialog } = useDialog();
+  const { openDialogName, closeDialog, dialogPayload } = useDialog();
   const open = openDialogName === 'addCompany';
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -28,6 +30,23 @@ export function useAddCompanyForm() {
     resolver: zodResolver(formSchema),
     defaultValues: { companyName: '', logo: undefined },
   });
+
+  // Reset form & preview on dialog open or payload change
+  useEffect(() => {
+    if (open) {
+      const nameFromPayload = dialogPayload?.name || '';
+      form.reset({ companyName: nameFromPayload, logo: undefined });
+
+      if (dialogPayload?.company_logo) {
+        setLogoPreview(dialogPayload.company_logo);
+      } else {
+        setLogoPreview(null);
+      }
+    } else {
+      form.reset();
+      setLogoPreview(null);
+    }
+  }, [open, dialogPayload, form]);
 
   const uploadLogo = async (file: File): Promise<string> => {
     const fileName = `${crypto.randomUUID()}-${file.name}`;
@@ -47,6 +66,9 @@ export function useAddCompanyForm() {
 
       if (values.logo) {
         logoUrl = await uploadLogo(values.logo);
+      } else if (logoPreview) {
+        // Use existing preview URL (editing scenario)
+        logoUrl = logoPreview;
       }
 
       const userId = await getCurrentUserId();
@@ -82,6 +104,8 @@ export function useAddCompanyForm() {
       form.setValue('logo', file);
       setLogoPreview(URL.createObjectURL(file));
     }
+    // Clear input value to allow same file selection again if needed
+    e.target.value = '';
   };
 
   return { open, form, handleSubmit, closeDialog, logoPreview, onLogoChange };

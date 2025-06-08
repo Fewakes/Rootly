@@ -5,9 +5,10 @@ import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 import { useDialog } from '@/contexts/DialogContext';
-import { insertTag } from '@/services/tags';
+import { insertTag, updateTag } from '@/services/tags';
 import { getCurrentUserId } from '@/services/users';
 import { TAG_COLORS } from '@/lib/utils';
 
@@ -19,9 +20,16 @@ const formSchema = z.object({
 });
 
 export function useAddTagForm() {
-  const { openDialogName, closeDialog } = useDialog();
+  const { openDialogName, dialogPayload, closeDialog } = useDialog();
   const navigate = useNavigate();
   const open = openDialogName === 'addTag';
+
+  const payload = dialogPayload as Partial<{
+    id: string;
+    name: string;
+    color: string;
+    created_at: string;
+  }> | null;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -31,29 +39,47 @@ export function useAddTagForm() {
     },
   });
 
+  // Prefill form when editing
+  useEffect(() => {
+    if (open && payload) {
+      form.reset({
+        tagName: payload.name ?? '',
+        color: payload.color ?? 'red',
+      });
+    }
+    if (!open) {
+      form.reset();
+    }
+  }, [open, payload, form]);
+
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    const newTag = {
-      id: uuidv4(),
+    const isEditing = !!payload?.id;
+
+    const tag = {
+      id: isEditing ? payload.id! : uuidv4(),
       user_id: await getCurrentUserId(),
       name: data.tagName,
       color: data.color,
-      created_at: new Date().toISOString(),
+      created_at: isEditing ? payload.created_at! : new Date().toISOString(),
       logo: null,
     };
 
-    const saved = await insertTag(newTag);
+    const saved = isEditing ? await updateTag(tag) : await insertTag(tag);
 
     if (saved) {
-      toast.success('Tag created successfully', {
-        action: {
-          label: 'View Tags',
-          onClick: () => navigate('/tags'),
+      toast.success(
+        isEditing ? 'Tag updated successfully' : 'Tag created successfully',
+        {
+          action: {
+            label: 'View Tags',
+            onClick: () => navigate('/tags'),
+          },
         },
-      });
+      );
       form.reset();
       closeDialog();
     } else {
-      toast.error('Failed to create tag');
+      toast.error(`Failed to ${isEditing ? 'update' : 'create'} tag`);
     }
   };
 

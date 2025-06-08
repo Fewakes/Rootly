@@ -1,11 +1,16 @@
 import { TableRow } from '@/components/ui/table';
 import RowActionsMenu from '@/components/RowActionMenu';
 import { useDeleteCompany } from '@/logic/useDeleteCompany';
+import { useCallback } from 'react';
+import { useSafeAssignContactDialog } from '@/logic/useSafeAssignContactDialog';
+import { useSafeDialog } from '@/logic/useSafeDialog';
 
 export function CompaniesTableRow({ company }) {
   const { deleteCompany } = useDeleteCompany();
+  const { safeOpenDialog } = useSafeDialog();
+  const { safeAssignDialog } = useSafeAssignContactDialog();
 
-  const handleDelete = async () => {
+  const deleteHandler = async () => {
     const confirmed = confirm(
       `Are you sure you want to delete ${company.name}?`,
     );
@@ -14,7 +19,22 @@ export function CompaniesTableRow({ company }) {
     }
   };
 
-  const handleEdit = () => {};
+  const editHandler = useCallback(() => {
+    safeOpenDialog('addCompany', {
+      type: 'company',
+      id: company.id,
+      name: company.name,
+      company_logo: company.company_logo,
+    });
+  }, [company.id, company.name, company.company_logo, safeOpenDialog]);
+
+  const addUserHandler = useCallback(() => {
+    safeAssignDialog({
+      type: 'company',
+      id: company.id,
+      name: company.name,
+    });
+  }, [company.id, company.name, safeAssignDialog]);
 
   return (
     <>
@@ -47,8 +67,9 @@ export function CompaniesTableRow({ company }) {
           <RowActionsMenu
             id={company.id}
             name={company.name}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={editHandler}
+            onDelete={deleteHandler}
+            onAddUser={addUserHandler}
           />
         </td>
       </TableRow>

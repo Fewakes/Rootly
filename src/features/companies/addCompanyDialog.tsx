@@ -28,6 +28,7 @@ export default function AddCompanyDialog() {
           <DialogTitle>Add New Company</DialogTitle>
         </DialogHeader>
 
+        {/* Wrap form inside Form for context */}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -54,14 +55,18 @@ export default function AddCompanyDialog() {
                   type="file"
                   accept="image/*"
                   onChange={onLogoChange}
-                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                  className="block w-full text-sm text-muted-foreground 
+                    file:mr-4 file:py-2 file:px-4 file:rounded-full 
+                    file:border-0 file:text-sm file:font-semibold 
+                    file:bg-primary file:text-primary-foreground 
+                    hover:file:bg-primary/80"
                 />
               </FormControl>
               {logoPreview && (
                 <img
                   src={logoPreview}
                   alt="Logo preview"
-                  className="mt-2 h-24 w-24 rounded object-cover"
+                  className="mt-2 h-12 w-12 ml-7 rounded object-cover"
                 />
               )}
             </FormItem>

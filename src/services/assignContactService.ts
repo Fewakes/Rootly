@@ -1,31 +1,78 @@
 import { supabase } from '@/lib/supabaseClient';
+import type { AssignEntity } from '@/types/types';
 
-export async function getAssignedContacts(entity) {
+// Helper to resolve the correct join table
+function getJoinTable(type: AssignEntity['type']) {
+  if (type === 'group') return 'contact_groups';
+  if (type === 'company') return 'contact_companies';
+  if (type === 'tag') return 'contact_tags';
+  throw new Error(`Invalid entity type: ${type}`);
+}
+
+// Get contacts already assigned to the entity
+export async function getAssignedContacts(entity: AssignEntity) {
   const joinTable = getJoinTable(entity.type);
+
   const { data, error } = await supabase
     .from(joinTable)
     .select('contact_id, contacts (id, name, avatar_url)')
     .eq(`${entity.type}_id`, entity.id);
 
   if (error) throw error;
-  return data.map(entry => entry.contacts);
+
+  return data.map((entry: any) => entry.contacts); // Supabase typing workaround
 }
 
-export async function getEligibleContacts(entity) {
-  if (entity.type !== 'group') {
-    throw new Error('This function only supports group entities');
+// Get contacts that are eligible to be assigned
+export async function getEligibleContacts(entity: AssignEntity) {
+  const { type } = entity;
+
+  if (type === 'tag') {
+    // Get all contact-tag assignments
+    const { data: tagAssignments, error: tagError } = await supabase
+      .from('contact_tags')
+      .select('contact_id, tag_id');
+
+    if (tagError) throw tagError;
+
+    // Build tag count and detect already assigned
+    const tagCounts: Record<string, number> = {};
+    const alreadyTagged = new Set<string>();
+
+    for (const { contact_id, tag_id } of tagAssignments) {
+      tagCounts[contact_id] = (tagCounts[contact_id] || 0) + 1;
+      if (tag_id === entity.id) {
+        alreadyTagged.add(contact_id);
+      }
+    }
+
+    // Get all contacts
+    const { data: allContacts, error: contactError } = await supabase
+      .from('contacts')
+      .select('id, name, avatar_url');
+
+    if (contactError) throw contactError;
+
+    // Filter eligible: <5 tags and not already in this tag
+    const eligibleContacts = allContacts.filter(
+      contact =>
+        (tagCounts[contact.id] ?? 0) < 5 && !alreadyTagged.has(contact.id),
+    );
+
+    return eligibleContacts;
   }
 
-  // Step 1: Get all contact IDs assigned to ANY group
-  const { data: assignedGroups, error: assignedError } = await supabase
-    .from('contact_groups')
+  // Groups and companies: allow only one assignment per contact
+  const joinTable = getJoinTable(type);
+
+  const { data: assigned, error: assignedError } = await supabase
+    .from(joinTable)
     .select('contact_id');
 
   if (assignedError) throw assignedError;
 
-  const assignedIds = assignedGroups.map(entry => entry.contact_id);
+  const assignedIds = assigned.map(entry => entry.contact_id);
 
-  // Step 2: Fetch contacts NOT in any group
   let query = supabase.from('contacts').select('id, name, avatar_url');
 
   if (assignedIds.length > 0) {
@@ -37,7 +84,11 @@ export async function getEligibleContacts(entity) {
   return data;
 }
 
-export async function addContactToEntity(entity, contactId) {
+// Assign a contact to an entity (tag/group/company)
+export async function addContactToEntity(
+  entity: AssignEntity,
+  contactId: string,
+) {
   const joinTable = getJoinTable(entity.type);
   const insertData = {
     contact_id: contactId,
@@ -47,7 +98,11 @@ export async function addContactToEntity(entity, contactId) {
   if (error) throw error;
 }
 
-export async function removeContactFromEntity(entity, contactId) {
+// Remove a contact from an entity (tag/group/company)
+export async function removeContactFromEntity(
+  entity: AssignEntity,
+  contactId: string,
+) {
   const joinTable = getJoinTable(entity.type);
   const { error } = await supabase
     .from(joinTable)
@@ -55,11 +110,4 @@ export async function removeContactFromEntity(entity, contactId) {
     .eq('contact_id', contactId)
     .eq(`${entity.type}_id`, entity.id);
   if (error) throw error;
-}
-
-function getJoinTable(type) {
-  if (type === 'group') return 'contact_groups';
-  if (type === 'company') return 'contact_companies';
-  if (type === 'tag') return 'contact_tags';
-  throw new Error('Invalid entity type');
 }

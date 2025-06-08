@@ -1,7 +1,26 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-// If you're importing types from your own file, update the type definition like this:
-export type DialogPayload = Record<string, any> | null;
+type GroupPayload = {
+  type: 'group';
+  id: string;
+  name: string;
+};
+
+type CompanyPayload = {
+  type: 'company';
+  id: string;
+  name: string;
+  company_logo: string;
+};
+
+type TagPayload = {
+  type: 'tag';
+  id: string;
+  name: string;
+  color: string;
+};
+
+export type DialogPayload = GroupPayload | CompanyPayload | TagPayload | null;
 
 export type DialogContextType = {
   openDialogName: string | null;
@@ -35,7 +54,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useDialog() {
+export function useDialog(): DialogContextType {
   const context = useContext(DialogContext);
   if (!context) {
     throw new Error('useDialog must be used within a DialogProvider');

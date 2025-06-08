@@ -79,3 +79,25 @@ export async function getTagById(tagId: string): Promise<Tag | null> {
 
   return data;
 }
+
+export async function deleteTag(tagId: string): Promise<boolean> {
+  const { error } = await supabase.from('tags').delete().eq('id', tagId);
+
+  if (error) {
+    throw new Error(`Failed to delete tag: ${error.message}`);
+  }
+
+  return true;
+}
+
+export async function updateTag(tag: Tag) {
+  const { error } = await supabase
+    .from('tags')
+    .update({
+      name: tag.name,
+      color: tag.color,
+    })
+    .eq('id', tag.id);
+
+  return !error;
+}

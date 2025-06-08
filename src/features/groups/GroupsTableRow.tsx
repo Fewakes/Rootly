@@ -4,7 +4,7 @@ import { useSafeDialog } from '@/logic/useSafeDialog';
 import { useCallback } from 'react';
 import type { Group } from '@/types/types';
 import { useDeleteGroup } from '@/logic/useDeleteGroup';
-import { useAssignContact } from '@/contexts/AssignContactContext';
+import { useSafeAssignContactDialog } from '@/logic/useSafeAssignContactDialog';
 
 type Props = {
   group: Group;
@@ -13,14 +13,7 @@ type Props = {
 export default function GroupsTableRow({ group }: Props) {
   const { deleteGroup } = useDeleteGroup();
   const { safeOpenDialog } = useSafeDialog();
-  const { openDialog } = useAssignContact();
-
-  const editHandler = useCallback(() => {
-    safeOpenDialog('addGroup', {
-      id: group.id,
-      name: group.name,
-    });
-  }, [group.id, group.name, safeOpenDialog]);
+  const { safeAssignDialog } = useSafeAssignContactDialog();
 
   const deleteHandler = async () => {
     const confirmed = confirm(`Are you sure you want to delete ${group.name}?`);
@@ -28,10 +21,17 @@ export default function GroupsTableRow({ group }: Props) {
       await deleteGroup(group.id);
     }
   };
+  const editHandler = useCallback(() => {
+    safeOpenDialog('addGroup', {
+      type: 'group',
+      id: group.id,
+      name: group.name,
+    });
+  }, [group.id, group.name, safeOpenDialog]);
 
   const addUserHandler = useCallback(() => {
-    openDialog({ type: 'group', id: group.id, name: group.name });
-  }, [group.id, group.name, openDialog]);
+    safeAssignDialog({ type: 'group', id: group.id, name: group.name });
+  }, [group.id, group.name, safeAssignDialog]);
 
   return (
     <TableRow key={group.id} className="hover:bg-gray-50 transition-colors">

@@ -33,7 +33,9 @@ export default function AddTagDialog() {
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Tag</DialogTitle>
+          <DialogTitle>
+            {form.getValues('tagName') ? 'Edit Tag' : 'Add New Tag'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -61,10 +63,7 @@ export default function AddTagDialog() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Color</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select color" />
@@ -95,7 +94,13 @@ export default function AddTagDialog() {
                 Cancel
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Creating...' : 'Create Tag'}
+                {form.formState.isSubmitting
+                  ? form.getValues('tagName')
+                    ? 'Updating...'
+                    : 'Creating...'
+                  : form.getValues('tagName')
+                    ? 'Update Tag'
+                    : 'Create Tag'}
               </Button>
             </DialogFooter>
           </form>

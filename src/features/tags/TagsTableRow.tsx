@@ -1,20 +1,39 @@
 import { TableRow } from '@/components/ui/table';
 import type { Tag } from '@/types/types';
 import RowActionsMenu from '@/components/RowActionMenu';
+import { useSafeAssignContactDialog } from '@/logic/useSafeAssignContactDialog';
+import { useSafeDialog } from '@/logic/useSafeDialog';
+import { useCallback } from 'react';
+import { useDeleteTag } from '@/logic/useDeleteTag';
 
 type Props = {
   tag: Tag;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onAddUser: (id: string) => void;
 };
 
-export default function TagsTableRow({
-  tag,
-  onEdit,
-  onDelete,
-  onAddUser,
-}: Props) {
+export default function TagsTableRow({ tag }: Props) {
+  const { removeTag } = useDeleteTag();
+  const { safeOpenDialog } = useSafeDialog();
+  const { safeAssignDialog } = useSafeAssignContactDialog();
+
+  const deleteHandler = async () => {
+    const confirmed = confirm(`Are you sure you want to delete ${tag.name}?`);
+    if (confirmed) {
+      await removeTag(tag.id);
+    }
+  };
+  const editHandler = useCallback(() => {
+    safeOpenDialog('addTag', {
+      type: 'tag',
+      id: tag.id,
+      name: tag.name,
+      color: tag.color,
+    });
+  }, [tag.id, tag.name, tag.color, safeOpenDialog]);
+
+  const addUserHandler = useCallback(() => {
+    safeAssignDialog({ type: 'tag', id: tag.id, name: tag.name });
+  }, [tag.id, tag.name, safeAssignDialog]);
+
   return (
     <TableRow className="hover:bg-gray-50 transition-colors">
       <td className="px-5 py-3 text-sm font-medium text-gray-800">
@@ -39,9 +58,9 @@ export default function TagsTableRow({
         <RowActionsMenu
           id={tag.id}
           name={tag.name}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onAddUser={onAddUser}
+          onEdit={editHandler}
+          onDelete={deleteHandler}
+          onAddUser={addUserHandler}
         />
       </td>
     </TableRow>
