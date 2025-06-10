@@ -193,3 +193,18 @@ export interface AssignContactContextType {
   openDialog: (entity: Exclude<EntityType, null>) => void; // entity cannot be null when opening
   closeDialog: () => void;
 }
+
+export type PopularGroup = {
+  group_id: string;
+  groups: {
+    id: string;
+    name: string;
+  };
+};
+
+export interface PopularCompany {
+  id: string;
+  name: string;
+  count: number;
+  company_logo?: string | null; // Added
+}

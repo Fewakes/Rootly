@@ -12,18 +12,20 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useDialog } from '@/contexts/DialogContext';
-import { ButtonWithIcon } from '@/features/Layout/button-with-icon';
-import { supabase } from '@/lib/supabaseClient';
 import { getPopularGroups } from '@/services/groups';
 import { getPopularTags } from '@/services/tags';
+import { TAG_BG } from '@/lib/utils';
 import type { Tag } from '@/types/types';
+
 import {
   Contact,
   Home,
   LucideLogOut,
   LucideSettings,
+  MessageSquare,
+  Bell,
+  LucideCircleUser,
   Plus,
-  UserRoundPlus,
   Tags,
   Users,
   Building,
@@ -31,9 +33,8 @@ import {
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { TAG_BG } from '@/lib/utils';
+import { useSignOut } from '@/logic/useSignOut';
 
-// Navigation links (Main pages)
 const items = [
   { title: 'Home', url: '/', icon: Home },
   { title: 'Contacts', url: '/contacts', icon: Contact },
@@ -44,56 +45,49 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation();
-  // const navigate = useNavigate();
   const { openDialog } = useDialog();
   const [tags, setTags] = useState<Tag[]>([]);
   const [groups, setGroups] = useState<Tag[]>([]);
+  const navigate = useNavigate();
+  const { signOut, loading: isSigningOut, error: signOutError } = useSignOut();
+
+  const handleLogout = async () => {
+    signOut(
+      () => {
+        navigate('/login');
+      },
+      error => {
+        alert('Failed to log out: ' + error.message);
+      },
+    );
+  };
 
   useEffect(() => {
-    const fetchTags = async () => {
-      const popularTags = await getPopularTags(4);
-      setTags(popularTags);
-    };
-
-    fetchTags();
+    getPopularTags(4).then(setTags);
+    getPopularGroups(4).then(setGroups);
   }, []);
-
-  useEffect(() => {
-    const fetchGroups = async () => {
-      const popularGroups = await getPopularGroups(4);
-      setGroups(popularGroups);
-    };
-
-    fetchGroups();
-  }, []);
-
-  // const handleLogout = async () => {
-  //   try {
-  //     const { error } = await supabase.auth.signOut();
-  //     if (error) {
-  //       console.error('Error signing out:', error.message);
-  //       return;
-  //     }
-  //     // Redirect to login page after logout
-  //     navigate('/login');
-  //   } catch (err) {
-  //     console.error('Unexpected logout error:', err);
-  //   }
-  // };
 
   return (
-    <Sidebar>
-      {/* Header with "Add new contact" button
-      <SidebarHeader>
-        <ButtonWithIcon onClick={() => openDialog('addContact')}>
-          <div className="flex gap-3 cursor-pointer">
-            <UserRoundPlus /> New Contact
-          </div>
-        </ButtonWithIcon>
-      </SidebarHeader> */}
+    <Sidebar className="h-screen border-r flex flex-col bg-background">
+      {/* Logo and Search */}
+      <div className="px-4 py-5 border-b border-border text-center">
+        <Link to="/" className="block w-full">
+          <h1
+            className="text-primaryBlue text-3xl mb-4 select-none"
+            style={{ fontFamily: "'Pacifico', cursive" }}
+          >
+            Rootly
+          </h1>
+        </Link>
+        <input
+          type="search"
+          placeholder="Search contacts..."
+          className="w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-400 caret-gray-700"
+        />
+      </div>
 
-      <SidebarContent>
-        {/* Main Dashboard Navigation */}
+      {/* Main Content */}
+      <SidebarContent className="flex-1 overflow-auto">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
             Dashboard
@@ -121,28 +115,24 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Groups Section */}
+        {/* Groups */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
             Groups (Most Popular)
           </SidebarGroupLabel>
-
-          {/* Button to add new groups */}
           <SidebarGroupAction
-            title="Add Groups"
+            title="Add Group"
             onClick={() => openDialog('addGroup')}
           >
             <Plus className="w-4 h-4" />
-            <span className="sr-only">Add Groups</span>
+            <span className="sr-only">Add Group</span>
           </SidebarGroupAction>
-
-          {/* Group List */}
           <SidebarGroupContent>
             <SidebarMenu>
               {groups.map(group => (
                 <SidebarMenuItem key={group.id}>
                   <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
-                    <span>{group.name}</span>
+                    {group.name}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -150,22 +140,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Tags Section */}
+        {/* Tags */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
             Tags (Most Popular)
           </SidebarGroupLabel>
-
-          {/* Button to add new tags */}
           <SidebarGroupAction
-            title="Add Tags"
+            title="Add Tag"
             onClick={() => openDialog('addTag')}
           >
             <Plus className="w-4 h-4" />
-            <span className="sr-only">Add Tags</span>
+            <span className="sr-only">Add Tag</span>
           </SidebarGroupAction>
-
-          {/* Tag List */}
           <SidebarGroupContent>
             <SidebarMenu>
               {tags.map(tag => (
@@ -174,7 +160,7 @@ export function AppSidebar() {
                     <span className="flex items-center gap-2">
                       <span
                         className={`${TAG_BG[tag.color] ?? 'bg-gray-500'} w-1 h-5 rounded-3xl`}
-                      ></span>
+                      />
                       {tag.name}
                     </span>
                   </SidebarMenuButton>
@@ -184,6 +170,50 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Footer / User Panel */}
+      <SidebarFooter className="p-4 border-t border-border">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            aria-label="Messages"
+            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
+          >
+            <MessageSquare className="w-5 h-5 text-gray-700" />
+            <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
+              1
+            </span>
+          </button>
+
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
+          >
+            <Bell className="w-5 h-5 text-gray-700" />
+            <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
+              9
+            </span>
+          </button>
+
+          <button
+            type="button"
+            aria-label="User Account"
+            className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue"
+          >
+            <LucideCircleUser className="w-6 h-6 text-gray-700" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Logout"
+            className="p-2 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+          >
+            <LucideLogOut className="w-5 h-5 text-red-600" />
+          </button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

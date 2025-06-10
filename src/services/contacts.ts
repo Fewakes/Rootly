@@ -125,65 +125,71 @@ export const getContactById = async (
   }
 };
 
+const linkContactToItems = async (
+  contactId: string,
+  itemIds: string[],
+  // 👇 Added 'contact_companies' to the type
+  joinTableName: 'contact_tags' | 'contact_groups' | 'contact_companies',
+  // 👇 Added 'company_id' to the type
+  linkingColumnName: 'tag_id' | 'group_id' | 'company_id',
+) => {
+  if (!itemIds || itemIds.length === 0) {
+    return;
+  }
+
+  const links = itemIds.map(itemId => ({
+    contact_id: contactId,
+    [linkingColumnName]: itemId,
+  }));
+
+  const { error } = await supabase.from(joinTableName).insert(links);
+
+  if (error) {
+    console.error(`Error linking items in ${joinTableName}:`, error.message);
+    throw error;
+  }
+};
+
 export const insertContact = async (
   contact: NewContact,
   tagIds: string[] = [],
   groupIds: string[] = [],
-): Promise<object | null> => {
-  try {
-    const { data: contactData, error: contactError } = await supabase
-      .from('contacts')
-      .insert([contact])
-      .select()
-      .single();
+  companyIds: string[] = [],
+): Promise<Contact> => {
+  const { data: contactData, error: contactError } = await supabase
+    .from('contacts')
+    .insert(contact)
+    .select()
+    .single();
 
-    if (contactError || !contactData) {
-      console.error('Error inserting contact:', contactError?.message);
-      throw new Error(contactError?.message);
-    }
-
-    const contactId = contactData.id;
-
-    if (tagIds.length > 0) {
-      const tagInserts = tagIds.map(tagId => ({
-        contact_id: contactId,
-        tag_id: tagId,
-      }));
-
-      const { error: tagError } = await supabase
-        .from('contact_tags')
-        .insert(tagInserts);
-
-      if (tagError) {
-        console.error('Error linking tags to contact:', tagError.message);
-        throw new Error(tagError.message);
-      }
-    }
-
-    if (groupIds.length > 0) {
-      const groupInserts = groupIds.map(groupId => ({
-        contact_id: contactId,
-        group_id: groupId,
-      }));
-
-      const { error: groupError } = await supabase
-        .from('contact_groups')
-        .insert(groupInserts);
-
-      if (groupError) {
-        console.error('Error linking groups to contact:', groupError.message);
-        throw new Error(groupError.message);
-      }
-    }
-
-    return contactData;
-  } catch (err) {
-    console.error(
-      'Unexpected error inserting contact with tags/groups:',
-      (err as Error).message,
-    );
-    return null;
+  if (contactError || !contactData) {
+    console.error('Error inserting contact:', contactError?.message);
+    throw contactError || new Error('Failed to insert contact.');
   }
+
+  const contactId = contactData.id;
+
+  try {
+    await Promise.all([
+      linkContactToItems(contactId, tagIds, 'contact_tags', 'tag_id'),
+      linkContactToItems(contactId, groupIds, 'contact_groups', 'group_id'),
+
+      linkContactToItems(
+        contactId,
+        companyIds,
+        'contact_companies',
+        'company_id',
+      ),
+    ]);
+  } catch (error) {
+    console.error(
+      `Failed to link associations for contact ${contactId}. The contact was created, but its links are incomplete.`,
+      error,
+    );
+    throw error;
+  }
+
+  return contactData;
 };
 
 export async function insertContactGroups(

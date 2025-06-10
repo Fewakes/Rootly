@@ -1,3 +1,5 @@
+// src/components/AddContactDialog.tsx
+
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,8 +30,12 @@ import { UserIcon, Users, Tags, Building2 } from 'lucide-react';
 
 import { useDialog } from '@/contexts/DialogContext';
 import { useAddContactForm } from '@/logic/useAddContactForm';
-import { getAllTags } from '@/services/tags';
-import { getAllGroups } from '@/services/groups';
+import { getAllTags } from '@/services/tags'; // Assuming this is correct
+import { getAllGroups } from '@/services/groups'; // Assuming this is correct
+
+import default_woman from '@/assets/default_woman.svg';
+import default_man from '@/assets/default_man.svg';
+import { useAllCompanies } from '@/logic/useAllCompanies';
 
 export default function AddContactDialog() {
   const { openDialogName, closeDialog } = useDialog();
@@ -39,9 +45,17 @@ export default function AddContactDialog() {
 
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  // NEW: Use the useAllCompanies hook
+  const {
+    companies,
+    loading: companiesLoading,
+    error: companiesError,
+  } = useAllCompanies();
+
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
+  // Fetch groups on mount
   useEffect(() => {
     const fetchGroups = async () => {
       const allGroups = await getAllGroups();
@@ -50,6 +64,7 @@ export default function AddContactDialog() {
     fetchGroups();
   }, []);
 
+  // Fetch tags on mount
   useEffect(() => {
     const fetchTags = async () => {
       const allTags = await getAllTags();
@@ -58,14 +73,19 @@ export default function AddContactDialog() {
     fetchTags();
   }, []);
 
+  // Handle avatar file selection and preview
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       form.setValue('avatarUrl', file);
       setAvatarPreview(URL.createObjectURL(file));
+    } else {
+      form.setValue('avatarUrl', '');
+      setAvatarPreview(null);
     }
   };
 
+  // Wrapper for onSubmit to handle loading state
   const handleSubmit = async (data: any) => {
     setUploadingAvatar(true);
     try {
@@ -75,8 +95,27 @@ export default function AddContactDialog() {
     }
   };
 
+  // Resetting on Dialog Open Change
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      form.reset({
+        firstName: '',
+        surname: '',
+        gender: '' as 'male' | 'female',
+        email: '',
+        contactNumber: '',
+        groupIds: '',
+        tagIds: '',
+        companyIds: '',
+        avatarUrl: '',
+      });
+      setAvatarPreview(null);
+      closeDialog();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={isOpen => !isOpen && closeDialog()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Contact</DialogTitle>
@@ -103,13 +142,19 @@ export default function AddContactDialog() {
                   hover:file:bg-primary/80"
                 />
               </FormControl>
-              {avatarPreview && (
+              {(avatarPreview || form.getValues('gender')) && (
                 <img
-                  src={avatarPreview}
+                  src={
+                    avatarPreview ||
+                    (form.getValues('gender') === 'male'
+                      ? default_man
+                      : default_woman)
+                  }
                   alt="Avatar preview"
                   className="mt-2 h-24 w-24 rounded-full object-cover"
                 />
               )}
+              <FormMessage />
             </FormItem>
 
             {/* Personal Info */}
@@ -125,7 +170,7 @@ export default function AddContactDialog() {
                     <FormItem className="w-full">
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input placeholder="John" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -138,7 +183,7 @@ export default function AddContactDialog() {
                     <FormItem className="w-full">
                       <FormLabel>Surname</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input placeholder="Doe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -162,7 +207,11 @@ export default function AddContactDialog() {
                     <FormItem className="w-full">
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="john.doe@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -175,7 +224,7 @@ export default function AddContactDialog() {
                     <FormItem className="w-full">
                       <FormLabel>Contact Number</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input placeholder="+1234567890" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -207,7 +256,16 @@ export default function AddContactDialog() {
                       <FormItem>
                         <FormControl>
                           <Select
-                            onValueChange={field.onChange}
+                            onValueChange={value => {
+                              field.onChange(value);
+                              if (!form.getValues('avatarUrl')) {
+                                setAvatarPreview(
+                                  value === 'male'
+                                    ? default_man
+                                    : default_woman,
+                                );
+                              }
+                            }}
                             value={field.value || ''}
                           >
                             <SelectTrigger>
@@ -297,7 +355,6 @@ export default function AddContactDialog() {
                   />
                 </div>
 
-                {/* Company (Disabled) */}
                 <div className="border rounded-xl p-4 bg-muted/30">
                   <div className="flex items-center gap-2 mb-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -305,11 +362,50 @@ export default function AddContactDialog() {
                       Company
                     </span>
                   </div>
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Disabled" />
-                    </SelectTrigger>
-                  </Select>
+                  <FormField
+                    control={form.control}
+                    name="companyIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || ''}
+                            disabled={companiesLoading || companiesError}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  companiesLoading
+                                    ? 'Loading companies...'
+                                    : companiesError
+                                      ? 'Error loading companies'
+                                      : 'Select company'
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {companies.length > 0 ? (
+                                companies.map(company => (
+                                  <SelectItem
+                                    key={company.id}
+                                    value={company.id}
+                                  >
+                                    {company.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  No companies found
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
             </section>

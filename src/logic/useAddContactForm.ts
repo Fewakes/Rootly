@@ -3,12 +3,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
-import {
-  insertContact,
-  insertContactGroups,
-  insertContactTags,
-  uploadAvatar,
-} from '@/services/contacts';
+import { insertContact, uploadAvatar } from '@/services/contacts';
 import { getCurrentUserId } from '@/services/users';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
@@ -34,6 +29,7 @@ const formSchema = z.object({
     }),
   groupIds: z.string().optional(),
   tagIds: z.string().optional(),
+  companyIds: z.string().optional(),
   avatarUrl: z.any().optional(),
 });
 
@@ -48,24 +44,25 @@ export function useAddContactForm() {
     defaultValues: {
       firstName: '',
       surname: '',
-      gender: '',
+      gender: '' as 'male' | 'female',
       email: '',
       contactNumber: '',
       groupIds: '',
       tagIds: '',
+      companyIds: '',
       avatarUrl: '',
     },
   });
 
   const onSubmit = async (data: FormData) => {
     const contactId = uuidv4();
-    console.log('Generated contactId:', contactId);
 
     let finalAvatarUrl: string;
     if (data.avatarUrl instanceof File) {
       try {
         finalAvatarUrl = await uploadAvatar(data.avatarUrl, contactId);
       } catch (err) {
+        toast.error('Failed to upload avatar.');
         return;
       }
     } else if (
@@ -80,6 +77,7 @@ export function useAddContactForm() {
     const userId = await getCurrentUserId();
     if (!userId) {
       console.error('User not authenticated');
+      toast.error('Authentication error. Please log in again.');
       return;
     }
 
@@ -90,7 +88,7 @@ export function useAddContactForm() {
       email: data.email,
       gender: data.gender,
       avatar_url: finalAvatarUrl,
-      company_id: null,
+      company_id: data.companyId || null, // Ensure it's null if not selected
       created_at: new Date().toISOString(),
       contact_number: data.contactNumber || null,
       town: null,
@@ -101,16 +99,14 @@ export function useAddContactForm() {
     };
 
     try {
-      const saved = await insertContact(newContact);
-      console.log('Contact inserted:', saved);
-      if (!saved) throw new Error('Insert contact returned falsy');
+      const saved = await insertContact(
+        newContact,
+        data.tagIds ? [data.tagIds] : [],
+        data.groupIds ? [data.groupIds] : [],
+        data.companyIds ? [data.companyIds] : [],
+      );
 
-      if (data.groupIds) {
-        await insertContactGroups(saved.id, [data.groupIds]);
-      }
-      if (data.tagIds) {
-        await insertContactTags(saved.id, [data.tagIds]);
-      }
+      if (!saved) throw new Error('Insert contact returned falsy');
 
       form.reset();
       closeDialog();

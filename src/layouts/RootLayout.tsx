@@ -1,7 +1,6 @@
 import AddContactDialog from '@/features/contacts/AddContactDialog';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/features/Layout/app-sidebar';
-import { TopBar } from '@/features/Layout/TopBar';
 import { Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import AddTagDialog from '@/features/tags/AddTagDialog';
@@ -16,11 +15,9 @@ export default function Layout() {
     <AssignContactProvider>
       <DialogProvider>
         <div className="flex flex-col h-screen overflow-hidden">
-          <TopBar />
-
           <SidebarProvider>
             <div className="flex flex-1 overflow-hidden min-h-0">
-              <div className="h-[calc(100vh-3rem)]">
+              <div className="h-full">
                 <AppSidebar />
               </div>
 
