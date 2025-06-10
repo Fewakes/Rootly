@@ -1,41 +1,32 @@
 import {
+  Contact,
+  Home,
+  LogOut as LucideLogOut,
+  PlusCircle,
+  Building,
+  Tags,
+  Users,
+  UserCircle2,
+} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar';
+
 import { useDialog } from '@/contexts/DialogContext';
-import { getPopularGroups } from '@/services/groups';
-import { getPopularTags } from '@/services/tags';
-import { TAG_BG } from '@/lib/utils';
-import type { Tag } from '@/types/types';
-
-import {
-  Contact,
-  Home,
-  LucideLogOut,
-  LucideSettings,
-  MessageSquare,
-  Bell,
-  LucideCircleUser,
-  Plus,
-  Tags,
-  Users,
-  Building,
-} from 'lucide-react';
-
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSignOut } from '@/logic/useSignOut';
+import { useUserAuthProfile } from '@/logic/useUserAuthProfile';
 
-const items = [
+const dashboardItems = [
   { title: 'Home', url: '/', icon: Home },
   { title: 'Contacts', url: '/contacts', icon: Contact },
   { title: 'Tags', url: '/tags', icon: Tags },
@@ -43,37 +34,53 @@ const items = [
   { title: 'Companies', url: '/companies', icon: Building },
 ];
 
-export function AppSidebar() {
-  const location = useLocation();
-  const { openDialog } = useDialog();
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [groups, setGroups] = useState<Tag[]>([]);
-  const navigate = useNavigate();
-  const { signOut, loading: isSigningOut, error: signOutError } = useSignOut();
+const workspaceItems = [
+  {
+    title: 'New Contact',
+    dialog: 'addContact',
+    icon: PlusCircle,
+    color: 'text-green-500',
+  },
+  {
+    title: 'New Company',
+    dialog: 'addCompany',
+    icon: PlusCircle,
+    color: 'text-blue-500',
+  },
+  {
+    title: 'New Group',
+    dialog: 'addGroup',
+    icon: PlusCircle,
+    color: 'text-purple-500',
+  },
+  {
+    title: 'New Tag',
+    dialog: 'addTag',
+    icon: PlusCircle,
+    color: 'text-orange-500',
+  },
+];
 
-  const handleLogout = async () => {
-    signOut(
-      () => {
-        navigate('/login');
-      },
-      error => {
-        alert('Failed to log out: ' + error.message);
-      },
-    );
+export default function AppSidebar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { openDialog } = useDialog();
+  const { signOut } = useSignOut();
+  const { user, loading, error } = useUserAuthProfile();
+
+  const handleLogout = () => {
+    signOut(() => {
+      navigate('/login');
+    });
   };
 
-  useEffect(() => {
-    getPopularTags(4).then(setTags);
-    getPopularGroups(4).then(setGroups);
-  }, []);
-
   return (
-    <Sidebar className="h-screen border-r flex flex-col bg-background">
-      {/* Logo and Search */}
-      <div className="px-4 py-5 border-b border-border text-center">
+    <Sidebar className="h-screen border-r flex flex-col bg-gray-50 w-64">
+      {/* Header: Logo and Search */}
+      <div className="px-4 py-5 border-b text-center">
         <Link to="/" className="block w-full">
           <h1
-            className="text-primaryBlue text-3xl mb-4 select-none"
+            className="text-blue-600 text-3xl mb-4 select-none"
             style={{ fontFamily: "'Pacifico', cursive" }}
           >
             Rootly
@@ -81,33 +88,36 @@ export function AppSidebar() {
         </Link>
         <input
           type="search"
-          placeholder="Search contacts..."
-          className="w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-400 caret-gray-700"
+          placeholder="Search..."
+          className="w-full appearance-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
-      {/* Main Content */}
-      <SidebarContent className="flex-1 overflow-auto">
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
+      {/* Navigation and Actions */}
+      <SidebarContent className="flex-1 overflow-y-auto px-4">
+        <SidebarGroup className="mb-4">
+          <SidebarGroupLabel className="px-13= mb-2 mt-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
             Dashboard
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map(item => {
+              {dashboardItems.map(item => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className="text-sm font-medium text-foreground/80 hover:text-foreground"
-                    >
-                      <Link to={item.url}>
-                        <item.icon />
+                    <SidebarMenuItem key={item.title}>
+                      <Link
+                        to={item.url}
+                        className={`flex items-center gap-3 w-full rounded-md px-1 py-2 text-sm font-medium text-left transition-colors ${
+                          isActive
+                            ? 'bg-blue-100 text-blue-700 font-semibold'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5" />
                         <span>{item.title}</span>
                       </Link>
-                    </SidebarMenuButton>
+                    </SidebarMenuItem>
                   </SidebarMenuItem>
                 );
               })}
@@ -115,54 +125,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Groups */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
-            Groups (Most Popular)
-          </SidebarGroupLabel>
-          <SidebarGroupAction
-            title="Add Group"
-            onClick={() => openDialog('addGroup')}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="sr-only">Add Group</span>
-          </SidebarGroupAction>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {groups.map(group => (
-                <SidebarMenuItem key={group.id}>
-                  <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
-                    {group.name}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <hr className="border-gray-200" />
 
-        {/* Tags */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-medium text-muted-foreground">
-            Tags (Most Popular)
+        <SidebarGroup className="mb-4">
+          <SidebarGroupLabel className="px-1 mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+            Workspace
           </SidebarGroupLabel>
-          <SidebarGroupAction
-            title="Add Tag"
-            onClick={() => openDialog('addTag')}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="sr-only">Add Tag</span>
-          </SidebarGroupAction>
+
           <SidebarGroupContent>
-            <SidebarMenu>
-              {tags.map(tag => (
-                <SidebarMenuItem key={tag.id}>
-                  <SidebarMenuButton className="text-sm font-medium text-foreground/80 hover:text-foreground">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`${TAG_BG[tag.color] ?? 'bg-gray-500'} w-1 h-5 rounded-3xl`}
-                      />
-                      {tag.name}
-                    </span>
+            <SidebarMenu className="space-y-1">
+              {workspaceItems.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    className="flex items-center gap-3 w-full rounded-md px-1 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    onClick={() => openDialog(item.dialog)}
+                  >
+                    <item.icon
+                      style={{ width: 23, height: 23 }}
+                      className={item.color}
+                    />
+
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -171,46 +154,40 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer / User Panel */}
-      <SidebarFooter className="p-4 border-t border-border">
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-label="Messages"
-            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
-          >
-            <MessageSquare className="w-5 h-5 text-gray-700" />
-            <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
-              1
-            </span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue relative"
-          >
-            <Bell className="w-5 h-5 text-gray-700" />
-            <span className="absolute top-0 left-5 flex h-4 w-4 items-center justify-center rounded-full bg-primaryBlue text-white text-xs font-semibold">
-              9
-            </span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="User Account"
-            className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primaryBlue"
-          >
-            <LucideCircleUser className="w-6 h-6 text-gray-700" />
-          </button>
-
+      {/* Footer: User Info & Logout */}
+      <SidebarFooter className="p-4 border-t">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt="User Avatar"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <UserCircle2 className="w-10 h-10 text-gray-500 rounded-full" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-800 truncate">
+              {loading ? 'Loading...' : error ? 'Error' : user?.fullName || ''}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {loading
+                ? '...'
+                : error
+                  ? 'Could not load email'
+                  : user?.email || ''}
+            </p>
+          </div>
           <button
             type="button"
             onClick={handleLogout}
             title="Logout"
-            className="p-2 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+            className="p-2 rounded-md text-gray-500 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <LucideLogOut className="w-5 h-5 text-red-600" />
+            <LucideLogOut className="w-5 h-5" />
+            <span className="sr-only">Logout</span>
           </button>
         </div>
       </SidebarFooter>
