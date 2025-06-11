@@ -25,7 +25,10 @@ export default function AddCompanyDialog() {
     <Dialog open={open} onOpenChange={isOpen => !isOpen && closeDialog()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Company</DialogTitle>
+          <DialogTitle>
+            {' '}
+            {form.getValues('companyName') ? 'Edit Company' : 'Add New Company'}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Wrap form inside Form for context */}
@@ -51,24 +54,33 @@ export default function AddCompanyDialog() {
             <FormItem>
               <FormLabel>Company Logo</FormLabel>
               <FormControl>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={onLogoChange}
-                  className="block w-full text-sm text-muted-foreground 
-                    file:mr-4 file:py-2 file:px-4 file:rounded-full 
-                    file:border-0 file:text-sm file:font-semibold 
-                    file:bg-primary file:text-primary-foreground 
-                    hover:file:bg-primary/80"
-                />
+                <div className="flex items-center gap-4">
+                  {/* Preview or Placeholder */}
+                  <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Logo preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-500">Logo</span>
+                    )}
+                  </div>
+
+                  {/* File input */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onLogoChange}
+                    className="block text-sm text-muted-foreground 
+          file:py-2 file:px-4 file:rounded-full 
+          file:border-0 file:text-sm file:font-semibold 
+          file:bg-[#005df4] file:text-white 
+          hover:file:bg-[#005df4]/90"
+                  />
+                </div>
               </FormControl>
-              {logoPreview && (
-                <img
-                  src={logoPreview}
-                  alt="Logo preview"
-                  className="mt-2 h-12 w-12 ml-7 rounded object-cover"
-                />
-              )}
             </FormItem>
 
             <DialogFooter className="space-x-2">
@@ -82,8 +94,18 @@ export default function AddCompanyDialog() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Company'}
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="bg-primaryBlue text-white px-6 py-3 text-base font-semibold transition duration-150 transform hover:scale-[1.02] active:scale-[0.98] shadow hover:shadow-md hover:bg-primaryBlue disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {form.formState.isSubmitting
+                  ? form.getValues('companyName')
+                    ? 'Updating...'
+                    : 'Creating...'
+                  : form.getValues('companyName')
+                    ? 'Update Company'
+                    : 'Add Company'}
               </Button>
             </DialogFooter>
           </form>

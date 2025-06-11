@@ -42,10 +42,10 @@ const workspaceItems = [
     color: 'text-green-500',
   },
   {
-    title: 'New Company',
-    dialog: 'addCompany',
+    title: 'New Tag',
+    dialog: 'addTag',
     icon: PlusCircle,
-    color: 'text-blue-500',
+    color: 'text-orange-500',
   },
   {
     title: 'New Group',
@@ -53,11 +53,12 @@ const workspaceItems = [
     icon: PlusCircle,
     color: 'text-purple-500',
   },
+
   {
-    title: 'New Tag',
-    dialog: 'addTag',
+    title: 'New Company',
+    dialog: 'addCompany',
     icon: PlusCircle,
-    color: 'text-orange-500',
+    color: 'text-blue-500',
   },
 ];
 

@@ -93,14 +93,18 @@ export default function AddTagDialog() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="bg-primaryBlue text-white px-6 py-3 text-base font-semibold transition duration-150 transform hover:scale-[1.02] active:scale-[0.98] shadow hover:shadow-md hover:bg-primaryBlue"
+              >
                 {form.formState.isSubmitting
                   ? form.getValues('tagName')
                     ? 'Updating...'
                     : 'Creating...'
                   : form.getValues('tagName')
                     ? 'Update Tag'
-                    : 'Create Tag'}
+                    : 'Add Tag'}
               </Button>
             </DialogFooter>
           </form>

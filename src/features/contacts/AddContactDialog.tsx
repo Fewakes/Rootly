@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserIcon, Users, Tags, Building2 } from 'lucide-react';
+import { UserIcon, Users, Tags, Building2, UserCircle2 } from 'lucide-react';
 
 import { useDialog } from '@/contexts/DialogContext';
 import { useAddContactForm } from '@/logic/useAddContactForm';
@@ -127,133 +127,142 @@ export default function AddContactDialog() {
             className="space-y-6 py-4"
           >
             {/* Avatar Upload */}
+
             <FormItem>
               <FormLabel>Avatar</FormLabel>
               <FormControl>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={onAvatarChange}
-                  className="block w-full text-sm text-muted-foreground
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-primary file:text-primary-foreground
-                  hover:file:bg-primary/80"
-                />
+                <div className="flex items-center gap-4">
+                  {/* Avatar preview or placeholder on the left */}
+                  <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
+                    {avatarPreview || form.getValues('gender') ? (
+                      <img
+                        src={
+                          avatarPreview ||
+                          (form.getValues('gender') === 'male'
+                            ? default_man
+                            : default_woman)
+                        }
+                        alt="Avatar preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-500">Logo</span>
+                    )}
+                  </div>
+
+                  {/* File input with styled file button */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onAvatarChange}
+                    className="block text-sm text-muted-foreground 
+          file:py-2 file:px-4 file:rounded-full 
+          file:border-0 file:text-sm file:font-semibold 
+          file:bg-[#005df4] file:text-white 
+          hover:file:bg-[#005df4]/90"
+                  />
+                </div>
               </FormControl>
-              {(avatarPreview || form.getValues('gender')) && (
-                <img
-                  src={
-                    avatarPreview ||
-                    (form.getValues('gender') === 'male'
-                      ? default_man
-                      : default_woman)
-                  }
-                  alt="Avatar preview"
-                  className="mt-2 h-24 w-24 rounded-full object-cover"
-                />
-              )}
               <FormMessage />
             </FormItem>
 
             {/* Personal Info */}
             <section>
-              <h3 className="text-sm text-muted-foreground font-medium mb-2">
-                Personal Information
-              </h3>
-              <div className="flex flex-col md:flex-row gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="surname"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Surname</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="border rounded-xl p-4 bg-muted/30 space-y-4">
+                <h3 className="text-sm text-muted-foreground font-medium">
+                  Personal Information
+                </h3>
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* First Name */}
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Surname */}
+                  <FormField
+                    control={form.control}
+                    name="surname"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Surname</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </section>
-
-            <Separator />
 
             {/* Contact Info */}
             <section>
-              <h3 className="text-sm text-muted-foreground font-medium mb-2">
-                Contact Information
-              </h3>
-              <div className="flex flex-col md:flex-row gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="john.doe@example.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contactNumber"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Contact Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="+1234567890" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="border rounded-xl p-4 bg-muted/30 space-y-4">
+                <h3 className="text-sm text-muted-foreground font-medium">
+                  Contact Information
+                </h3>
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="john.doe@example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Contact Number */}
+                  <FormField
+                    control={form.control}
+                    name="contactNumber"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Contact Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+1234567890" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </section>
 
-            <Separator />
-
             {/* Profile Details */}
             <section>
-              <h3 className="text-sm text-muted-foreground font-medium mb-2">
-                Profile Details
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Gender */}
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <UserIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Gender
-                    </span>
-                  </div>
+              <div className="border rounded-xl p-4 bg-muted/30 space-y-4">
+                <h3 className="text-sm text-muted-foreground font-medium">
+                  Profile Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Gender */}
                   <FormField
                     control={form.control}
                     name="gender"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
+                        <FormLabel>Gender</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={value => {
@@ -268,7 +277,7 @@ export default function AddContactDialog() {
                             }}
                             value={field.value || ''}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select gender" />
                             </SelectTrigger>
                             <SelectContent>
@@ -281,27 +290,20 @@ export default function AddContactDialog() {
                       </FormItem>
                     )}
                   />
-                </div>
 
-                {/* Group */}
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Group
-                    </span>
-                  </div>
+                  {/* Group */}
                   <FormField
                     control={form.control}
                     name="groupIds"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
+                        <FormLabel>Group</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || ''}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select group" />
                             </SelectTrigger>
                             <SelectContent>
@@ -317,27 +319,20 @@ export default function AddContactDialog() {
                       </FormItem>
                     )}
                   />
-                </div>
 
-                {/* Tag */}
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Tags className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Tag
-                    </span>
-                  </div>
+                  {/* Tag */}
                   <FormField
                     control={form.control}
                     name="tagIds"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
+                        <FormLabel>Tag</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || ''}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select tag" />
                             </SelectTrigger>
                             <SelectContent>
@@ -353,27 +348,21 @@ export default function AddContactDialog() {
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <div className="border rounded-xl p-4 bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Company
-                    </span>
-                  </div>
+                  {/* Company */}
                   <FormField
                     control={form.control}
                     name="companyIds"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
+                        <FormLabel>Company</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || ''}
                             disabled={companiesLoading || companiesError}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue
                                 placeholder={
                                   companiesLoading
@@ -414,6 +403,7 @@ export default function AddContactDialog() {
               <Button
                 type="submit"
                 disabled={uploadingAvatar || form.formState.isSubmitting}
+                className="bg-primaryBlue text-white px-6 py-3 text-base font-semibold transition duration-150 transform hover:scale-[1.02] active:scale-[0.98] shadow hover:shadow-md hover:bg-primaryBlue"
               >
                 {uploadingAvatar ? 'Uploading Avatar...' : 'Add Contact'}
               </Button>

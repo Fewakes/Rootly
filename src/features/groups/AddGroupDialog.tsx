@@ -28,7 +28,9 @@ export default function AddGroupDialog() {
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Group</DialogTitle>
+          <DialogTitle>
+            {form.getValues('groupName') ? 'Edit Group' : 'Add New Group'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -61,8 +63,18 @@ export default function AddGroupDialog() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Creating...' : 'Create Group'}
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="bg-primaryBlue text-white px-6 py-3 text-base font-semibold transition duration-150 transform hover:scale-[1.02] active:scale-[0.98] shadow hover:shadow-md hover:bg-primaryBlue"
+              >
+                {form.formState.isSubmitting
+                  ? form.getValues('groupName')
+                    ? 'Updating...'
+                    : 'Creating...'
+                  : form.getValues('groupName')
+                    ? 'Update Group'
+                    : 'Add Group'}
               </Button>
             </DialogFooter>
           </form>
