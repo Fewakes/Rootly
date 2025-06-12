@@ -18,9 +18,10 @@ export default function GroupsTableRow({ group }: Props) {
   const deleteHandler = async () => {
     const confirmed = confirm(`Are you sure you want to delete ${group.name}?`);
     if (confirmed) {
-      await deleteGroup(group.id);
+      await deleteGroup(group.id, { groupName: group.name });
     }
   };
+
   const editHandler = useCallback(() => {
     safeOpenDialog('addGroup', {
       type: 'group',

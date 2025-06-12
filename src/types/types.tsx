@@ -208,3 +208,23 @@ export interface PopularCompany {
   count: number;
   company_logo?: string | null; // Added
 }
+
+export type Note = {
+  id: string;
+  content: string;
+  created_at: string;
+};
+
+export type Task = {
+  id: string;
+  title: string;
+  due_date: string | null;
+  completed: boolean;
+};
+
+export type ProfessionalInfo = {
+  id: string;
+  job_title: string | null;
+  department: string | null;
+  skills: string[] | null;
+};

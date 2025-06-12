@@ -1,19 +1,24 @@
-// useAddCompanyForm.ts (or inside the file where you have this hook)
-
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 
 import { supabase } from '@/lib/supabaseClient';
-import { toast } from 'sonner';
 import { useDialog } from '@/contexts/DialogContext';
-import { insertCompany } from '@/services/companies';
+import { insertCompany, updateCompany } from '@/services/companies';
 import { getCurrentUserId } from '@/services/users';
+import { useLogActivity } from './useLogActivity';
 
 const formSchema = z.object({
   companyName: z.string().min(2, 'Company name is required'),
-  logo: z.instanceof(File).optional(),
+  logo: z
+    .instanceof(File)
+    .optional()
+    .refine(
+      file => (file ? file.size <= 5_000_000 : true),
+      'Max file size is 5MB',
+    ),
 });
 
 type AddCompanyFormValues = z.infer<typeof formSchema>;
@@ -23,25 +28,34 @@ const DEFAULT_LOGO_URL = '/src/assets/company-default.png';
 export function useAddCompanyForm() {
   const { openDialogName, closeDialog, dialogPayload } = useDialog();
   const open = openDialogName === 'addCompany';
+  const isEditing = useMemo(() => !!dialogPayload?.id, [dialogPayload]);
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const { logActivity } = useLogActivity(userId);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const id = await getCurrentUserId();
+      setUserId(id);
+    };
+    fetchUser();
+  }, []);
 
   const form = useForm<AddCompanyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { companyName: '', logo: undefined },
   });
 
-  // Reset form & preview on dialog open or payload change
+  // Reset form and preview when dialog state changes
   useEffect(() => {
     if (open) {
-      const nameFromPayload = dialogPayload?.name || '';
-      form.reset({ companyName: nameFromPayload, logo: undefined });
-
-      if (dialogPayload?.company_logo) {
-        setLogoPreview(dialogPayload.company_logo);
-      } else {
-        setLogoPreview(null);
-      }
+      form.reset({
+        companyName: dialogPayload?.name || '',
+        logo: undefined,
+      });
+      const existingLogo = (dialogPayload as any)?.company_logo;
+      setLogoPreview(existingLogo || null);
     } else {
       form.reset();
       setLogoPreview(null);
@@ -53,60 +67,79 @@ export function useAddCompanyForm() {
     const { error } = await supabase.storage
       .from('logos')
       .upload(fileName, file);
-
     if (error) throw new Error('Logo upload failed');
-
     const { data } = supabase.storage.from('logos').getPublicUrl(fileName);
     return data.publicUrl;
   };
 
   const handleSubmit = async (values: AddCompanyFormValues) => {
-    try {
-      let logoUrl = DEFAULT_LOGO_URL;
+    if (!userId) {
+      toast.error('User not authenticated. Please try again.');
+      return;
+    }
 
+    try {
+      let logoUrl = logoPreview || DEFAULT_LOGO_URL;
       if (values.logo) {
         logoUrl = await uploadLogo(values.logo);
-      } else if (logoPreview) {
-        // Use existing preview URL (editing scenario)
-        logoUrl = logoPreview;
       }
 
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        toast.error('User not authenticated');
-        return;
-      }
+      if (isEditing) {
+        const success = await updateCompany(dialogPayload.id!, {
+          name: values.companyName,
+          company_logo: logoUrl,
+        });
 
-      const result = await insertCompany({
-        id: crypto.randomUUID(),
-        name: values.companyName,
-        company_logo: logoUrl,
-        user_id: userId,
-        created_at: new Date().toISOString(),
-      });
-
-      if (result) {
-        toast.success('Company added successfully');
-        form.reset();
-        setLogoPreview(null);
-        closeDialog();
+        if (success) {
+          toast.success('Company updated successfully');
+          logActivity('COMPANY_EDITED', 'Company', dialogPayload.id!, {
+            companyName: values.companyName,
+          });
+          closeDialog();
+        } else {
+          toast.error('Failed to update company');
+        }
       } else {
-        toast.error('Failed to add company');
+        const newCompany = {
+          id: crypto.randomUUID(),
+          name: values.companyName,
+          company_logo: logoUrl,
+          user_id: userId,
+          created_at: new Date().toISOString(),
+        };
+        const success = await insertCompany(newCompany);
+
+        if (success) {
+          toast.success('Company added successfully');
+          logActivity('COMPANY_CREATED', 'Company', newCompany.id, {
+            companyName: newCompany.name,
+          });
+          closeDialog();
+        } else {
+          toast.error('Failed to add company');
+        }
       }
     } catch (err: any) {
-      toast.error(err.message || 'Unexpected error adding company');
+      toast.error(err.message || 'An unexpected error occurred.');
     }
   };
 
   const onLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      form.setValue('logo', file);
+      form.setValue('logo', file, { shouldValidate: true });
       setLogoPreview(URL.createObjectURL(file));
     }
-    // Clear input value to allow same file selection again if needed
     e.target.value = '';
   };
 
-  return { open, form, handleSubmit, closeDialog, logoPreview, onLogoChange };
+  return {
+    open,
+    form,
+    handleSubmit,
+    closeDialog,
+    logoPreview,
+    onLogoChange,
+    isEditing,
+  };
 }

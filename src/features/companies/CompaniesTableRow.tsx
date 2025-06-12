@@ -15,10 +15,9 @@ export function CompaniesTableRow({ company }) {
       `Are you sure you want to delete ${company.name}?`,
     );
     if (confirmed) {
-      await deleteCompany(company.id);
+      await deleteCompany(company.id, { companyName: company.name });
     }
   };
-
   const editHandler = useCallback(() => {
     safeOpenDialog('addCompany', {
       type: 'company',

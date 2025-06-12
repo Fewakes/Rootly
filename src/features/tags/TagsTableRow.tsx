@@ -18,9 +18,10 @@ export default function TagsTableRow({ tag }: Props) {
   const deleteHandler = async () => {
     const confirmed = confirm(`Are you sure you want to delete ${tag.name}?`);
     if (confirmed) {
-      await removeTag(tag.id);
+      await removeTag(tag.id, { tagName: tag.name });
     }
   };
+
   const editHandler = useCallback(() => {
     safeOpenDialog('addTag', {
       type: 'tag',

@@ -1,29 +1,59 @@
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { deleteContactById } from '@/services/contacts';
-import { useState } from 'react';
+import { useLogActivity } from './useLogActivity';
+import { getCurrentUserId } from '@/services/users';
 
 export function useDeleteContact() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const deleteContact = async (
-    contactId: string,
-    onSuccess?: () => void,
-    onError?: (error: Error) => void,
-  ) => {
-    setLoading(true);
-    setError(null);
+  // Get userId and initialize the logger
+  const [userId, setUserId] = useState<string | null>(null);
+  const { logActivity } = useLogActivity(userId);
 
-    try {
-      await deleteContactById(contactId);
-      onSuccess?.();
-    } catch (err) {
-      const typedErr = err as Error;
-      setError(typedErr);
-      onError?.(typedErr);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch userId when the component mounts
+  useEffect(() => {
+    const fetchUser = async () => {
+      const id = await getCurrentUserId();
+      setUserId(id);
+    };
+    fetchUser();
+  }, []);
+
+  const deleteContact = useCallback(
+    async (
+      contactId: string,
+      details: { name: string },
+      onSuccess?: () => void,
+    ) => {
+      if (!userId) {
+        toast.error('User not authenticated. Cannot delete contact.');
+        return;
+      }
+      setLoading(true);
+      setError(null);
+
+      try {
+        await deleteContactById(contactId);
+
+        // Log the activity on successful deletion
+        logActivity('CONTACT_DELETED', 'Contact', contactId, details);
+        toast.success('Contact deleted successfully');
+
+        onSuccess?.();
+      } catch (err) {
+        const typedErr = err as Error;
+        setError(typedErr);
+        toast.error('Failed to delete contact', {
+          description: typedErr.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, logActivity],
+  );
 
   return {
     deleteContact,

@@ -1,16 +1,15 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
-
+import { useEffect, useState, useMemo } from 'react';
 import { useDialog } from '@/contexts/DialogContext';
 import { insertTag, updateTag } from '@/services/tags';
 import { getCurrentUserId } from '@/services/users';
 import { TAG_COLORS } from '@/lib/utils';
+import { useLogActivity } from './useLogActivity';
 
 const formSchema = z.object({
   tagName: z.string().min(1, 'Tag name is required'),
@@ -22,14 +21,22 @@ const formSchema = z.object({
 export function useAddTagForm() {
   const { openDialogName, dialogPayload, closeDialog } = useDialog();
   const navigate = useNavigate();
-  const open = openDialogName === 'addTag';
 
-  const payload = dialogPayload as Partial<{
-    id: string;
-    name: string;
-    color: string;
-    created_at: string;
-  }> | null;
+  const open = openDialogName === 'addTag';
+  const isEditing = useMemo(() => !!dialogPayload?.id, [dialogPayload]);
+
+  // Get userId and initialize the logger
+  const [userId, setUserId] = useState<string | null>(null);
+  const { logActivity } = useLogActivity(userId);
+
+  // Fetch userId when the component mounts
+  useEffect(() => {
+    const fetchUser = async () => {
+      const id = await getCurrentUserId();
+      setUserId(id);
+    };
+    fetchUser();
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -41,47 +48,62 @@ export function useAddTagForm() {
 
   // Prefill form when editing
   useEffect(() => {
-    if (open && payload) {
+    if (open && isEditing) {
       form.reset({
-        tagName: payload.name ?? '',
-        color: payload.color ?? 'red',
+        tagName: dialogPayload.name ?? '',
+        color: dialogPayload.color ?? 'red',
       });
     }
-    if (!open) {
-      form.reset();
-    }
-  }, [open, payload, form]);
+  }, [open, isEditing, dialogPayload, form]);
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    const isEditing = !!payload?.id;
+    if (!userId) {
+      toast.error('User not found. Please try again.');
+      return;
+    }
 
-    const tag = {
-      id: isEditing ? payload.id! : uuidv4(),
-      user_id: await getCurrentUserId(),
-      name: data.tagName,
-      color: data.color,
-      created_at: isEditing ? payload.created_at! : new Date().toISOString(),
-      logo: null,
-    };
+    if (isEditing) {
+      // Re-construct the full tag object for the update operation
+      const updatedTag = {
+        id: dialogPayload.id!,
+        user_id: userId,
+        name: data.tagName,
+        color: data.color,
+        created_at: (dialogPayload as any).created_at, // Keep original creation date
+      };
 
-    const saved = isEditing ? await updateTag(tag) : await insertTag(tag);
+      const success = await updateTag(updatedTag); // Pass the full object
 
-    if (saved) {
-      toast.success(
-        isEditing ? 'Tag updated successfully' : 'Tag created successfully',
-        {
-          action: {
-            label: 'View Tags',
-            onClick: () => navigate('/tags'),
-          },
-        },
-      );
-      form.reset();
-      closeDialog();
+      if (success) {
+        toast.success('Tag updated successfully');
+        logActivity('TAG_EDITED', 'Tag', dialogPayload.id!, {
+          tagName: data.tagName,
+        });
+        closeDialog();
+      } else {
+        toast.error('Failed to update tag');
+      }
     } else {
-      toast.error(`Failed to ${isEditing ? 'update' : 'create'} tag`);
+      const newTag = {
+        id: uuidv4(),
+        user_id: userId,
+        name: data.tagName,
+        color: data.color,
+        created_at: new Date().toISOString(),
+      };
+      const success = await insertTag(newTag);
+
+      if (success) {
+        toast.success('Tag created successfully');
+        logActivity('TAG_CREATED', 'Tag', newTag.id, {
+          tagName: newTag.name,
+        });
+        closeDialog();
+      } else {
+        toast.error('Failed to create tag');
+      }
     }
   };
 
-  return { open, form, TAG_COLORS, handleSubmit, closeDialog };
+  return { open, form, TAG_COLORS, handleSubmit, closeDialog, isEditing };
 }

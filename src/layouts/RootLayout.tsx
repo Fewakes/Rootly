@@ -10,6 +10,8 @@ import { DialogProvider } from '@/contexts/DialogContext';
 import { AssignContactProvider } from '@/contexts/AssignContactContext';
 import { AssignContactDialog } from '@/components/AssignContactDialog';
 import AppSidebar from '@/features/Layout/app-sidebar';
+import EditProfileDialog from '@/components/EditProfileDialog';
+import EditContactInfoDialog from '@/components/EditContactInfoDialog';
 
 export default function Layout() {
   return (
@@ -30,6 +32,8 @@ export default function Layout() {
                 <AddGroupDialog />
                 <AddCompanyDialog />
                 <AssignContactDialog />
+                <EditProfileDialog />
+                <EditContactInfoDialog />
 
                 <Toaster
                   position="top-center"

@@ -2,14 +2,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
+
 import { useDialog } from '@/contexts/DialogContext';
 import { insertContact, uploadAvatar } from '@/services/contacts';
 import { getCurrentUserId } from '@/services/users';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
 import type { NewContact } from '@/types/types';
+import { useLogActivity } from './useLogActivity';
 
 const phoneRegex =
   /^(\+?\d{1,3})?[-.\s]?(\(?\d{1,4}\)?)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}$/;
@@ -39,6 +42,18 @@ export function useAddContactForm() {
   const navigate = useNavigate();
   const { closeDialog } = useDialog();
 
+  // Initialize activity logger
+  const [userId, setUserId] = useState<string | null>(null);
+  const { logActivity } = useLogActivity(userId);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const id = await getCurrentUserId();
+      setUserId(id);
+    };
+    fetchUser();
+  }, []);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,50 +70,38 @@ export function useAddContactForm() {
   });
 
   const onSubmit = async (data: FormData) => {
-    const contactId = uuidv4();
-
-    let finalAvatarUrl: string;
-    if (data.avatarUrl instanceof File) {
-      try {
-        finalAvatarUrl = await uploadAvatar(data.avatarUrl, contactId);
-      } catch (err) {
-        toast.error('Failed to upload avatar.');
-        return;
-      }
-    } else if (
-      typeof data.avatarUrl === 'string' &&
-      data.avatarUrl.length > 0
-    ) {
-      finalAvatarUrl = data.avatarUrl;
-    } else {
-      finalAvatarUrl = data.gender === 'male' ? default_man : default_woman;
-    }
-
-    const userId = await getCurrentUserId();
     if (!userId) {
-      console.error('User not authenticated');
       toast.error('Authentication error. Please log in again.');
       return;
     }
 
-    const newContact: NewContact = {
-      id: contactId,
-      user_id: userId,
-      name: `${data.firstName} ${data.surname}`,
-      email: data.email,
-      gender: data.gender,
-      avatar_url: finalAvatarUrl,
-      company_id: data.companyId || null, // Ensure it's null if not selected
-      created_at: new Date().toISOString(),
-      contact_number: data.contactNumber || null,
-      town: null,
-      country: null,
-      birthday: null,
-      link_name: null,
-      link_url: null,
-    };
-
     try {
+      const contactId = uuidv4();
+      let finalAvatarUrl: string;
+
+      if (data.avatarUrl instanceof File) {
+        finalAvatarUrl = await uploadAvatar(data.avatarUrl, contactId);
+      } else {
+        finalAvatarUrl = data.gender === 'male' ? default_man : default_woman;
+      }
+
+      const newContact: NewContact = {
+        id: contactId,
+        user_id: userId,
+        name: `${data.firstName} ${data.surname}`,
+        email: data.email,
+        gender: data.gender,
+        avatar_url: finalAvatarUrl,
+        company_id: data.companyIds || null,
+        created_at: new Date().toISOString(),
+        contact_number: data.contactNumber || null,
+        town: null,
+        country: null,
+        birthday: null,
+        link_name: null,
+        link_url: null,
+      };
+
       const saved = await insertContact(
         newContact,
         data.tagIds ? [data.tagIds] : [],
@@ -106,22 +109,25 @@ export function useAddContactForm() {
         data.companyIds ? [data.companyIds] : [],
       );
 
-      if (!saved) throw new Error('Insert contact returned falsy');
+      if (!saved) throw new Error('Failed to save contact');
 
-      form.reset();
-      closeDialog();
+      // Log the activity on successful creation
+      logActivity('CONTACT_CREATED', 'Contact', saved.id, {
+        name: newContact.name,
+      });
 
       toast.success('Contact created successfully', {
-        description: 'Click below to view and update their information.',
         action: {
           label: 'View Contact',
           onClick: () => navigate(`/contacts/${saved.id}`),
         },
       });
-    } catch (err) {
-      console.error('Insert contact failed:', err);
+
+      form.reset();
+      closeDialog();
+    } catch (err: any) {
       toast.error('Failed to create contact', {
-        description: 'Something went wrong. Please try again.',
+        description: err.message || 'An unexpected error occurred.',
       });
     }
   };

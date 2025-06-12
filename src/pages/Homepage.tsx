@@ -23,6 +23,7 @@ import { usePopularGroups } from '@/logic/usePopularGroups';
 import { usePopularCompanies } from '@/logic/getPopularCompanies';
 import { useDialog } from '@/contexts/DialogContext';
 import { Link } from 'react-router-dom';
+import ActivityFeed from '@/components/ActivityFeed';
 
 // --- Homepage Component ---
 export default function Homepage() {
@@ -238,41 +239,13 @@ export default function Homepage() {
                 <Separator />
 
                 {/* Activity Feed Sub-section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    Latest Activity Log
-                  </h3>
-                  {mockRecentActivity.length > 0 ? (
-                    <div className="space-y-4 text-sm text-muted-foreground">
-                      {mockRecentActivity.map(activity => (
-                        <div
-                          key={activity.id}
-                          className="flex justify-between items-start border-l-2 border-primary-foreground pl-4 py-1"
-                        >
-                          <span>
-                            {activity.description}{' '}
-                            {activity.contactName && (
-                              <span className="font-medium text-foreground">
-                                {activity.contactName}
-                              </span>
-                            )}
-                          </span>
-                          <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
-                            {activity.timestamp}
-                          </span>
-                        </div>
-                      ))}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-8">
+                      <ActivityFeed />
                     </div>
-                  ) : (
-                    <div className="text-muted-foreground italic">
-                      No recent activity.
-                    </div>
-                  )}
-                  <Button variant="link" className="px-0 mt-4">
-                    View Full Activity Log{' '}
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
