@@ -1,0 +1,27 @@
+// import { useState, useCallback } from 'react';
+// import { addMultipleTagsToContact } from '@/services/Tags.ts';
+
+// export function useAddMultipleTagsToContact() {
+//   const [isLoading, setIsLoading] = useState(false);
+
+//   const addTags = useCallback(async (contactId: string, tagIds: string[]) => {
+//     setIsLoading(true); // Set loading to true at the start of the operation.
+//     let success = false; // Initialize success flag.
+
+//     try {
+//       await addMultipleTagsToContact(contactId, tagIds);
+
+//       toast.success(`Successfully added ${tagIds.length} tags to contact!`);
+//       success = true; // Mark operation as successful.
+//     } catch (error) {
+//       console.error('Failed to add multiple tags to contact:', error);
+
+//       toast.error(`Failed to add multiple tags to contact. Please try again.`);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//     return success;
+//   }, []);
+
+//   return { addTags, isLoading };
+// }

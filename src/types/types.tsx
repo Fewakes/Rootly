@@ -228,3 +228,38 @@ export type ProfessionalInfo = {
   department: string | null;
   skills: string[] | null;
 };
+
+export type ActivityAction =
+  | 'CONTACT_CREATED'
+  | 'CONTACT_UPDATED'
+  | 'CONTACT_DELETED'
+  | 'NOTE_CREATED'
+  | 'NOTE_REMOVED'
+  | 'NOTE_EDITED'
+  | 'TASK_CREATED'
+  | 'TASK_COMPLETED'
+  | 'TASK_EDITED'
+  | 'TASK_REMOVED'
+  | 'TASK_REOPENED'
+  | 'GROUP_ASSIGNED'
+  | 'GROUP_CREATED'
+  | 'GROUP_REMOVED'
+  | 'GROUP_EDITED'
+  | 'TAG_ASSIGNED'
+  | 'TAG_CREATED'
+  | 'TAG_REMOVED'
+  | 'TAG_EDITED'
+  | 'COMPANY_ASSIGNED'
+  | 'COMPANY_CREATED'
+  | 'COMPANY_REMOVED'
+  | 'COMPANY_EDITED'
+  | 'GROUP_UNASSIGNED'
+  | 'TAG_UNASSIGNED'
+  | 'COMPANY_UNASSIGNED';
+export type LogActivityArgs = {
+  userId: string;
+  action: ActivityAction;
+  entityType: string;
+  entityId?: string;
+  details?: Record<string, any>;
+};

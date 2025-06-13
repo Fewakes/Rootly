@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { useDialog } from '@/contexts/DialogContext';
 import { insertCompany, updateCompany } from '@/services/companies';
-import { getCurrentUserId } from '@/services/users';
 import { useLogActivity } from './useLogActivity';
 
 const formSchema = z.object({
@@ -31,16 +30,7 @@ export function useAddCompanyForm() {
   const isEditing = useMemo(() => !!dialogPayload?.id, [dialogPayload]);
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity(); // ✅ Using new hook
 
   const form = useForm<AddCompanyFormValues>({
     resolver: zodResolver(formSchema),

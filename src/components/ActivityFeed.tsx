@@ -1,124 +1,118 @@
-import { Button } from '@/components/ui/button'; // Assuming shadcn/ui
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useActivities } from '@/logic/useActivity';
-import type { ActivityLogEntry } from '@/services/activityLogger';
-import { ArrowRight, Loader2 } from 'lucide-react'; // Assuming lucide-react for icons
+import { getActivityIcon, formatActivityDetails } from '@/logic/activityHelper';
+import { ArrowRight, Loader2, ListTodo, Activity } from 'lucide-react';
+import { format } from 'date-fns';
+import type { ActivityLogEntry } from '@/types';
 
-/**
- * ActivityFeed Component
- *
- * Displays a list of the most recent user activities.
- * It fetches data using the `useActivities` hook and handles its own loading and error states.
- *
- * @param {object} props - The component props.
- * @param {number} [props.limit=5] - The number of recent activities to display.
- */
 const ActivityFeed = ({ limit = 5 }: { limit?: number }) => {
-  // Use the custom hook to fetch activities
-  const { activities, loading, error, formatTimeAgo } = useActivities(limit);
+  const { activities, loading, error, formatTimeAgo } = useActivities({
+    limit,
+  });
 
-  // Display a loading spinner while data is being fetched
-  if (loading) {
-    return (
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-3">
-          Latest Activity Log
-        </h3>
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading...</span>
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex h-48 items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      </div>
-    );
-  }
-
-  // Display an error message if fetching fails
-  if (error) {
-    return (
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-3">
-          Latest Activity Log
-        </h3>
-        <div className="text-destructive-foreground bg-destructive/80 p-3 rounded-md">
-          <p className="font-semibold">Error</p>
-          <p className="text-sm">
-            Failed to load activity log. Please try again later.
+      );
+    }
+    if (error) {
+      return (
+        <div className="flex h-48 items-center justify-center p-4 text-center text-sm text-destructive">
+          Failed to load activities.
+        </div>
+      );
+    }
+    if (activities.length === 0) {
+      return (
+        <div className="flex h-48 flex-col items-center justify-center text-center">
+          <ListTodo className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm font-medium text-foreground">
+            No Recent Activity
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Actions you take will appear here.
           </p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // Main component render
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-foreground mb-3">
-        Latest Activity Log
-      </h3>
-      {activities.length > 0 ? (
-        <div className="space-y-4 text-sm text-muted-foreground">
-          {/* Map over the fetched activities */}
-          {activities.map((activity: ActivityLogEntry) => (
-            <div
-              key={activity.id}
-              className="flex justify-between items-start border-l-2 border-primary/30 hover:border-primary transition-colors pl-4 py-1"
-            >
-              <div>
-                <span>{activity.description}</span>
-                {/* The original code had a 'contactName'. The ActivityLogEntry type has 'details'.
-                  This checks if details.contactName exists and displays it.
-                  You can adapt this to fit your exact data structure in the 'details' object.
-                */}
-                {activity.details?.contactName && (
-                  <span className="font-medium text-foreground ml-1">
-                    {activity.details.contactName}
+    return (
+      <Table>
+        <TableBody>
+          {activities.map(activity => (
+            <TableRow key={activity.id}>
+              {/* Cell 1: Icon and Action Name */}
+              <TableCell className="w-[180px] font-medium py-2.5 pl-4">
+                <div className="flex items-center gap-3">
+                  {getActivityIcon(activity.action)}
+                  {/* ✨ FIX: Added the action name back */}
+                  <span className="capitalize text-sm">
+                    {activity.action?.replace(/_/g, ' ').toLowerCase() ||
+                      'Unknown'}
                   </span>
-                )}
-              </div>
-              <span className="text-xs text-gray-500 whitespace-nowrap ml-4 flex-shrink-0">
-                {formatTimeAgo(activity.created_at)}
-              </span>
-            </div>
+                </div>
+              </TableCell>
+
+              {/* Cell 2: Details */}
+              <TableCell className="py-2.5 text-sm text-muted-foreground">
+                {formatActivityDetails(activity)}
+              </TableCell>
+
+              {/* Cell 3: Timestamp */}
+              <TableCell className="w-[110px] text-right text-muted-foreground py-2.5 pr-4">
+                {/* ✨ FIX: Moved the time to its own column on the right */}
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help text-xs">
+                      {formatTimeAgo(activity.created_at)}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{format(new Date(activity.created_at), 'PPP p')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
+            </TableRow>
           ))}
-        </div>
-      ) : (
-        // Display a message if there is no activity
-        <div className="text-muted-foreground italic border border-dashed rounded-md p-6 text-center">
-          No recent activity to display.
-        </div>
-      )}
-      <Button variant="link" className="px-0 mt-4 text-primary">
-        View Full Activity Log
-        <ArrowRight className="w-4 h-4 ml-1" />
-      </Button>
-    </div>
+        </TableBody>
+      </Table>
+    );
+  };
+
+  return (
+    <Card>
+      <CardTitle className="ml-5 text-xl flex items-center gap-2">
+        <Activity className="h-5 w-5 text-primary" /> Recent Activity
+      </CardTitle>
+
+      <CardContent className="p-0">{renderContent()}</CardContent>
+      <CardFooter className="flex justify-end border-t px-6 ">
+        <Button
+          variant="link"
+          size="sm"
+          className="p-0 text-sm text-primary"
+          asChild
+        >
+          <Link to="/activity-log">
+            View All Activities
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
 export default ActivityFeed;
-
-// --- Example Usage ---
-// To use this component on your homepage, simply import it and place it where needed.
-// You can leave out the original JSX.
-
-/*
-import ActivityFeed from './path/to/ActivityFeed';
-import { Card, CardContent } from '@/components/ui/card'; // Assuming shadcn/ui
-
-const HomePage = () => {
-  return (
-    // ... your other page structure
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid gap-8">
-                // Other content...
-                
-                // Just add the new component here
-                <ActivityFeed />
-
-              </div>
-            </CardContent>
-          </Card>
-    // ...
-  );
-}
-*/

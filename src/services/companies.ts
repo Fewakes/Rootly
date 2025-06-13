@@ -85,56 +85,26 @@ export async function updateCompany(
   return true;
 }
 
-export const getPopularCompanies = async (
-  limit: number,
-): Promise<PopularCompany[]> => {
-  // Fetch contact-company relationships with company details
-  const { data, error } = await supabase.from('contact_companies').select(`
-    company_id,
-    companies (
-      id,
-      name,
-      company_logo
-    )
-  `);
+/**
+ * Fetches ALL companies, including a list of associated contacts (for avatars)
+ * and a total count for each.
+ */
+export const getAllCompaniesWithContacts = async () => {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id, name, company_logo, contacts(id, avatar_url)'); // Removed the .limit()
 
   if (error) {
-    console.error('Error fetching contact companies:', error.message);
-    return [];
+    console.error('Error fetching all companies:', error);
+    throw error;
   }
 
-  // Count contacts per company and store logo
-  const companyCountMap: Record<
-    string,
-    { name: string; count: number; company_logo?: string }
-  > = {};
-
-  data.forEach(entry => {
-    const companyId = entry.company_id;
-    const company = entry.companies;
-    const companyName = company?.name || 'Unknown';
-    const companyLogo = company?.company_logo;
-
-    if (!companyCountMap[companyId]) {
-      companyCountMap[companyId] = {
-        name: companyName,
-        count: 0,
-        company_logo: companyLogo,
-      };
-    }
-    companyCountMap[companyId].count += 1;
-  });
-
-  // Convert map to array and sort by contact count descending, then slice top limit
-  const sortedCompanies: PopularCompany[] = Object.entries(companyCountMap)
-    .map(([id, { name, count, company_logo }]) => ({
-      id,
-      name,
-      count,
-      company_logo,
+  const companiesWithCount = data
+    .map(company => ({
+      ...company,
+      count: company.contacts.length,
     }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
+    .sort((a, b) => b.count - a.count); // Sort by count descending
 
-  return sortedCompanies;
+  return companiesWithCount;
 };

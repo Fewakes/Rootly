@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'; // ✨ NEW: Added useState
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,11 +19,9 @@ export function useAddGroupForm() {
   const { openDialogName, dialogPayload, closeDialog } = useDialog();
   const navigate = useNavigate();
 
-  //  Get userId and initialize the logger
   const [userId, setUserId] = useState<string | null>(null);
   const { logActivity } = useLogActivity(userId);
 
-  //  Fetch userId when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       const id = await getCurrentUserId();
@@ -51,14 +49,12 @@ export function useAddGroupForm() {
   }, [open, dialogPayload, form]);
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    // Guard against submission if userId isn't loaded yet
     if (!userId) {
       toast.error('User information not available. Please try again.');
       return;
     }
 
     if (isEditing) {
-      // --- UPDATE LOGIC ---
       const updated = await updateGroup(dialogPayload.id, {
         name: data.groupName,
       });
@@ -66,7 +62,6 @@ export function useAddGroupForm() {
       if (updated) {
         toast.success('Group updated successfully');
 
-        //  Log the update activity
         logActivity('GROUP_EDITED', 'Group', dialogPayload.id, {
           groupName: data.groupName,
         });
@@ -76,7 +71,6 @@ export function useAddGroupForm() {
         toast.error('Failed to update group');
       }
     } else {
-      // --- CREATE LOGIC ---
       const newGroup = {
         id: uuidv4(),
         user_id: userId,
@@ -95,7 +89,6 @@ export function useAddGroupForm() {
           },
         });
 
-        //  Log the creation activity
         logActivity('GROUP_CREATED', 'Group', newGroup.id, {
           groupName: newGroup.name,
         });

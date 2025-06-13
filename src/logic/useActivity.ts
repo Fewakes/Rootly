@@ -1,78 +1,69 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
-export type ActivityAction =
-  | 'CONTACT_CREATED'
-  | 'CONTACT_UPDATED'
-  | 'CONTACT_DELETED'
-  | 'NOTE_CREATED'
-  | 'NOTE_REMOVED'
-  | 'NOTE_EDITED'
-  | 'TASK_CREATED'
-  | 'TASK_COMPLETED'
-  | 'TASK_EDITED'
-  | 'GROUP_ASSIGNED'
-  | 'GROUP_CREATED'
-  | 'GROUP_REMOVED'
-  | 'GROUP_EDITED'
-  | 'TAG_ASSIGNED'
-  | 'TAG_CREATED'
-  | 'TAG_REMOVED'
-  | 'TAG_EDITED'
-  | 'COMPANY_ASSIGNED'
-  | 'COMPANY_CREATED'
-  | 'COMPANY_REMOVED'
-  | 'COMPANY_EDITED';
-
-export type ActivityLogEntry = {
+// This should match your global type definition
+type ActivityLogEntry = {
   id: string;
-  user_id: string;
-  action: ActivityAction;
-  entity_type: string;
-  entity_id?: string;
-  description: string;
+  action: string;
+  details: Record<string, any>;
   created_at: string;
-  details?: Record<string, any>;
+  entity_type?: string;
+  entity_id?: string;
 };
 
-export function useActivities(limit = 50) {
+export const useActivities = ({
+  page = 1,
+  pageSize = 10,
+  limit,
+}: {
+  page?: number;
+  pageSize?: number;
+  limit?: number;
+}) => {
   const [activities, setActivities] = useState<ActivityLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const formatTimeAgo = useCallback((dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  }, []);
 
   useEffect(() => {
     const fetchActivities = async () => {
       setLoading(true);
       setError(null);
+      try {
+        let query = supabase
+          .from('activity_log')
+          .select('*', { count: 'exact' })
+          .order('created_at', { ascending: false });
 
-      const { data, error } = await supabase
-        .from<'activity_log', ActivityLogEntry>('activity_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        if (limit) {
+          query = query.limit(limit);
+        } else {
+          const from = (page - 1) * pageSize;
+          const to = from + pageSize - 1;
+          query = query.range(from, to);
+        }
 
-      if (error) {
-        setError(error.message);
-        setActivities([]);
-      } else {
+        const { data, error, count } = await query;
+
+        if (error) throw error;
+
         setActivities(data || []);
+        setTotalCount(count || 0);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching activities:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchActivities();
-  }, [limit]);
+  }, [page, pageSize, limit]);
 
-  function formatTimeAgo(timestamp: string) {
-    return formatDistanceToNowStrict(new Date(timestamp), { addSuffix: true });
-  }
-
-  return {
-    activities,
-    loading,
-    error,
-    formatTimeAgo,
-  };
-}
+  return { activities, loading, error, totalCount, formatTimeAgo };
+};

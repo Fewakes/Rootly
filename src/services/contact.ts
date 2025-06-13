@@ -90,9 +90,24 @@ export async function getAllCompanies() {
   }
   return data || [];
 }
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Define the expected shape of the data from the form
+// Note that `tagId` is now `tagIds` and is an array of strings.
+type UpdateContactProfilePayload = {
+  firstName: string;
+  surname: string;
+  groupId?: string;
+  tagIds?: string[];
+  avatarUrl?: string | File;
+};
+
+// Assume 'supabase' is an initialized SupabaseClient passed into this file
+// For example: import { supabase } from '@/lib/supabaseClient';
+
 /**
- * Updates a contact's core profile information, including name, avatar, group, and tag.
- * This function handles file uploads and junction table updates.
+ * Updates a contact's core profile information, including name, avatar, group, and tags.
+ * This function handles file uploads and performs efficient updates on junction tables.
  * @param {string} contactId - The ID of the contact to update.
  * @param {UpdateContactProfilePayload} data - The new profile data from the form.
  */
@@ -114,7 +129,7 @@ export async function updateContactProfile(
     const filePath = `avatars/${contactId}-${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('avatars') // Make sure you have a 'avatars' bucket in Supabase Storage
+      .from('avatars') // Ensure this bucket exists and has the correct policies
       .upload(filePath, file);
 
     if (uploadError) {
@@ -122,7 +137,6 @@ export async function updateContactProfile(
       throw new Error('Failed to upload new avatar.');
     }
 
-    // Get the public URL of the newly uploaded file
     const { data: urlData } = supabase.storage
       .from('avatars')
       .getPublicUrl(filePath);
@@ -130,7 +144,7 @@ export async function updateContactProfile(
     avatarPublicUrl = urlData.publicUrl;
   }
 
-  // 2. Update the main `contacts` table with name and new avatar URL
+  // 2. Update the main `contacts` table
   const fullName = `${data.firstName} ${data.surname}`.trim();
   const { error: contactUpdateError } = await supabase
     .from('contacts')
@@ -145,9 +159,7 @@ export async function updateContactProfile(
     throw new Error(contactUpdateError.message);
   }
 
-  // 3. Update the Group relationship in the junction table
-  // We'll perform a simple "delete then insert" operation.
-  // First, remove any existing group associations for this contact.
+  // 3. Update the Group relationship (simple delete then insert is acceptable for a single relationship)
   const { error: groupDeleteError } = await supabase
     .from('contact_groups')
     .delete()
@@ -155,10 +167,8 @@ export async function updateContactProfile(
 
   if (groupDeleteError) {
     console.error('Error clearing contact groups:', groupDeleteError);
-    // Not throwing here to allow other updates to proceed, but logging the error.
   }
 
-  // If a new groupId is provided, insert the new association.
   if (data.groupId) {
     const { error: groupInsertError } = await supabase
       .from('contact_groups')
@@ -170,24 +180,53 @@ export async function updateContactProfile(
     }
   }
 
-  // 4. Update the Tag relationship in the junction table (same logic as groups)
-  const { error: tagDeleteError } = await supabase
+  // 4. ✨ FIX: Efficiently update the Tag relationships
+  const newTagIds = data.tagIds || [];
+
+  // Fetch the contact's current tag associations
+  const { data: existingLinks, error: fetchError } = await supabase
     .from('contact_tags')
-    .delete()
+    .select('tag_id')
     .eq('contact_id', contactId);
 
-  if (tagDeleteError) {
-    console.error('Error clearing contact tags:', tagDeleteError);
+  if (fetchError) {
+    console.error('Error fetching existing contact tags:', fetchError);
+    throw fetchError;
   }
 
-  if (data.tagId) {
-    const { error: tagInsertError } = await supabase
-      .from('contact_tags')
-      .insert({ contact_id: contactId, tag_id: data.tagId });
+  const existingTagIds = existingLinks.map(link => link.tag_id);
 
-    if (tagInsertError) {
-      console.error('Error setting new contact tag:', tagInsertError);
-      throw new Error('Failed to associate contact with tag.');
+  // Calculate which tags to add and which to remove
+  const tagsToAdd = newTagIds.filter(id => !existingTagIds.includes(id));
+  const tagsToRemove = existingTagIds.filter(id => !newTagIds.includes(id));
+
+  // Perform delete operation for tags that were unselected
+  if (tagsToRemove.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('contact_tags')
+      .delete()
+      .eq('contact_id', contactId)
+      .in('tag_id', tagsToRemove);
+
+    if (deleteError) {
+      console.error('Error removing old tags:', deleteError);
+      throw new Error('Failed to update tag associations.');
+    }
+  }
+
+  // Perform insert operation for newly selected tags
+  if (tagsToAdd.length > 0) {
+    const insertData = tagsToAdd.map(tagId => ({
+      contact_id: contactId,
+      tag_id: tagId,
+    }));
+    const { error: insertError } = await supabase
+      .from('contact_tags')
+      .insert(insertData);
+
+    if (insertError) {
+      console.error('Error adding new tags:', insertError);
+      throw new Error('Failed to update tag associations.');
     }
   }
 

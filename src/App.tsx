@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Tags from './pages/Tags';
 import Groups from './pages/Groups';
 import Companies from './pages/Companies';
+import ActivityLogPage from './pages/ActivityLog';
 
 function App() {
   return (
@@ -18,15 +19,18 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/Login" element={<Login />} />
+          <Route path="Auth/callback" element={<AuthCallback />} />
 
           {/* Protected routes under layout */}
           <Route path="/" element={<ProtectedLayout />}>
             <Route index element={<Homepage />} />
-            <Route path="contacts" element={<Contacts />} />
-            <Route path="contacts/:id" element={<ContactDetails />} />
-            <Route path="tags" element={<Tags />} />
+
+            <Route path="/activity-log" element={<ActivityLogPage />} />
+
+            <Route path="Contacts" element={<Contacts />} />
+            <Route path="Contacts/:id" element={<ContactDetails />} />
+            <Route path="Tags" element={<Tags />} />
             <Route path="Groups" element={<Groups />} />
             <Route path="Companies" element={<Companies />} />
           </Route>

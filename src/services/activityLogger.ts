@@ -1,35 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-
-export type ActivityAction =
-  | 'CONTACT_CREATED' //
-  | 'CONTACT_UPDATED' //
-  | 'CONTACT_DELETED' //
-  | 'NOTE_CREATED'
-  | 'NOTE_REMOVED'
-  | 'NOTE_EDITED'
-  | 'TASK_CREATED'
-  | 'TASK_COMPLETED'
-  | 'TASK_EDITED'
-  | 'GROUP_ASSIGNED'
-  | 'GROUP_CREATED' //
-  | 'GROUP_REMOVED' //
-  | 'GROUP_EDITED' //
-  | 'TAG_ASSIGNED'
-  | 'TAG_CREATED' //
-  | 'TAG_REMOVED' //
-  | 'TAG_EDITED' //
-  | 'COMPANY_ASSIGNED'
-  | 'COMPANY_CREATED' //
-  | 'COMPANY_REMOVED' //
-  | 'COMPANY_EDITED'; //
-
-type LogActivityArgs = {
-  userId: string;
-  action: ActivityAction;
-  entityType: string;
-  entityId?: string;
-  details?: Record<string, any>;
-};
+import type { ActivityAction, LogActivityArgs } from '@/types/types';
 
 function generateDescription(
   action: ActivityAction,
@@ -54,6 +24,10 @@ function generateDescription(
       return `Marked task as completed for ${details?.contactName}`;
     case 'TASK_EDITED':
       return `Edited task for ${details?.contactName}`;
+    case 'TASK_REMOVED':
+      return `Removed task from ${details?.contactName}`;
+    case 'TASK_REOPENED':
+      return `Reopened task for ${details?.contactName}`;
     case 'GROUP_ASSIGNED':
       return `Assigned ${details?.contactName} to group ${details?.groupName}`;
     case 'GROUP_CREATED':
@@ -63,7 +37,7 @@ function generateDescription(
     case 'GROUP_EDITED':
       return `Edited group ${details?.groupName}`;
     case 'TAG_ASSIGNED':
-      return `Assigned tag ${details?.tagName} to ${details?.contactName}`;
+      return `Assigned  ${details?.contactName} to tag ${details?.tagName}`;
     case 'TAG_CREATED':
       return `Created new tag ${details?.tagName}`;
     case 'TAG_REMOVED':
@@ -78,6 +52,13 @@ function generateDescription(
       return `Removed company ${details?.companyName}`;
     case 'COMPANY_EDITED':
       return `Edited company ${details?.companyName}`;
+    case 'GROUP_UNASSIGNED':
+      return `Unassigned ${details?.contactName} from group ${details?.groupName}`;
+    case 'TAG_UNASSIGNED':
+      return `Unassigned  ${details?.contactName} from tag ${details?.tagName}`;
+    case 'COMPANY_UNASSIGNED':
+      return `Unassigned ${details?.contactName} from company ${details?.companyName}`;
+
     default:
       return action.replace(/_/g, ' ').toLowerCase();
   }

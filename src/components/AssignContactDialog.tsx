@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAssignContact } from '@/contexts/AssignContactContext';
+
 import {
   getAssignedContacts,
   getEligibleContacts,
@@ -17,9 +18,24 @@ import {
   removeContactFromEntity,
 } from '@/services/assignContactService';
 import type { ContactWithAvatar, AssignEntity } from '@/types/types';
+import { useLogActivity } from '@/logic/useLogActivity';
+
+const actionMap = {
+  add: {
+    group: 'GROUP_ASSIGNED',
+    tag: 'TAG_ASSIGNED',
+    company: 'COMPANY_ASSIGNED',
+  },
+  remove: {
+    group: 'GROUP_UNASSIGNED',
+    tag: 'TAG_UNASSIGNED',
+    company: 'COMPANY_UNASSIGNED',
+  },
+};
 
 export function AssignContactDialog() {
   const { open, entity, closeDialog } = useAssignContact();
+  const { logActivity } = useLogActivity();
 
   const [assigned, setAssigned] = useState<ContactWithAvatar[]>([]);
   const [eligible, setEligible] = useState<ContactWithAvatar[]>([]);
@@ -28,28 +44,16 @@ export function AssignContactDialog() {
     if (!entity) return;
 
     const loadContacts = async () => {
-      const assignedData = await getAssignedContacts(entity);
-      const eligibleData = await getEligibleContacts(entity);
+      const [assignedData, eligibleData] = await Promise.all([
+        getAssignedContacts(entity),
+        getEligibleContacts(entity),
+      ]);
       setAssigned(assignedData.flat());
       setEligible(eligibleData.flat());
     };
 
     loadContacts();
   }, [entity]);
-
-  const handleAdd = async (contactId: string) => {
-    if (!entity) return;
-    await addContactToEntity(entity, contactId);
-    toast.success('Contact added successfully');
-    await refreshContacts(entity);
-  };
-
-  const handleRemove = async (contactId: string) => {
-    if (!entity) return;
-    await removeContactFromEntity(entity, contactId);
-    toast.success('Contact removed successfully');
-    await refreshContacts(entity);
-  };
 
   const refreshContacts = async (entity: AssignEntity) => {
     const [assignedData, eligibleData] = await Promise.all([
@@ -58,6 +62,53 @@ export function AssignContactDialog() {
     ]);
     setAssigned(assignedData.flat());
     setEligible(eligibleData.flat());
+  };
+
+  const handleAdd = async (contactId: string) => {
+    if (!entity) return;
+
+    const contact = eligible.find(c => c.id === contactId);
+    if (!contact) return;
+
+    await addContactToEntity(entity, contactId);
+    toast.success('Contact added successfully');
+
+    const action = actionMap.add[entity.type as keyof typeof actionMap.add];
+    if (action) {
+      // ✨ FIX: Dynamically set the property key (e.g., groupName, tagName)
+      const details = {
+        contactName: contact.name,
+        contactId: contact.id,
+        [`${entity.type}Name`]: entity.name,
+      };
+      logActivity(action, entity.type, entity.id, details);
+    }
+
+    await refreshContacts(entity);
+  };
+
+  const handleRemove = async (contactId: string) => {
+    if (!entity) return;
+
+    const contact = assigned.find(c => c.id === contactId);
+    if (!contact) return;
+
+    await removeContactFromEntity(entity, contactId);
+    toast.success('Contact removed successfully');
+
+    const action =
+      actionMap.remove[entity.type as keyof typeof actionMap.remove];
+    if (action) {
+      // ✨ FIX: Dynamically set the property key (e.g., groupName, tagName)
+      const details = {
+        contactName: contact.name,
+        contactId: contact.id,
+        [`${entity.type}Name`]: entity.name,
+      };
+      logActivity(action, entity.type, entity.id, details);
+    }
+
+    await refreshContacts(entity);
   };
 
   const displayType = entity?.type
@@ -87,7 +138,6 @@ export function AssignContactDialog() {
             <h4 className="font-medium mb-3 text-primary">
               Contacts Currently Assigned to This {displayType}
             </h4>
-
             {assigned.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No contacts have been assigned yet.
@@ -131,7 +181,6 @@ export function AssignContactDialog() {
               Below are contacts eligible to be added. Click &quot;Add&quot; to
               assign them.
             </p>
-
             {eligible.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No eligible contacts available to add.

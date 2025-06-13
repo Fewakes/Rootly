@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useDialog } from '@/contexts/DialogContext';
 import GroupsTable from '@/features/groups/GroupsTable';
+import { supabase } from '@/lib/supabaseClient';
 import { useAllGroups } from '@/logic/useAllGroups';
 import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
@@ -61,3 +62,25 @@ export default function Groups() {
     </div>
   );
 }
+
+/**
+ * Fetches all groups and the count of contacts associated with each.
+ */
+export const getAllGroupsWithContactCounts = async () => {
+  const { data, error } = await supabase
+    .from('groups')
+    .select('id, name, contact_groups!left(count)'); // Use !left join to include groups with 0 contacts
+
+  if (error) {
+    console.error('Error fetching groups with counts:', error);
+    throw error;
+  }
+
+  // Transform the data into a standard shape for charts
+  return data.map(group => ({
+    id: group.id,
+    name: group.name,
+    value: group.contact_groups[0]?.count || 0,
+  }));
+  // ✨ REMOVED: The .filter() step to ensure all groups are included
+};

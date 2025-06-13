@@ -48,7 +48,7 @@ export default function Contact() {
 
         {/* Right Column */}
         <div className="md:col-span-1">
-          <ContactTabs contactId={contact.id} />
+          <ContactTabs contact={contact} />
         </div>
       </div>
     </div>

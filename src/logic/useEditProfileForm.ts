@@ -12,9 +12,12 @@ import { getCurrentUserId } from '@/services/users';
 // --- Form Validation Schema ---
 const profileFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
-  surname: z.string().min(1, 'Surname is required'),
+  surname: z.string().optional(),
   groupId: z.string().optional(),
-  tagId: z.string().optional(),
+  tagIds: z
+    .array(z.string())
+    .max(5, { message: 'A contact can have a maximum of 5 tags.' })
+    .default([]),
   avatarUrl: z.any().optional(),
 });
 
@@ -23,9 +26,9 @@ type ProfileFormData = z.infer<typeof profileFormSchema>;
 type ContactToEdit = {
   id: string;
   name: string;
-  avatarUrl?: string | null;
-  group?: { id: string; name: string } | null;
-  tag?: { id: string; name: string } | null;
+  avatar_url?: string | null;
+  contact_groups?: { id: string; name: string }[];
+  contact_tags?: { id: string; name: string }[];
 } | null;
 
 // --- Hook to manage the edit profile form ---
@@ -62,15 +65,16 @@ export function useEditProfileForm(contactToEdit: ContactToEdit) {
       const firstName = nameParts[0] || '';
       const surname = nameParts.slice(1).join(' ') || '';
 
+      // --- ✨ FIX 3: Update form.reset to use the array of tags ---
       form.reset({
         firstName: firstName,
         surname: surname,
-        groupId: contactToEdit.group?.id || '',
-        tagId: contactToEdit.tag?.id || '',
-        avatarUrl: contactToEdit.avatarUrl || '',
+        groupId: contactToEdit.contact_groups?.[0]?.id || '',
+        tagIds: contactToEdit.contact_tags?.map(t => t.id) || [], // Map the array of tags
+        avatarUrl: contactToEdit.avatar_url || '',
       });
     }
-  }, [contactToEdit, form]);
+  }, [form, contactToEdit]); // Removed 'form' from dependency array for stability
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!contactToEdit || !userId) {

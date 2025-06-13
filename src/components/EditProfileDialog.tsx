@@ -1,5 +1,3 @@
-// src/components/EditProfileDialog.tsx
-
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +30,8 @@ import { getAllGroups } from '@/services/groups';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 import { useEditProfileForm } from '@/logic/useEditProfileForm';
+// ✨ IMPORT: Our new custom component
+import { MultiSelect } from '@/components/ui/multi-select';
 
 export default function EditProfileDialog() {
   const { openDialogName, dialogPayload, closeDialog } = useDialog();
@@ -63,13 +63,13 @@ export default function EditProfileDialog() {
       const firstName = nameParts[0] || '';
       const surname = nameParts.slice(1).join(' ') || '';
       const groupId = contactToEdit.contact_groups?.[0]?.id || '';
-      const tagId = contactToEdit.contact_tags?.[0]?.id || '';
+      const tagIds = contactToEdit.contact_tags?.map(t => t.id) || [];
 
       form.reset({
         firstName: firstName,
         surname: surname,
         groupId: groupId,
-        tagId: tagId,
+        tagIds: tagIds,
         avatarUrl: contactToEdit.avatar_url || '',
       });
 
@@ -111,7 +111,7 @@ export default function EditProfileDialog() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-6 py-4"
           >
-            {/* Section: Profile Details */}
+            {/* ... (Profile Details section remains the same) ... */}
             <div className="border rounded-xl p-4 bg-muted/30 space-y-4">
               <h3 className="text-sm text-muted-foreground font-medium">
                 Profile Details
@@ -138,7 +138,6 @@ export default function EditProfileDialog() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-
               {/* Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -203,29 +202,23 @@ export default function EditProfileDialog() {
                     </FormItem>
                   )}
                 />
+
+                {/* ✨ IMPLEMENTATION: Using our new custom MultiSelect component */}
                 <FormField
                   control={form.control}
-                  name="tagId"
+                  name="tagIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tag</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select tag" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {tags.map(t => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Tags</FormLabel>
+                      <MultiSelect
+                        options={tags.map(t => ({
+                          value: t.id,
+                          label: t.name,
+                        }))}
+                        selected={field.value || []}
+                        onChange={field.onChange}
+                        placeholder="Select tags..."
+                      />
                       <FormMessage />
                     </FormItem>
                   )}
