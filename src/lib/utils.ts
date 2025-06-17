@@ -85,7 +85,6 @@ export const TAG_COLORS = [
   'rose',
 ];
 
-// This is the solid color used for the bar chart segments
 export const TAG_SOLID_COLORS = {
   red: '#ef4444',
   orange: '#f97316',

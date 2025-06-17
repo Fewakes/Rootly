@@ -39,26 +39,21 @@ export function TasksSection({
     refetch,
   );
 
-  // Editing state
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  // Update task status mutation
   const { updateStatus, isUpdating } = useUpdateTaskStatus(contactName);
 
-  // Delete task mutation
   const { deleteTask: deleteTaskMutation, isDeleting } = useDeleteTask(
     contactName,
     refetch,
   );
 
-  // Update task form for editing
   const { form: updateTaskForm, onSubmit: onUpdateTaskSubmit } =
     useUpdateTaskForm(editingTaskId, contactName, () => {
       setEditingTaskId(null);
       refetch();
     });
 
-  // Calendar popover state for add and edit
   const [addCalendarOpen, setAddCalendarOpen] = useState(false);
   const addCalendarButtonRef = useRef<HTMLButtonElement>(null);
   const [addCalendarAnchor, setAddCalendarAnchor] = useState<DOMRect | null>(
@@ -74,14 +69,12 @@ export function TasksSection({
   const minDate = new Date();
   minDate.setHours(0, 0, 0, 0);
 
-  // Handle toggling task status checkbox
   const handleUpdateStatus = async (taskId: string, completed: boolean) => {
     const newStatus = completed ? 'completed' : 'pending';
     await updateStatus(taskId, newStatus);
     await refetch();
   };
 
-  // Handle edit button click
   const handleEditClick = (task: any) => {
     setEditingTaskId(task.id);
     updateTaskForm.reset({

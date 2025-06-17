@@ -1,10 +1,16 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { NewTag, Tag, PopularTag } from '@/types/types';
 
+type TagUpdatePayload = {
+  name?: string;
+  description?: string;
+  color?: string;
+};
+
 export const getAllTags = async (): Promise<Tag[]> => {
   const { data, error } = await supabase
     .from('tags')
-    .select(`id, name, color, created_at, contact_tags(count)`);
+    .select(`id, name, color, created_at, description, contact_tags(count)`);
 
   if (error) {
     console.error('Error fetching tags:', error.message);
@@ -24,6 +30,7 @@ export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
       id,
       name,
       color,
+      description,
       contact_tags(contact_id)
     `);
 
@@ -90,16 +97,18 @@ export async function deleteTag(tagId: string): Promise<boolean> {
   return true;
 }
 
-export async function updateTag(tag: Tag) {
-  const { error } = await supabase
-    .from('tags')
-    .update({
-      name: tag.name,
-      color: tag.color,
-    })
-    .eq('id', tag.id);
+export async function updateTag(
+  id: string,
+  data: TagUpdatePayload,
+): Promise<boolean> {
+  const { error } = await supabase.from('tags').update(data).eq('id', id);
 
-  return !error;
+  if (error) {
+    console.error('Supabase update error:', error);
+    throw new Error(error.message);
+  }
+
+  return true;
 }
 
 export async function addMultipleTagsToContact(
@@ -124,10 +133,6 @@ export async function addMultipleTagsToContact(
   }
 }
 
-/**
- * Fetches all tags with their contact counts, formatted for use in a pie chart.
- * This is an adapted version of your existing `getAllTags` function.
- */
 export const getTagsDataForPieChart = async () => {
   const { data, error } = await supabase
     .from('tags')
@@ -138,17 +143,30 @@ export const getTagsDataForPieChart = async () => {
     throw error;
   }
 
-  // Transform the data to match the shape the chart component expects:
-  // - The count property is renamed to `value`.
-  // - A fallback color is provided if one isn't set in your database.
   const chartData = data
     .map((tag: any) => ({
       id: tag.id,
       name: tag.name,
-      color: tag.color || '#8884d8', // Use DB color or a fallback
+      color: tag.color || '#8884d8',
       value: tag.contact_tags[0]?.count ?? 0,
     }))
-    .filter(tag => tag.value > 0); // Only include tags that are in use
+    .filter(tag => tag.value > 0);
 
   return chartData;
 };
+
+export async function getTagByIdWithRank(tagId: string): Promise<Tag | null> {
+  const { data, error } = await supabase
+    .rpc('get_tag_details_with_rank', {
+      p_tag_id: tagId,
+    })
+    .single();
+
+  if (error) {
+    console.error('Error fetching tag by ID with rank:', error.message);
+
+    throw error;
+  }
+
+  return data;
+}

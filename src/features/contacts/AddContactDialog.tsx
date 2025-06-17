@@ -1,5 +1,3 @@
-// src/components/AddContactDialog.tsx
-
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -26,12 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserIcon, Users, Tags, Building2, UserCircle2 } from 'lucide-react';
-
 import { useDialog } from '@/contexts/DialogContext';
 import { useAddContactForm } from '@/logic/useAddContactForm';
-import { getAllTags } from '@/services/tags'; // Assuming this is correct
-import { getAllGroups } from '@/services/groups'; // Assuming this is correct
+import { getAllTags } from '@/services/tags';
+import { getAllGroups } from '@/services/groups';
 
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
@@ -45,7 +40,7 @@ export default function AddContactDialog() {
 
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
-  // NEW: Use the useAllCompanies hook
+
   const {
     companies,
     loading: companiesLoading,
@@ -55,7 +50,6 @@ export default function AddContactDialog() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  // Fetch groups on mount
   useEffect(() => {
     const fetchGroups = async () => {
       const allGroups = await getAllGroups();
@@ -64,7 +58,6 @@ export default function AddContactDialog() {
     fetchGroups();
   }, []);
 
-  // Fetch tags on mount
   useEffect(() => {
     const fetchTags = async () => {
       const allTags = await getAllTags();
@@ -73,7 +66,6 @@ export default function AddContactDialog() {
     fetchTags();
   }, []);
 
-  // Handle avatar file selection and preview
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -85,7 +77,6 @@ export default function AddContactDialog() {
     }
   };
 
-  // Wrapper for onSubmit to handle loading state
   const handleSubmit = async (data: any) => {
     setUploadingAvatar(true);
     try {
@@ -95,7 +86,6 @@ export default function AddContactDialog() {
     }
   };
 
-  // Resetting on Dialog Open Change
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       form.reset({
@@ -155,10 +145,10 @@ export default function AddContactDialog() {
                     type="file"
                     accept="image/*"
                     onChange={onAvatarChange}
-                    className="block text-sm text-muted-foreground 
-          file:py-2 file:px-4 file:rounded-full 
-          file:border-0 file:text-sm file:font-semibold 
-          file:bg-[#005df4] file:text-white 
+                    className="block text-sm text-muted-foreground
+          file:py-2 file:px-4 file:rounded-full
+          file:border-0 file:text-sm file:font-semibold
+          file:bg-[#005df4] file:text-white
           hover:file:bg-[#005df4]/90"
                   />
                 </div>

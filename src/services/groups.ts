@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Group, NewGroup } from '@/types/types';
+import type { Group, NewGroup, PopularGroup } from '@/types/types';
 export const getAllGroups = async (): Promise<
   (Group & { contact_count: number })[]
 > => {
@@ -23,11 +23,6 @@ export const getAllGroups = async (): Promise<
   return groupsWithCount;
 };
 
-/**
- * Fetches the most popular groups based on how many contacts are in each group.
- *
- * @returns {Promise<PopularGroup[]>} Sorted array of the top 5 most popular groups.
- */
 export const getPopularGroups = async (
   limit: number,
 ): Promise<PopularGroup[]> => {
@@ -60,7 +55,6 @@ export const getPopularGroups = async (
     }
   });
 
-  // Convert map to array, sort, and return top 5
   const sortedGroups: PopularGroup[] = Object.entries(groupCountMap)
     .map(([id, { name, count }]) => ({ id, name, count }))
     .sort((a, b) => b.count - a.count)
@@ -69,12 +63,6 @@ export const getPopularGroups = async (
   return sortedGroups;
 };
 
-/**
- * Inserts a new group into the database.
- *
- * @param {NewGroup} group - Group data to insert.
- * @returns {Promise<object | null>} The inserted group object or null on failure.
- */
 export const insertGroup = async (group: NewGroup): Promise<object | null> => {
   try {
     const { data, error } = await supabase
@@ -129,15 +117,31 @@ export async function deleteGroup(id: string) {
 
 export async function getGroupById(groupId: string): Promise<Group | null> {
   const { data, error } = await supabase
-    .from('groups')
-    .select('*')
-    .eq('id', groupId)
+    .rpc('get_group_details_with_rank', {
+      p_group_id: groupId,
+    })
     .single();
 
   if (error) {
-    console.error('Error fetching group:', error);
+    console.error('Error fetching group by ID with rank:', error.message);
     return null;
   }
-
   return data;
 }
+
+export const getAllGroupsWithContactCounts = async () => {
+  const { data, error } = await supabase
+    .from('groups')
+    .select('id, name, contact_groups!left(count)');
+
+  if (error) {
+    console.error('Error fetching groups with counts:', error);
+    throw error;
+  }
+
+  return data.map(group => ({
+    id: group.id,
+    name: group.name,
+    value: group.contact_groups[0]?.count || 0,
+  }));
+};

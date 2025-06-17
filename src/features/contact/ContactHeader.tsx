@@ -11,8 +11,6 @@ import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 import { Pencil, Trash2 } from 'lucide-react';
 
-// Assuming 'contact' prop type is defined elsewhere and imported
-// For this example, let's define a basic version
 type Contact = {
   id: string;
   name: string;

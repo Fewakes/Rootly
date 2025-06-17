@@ -16,7 +16,7 @@ const profileFormSchema = z.object({
   groupId: z.string().optional(),
   tagIds: z
     .array(z.string())
-    .max(5, { message: 'A contact can have a maximum of 5 tags.' })
+    .max(3, { message: 'A contact can have a maximum of 3 tags.' })
     .default([]),
   avatarUrl: z.any().optional(),
 });

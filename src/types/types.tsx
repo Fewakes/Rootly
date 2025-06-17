@@ -68,6 +68,7 @@ export interface Tag {
   color: string;
   created_at: string;
   contact_count: number;
+  description: string;
 }
 
 export interface NewTag {
@@ -146,7 +147,7 @@ export type ContactCompany = {
 };
 
 // --------------------
-// 📦 Entity Assignment Types
+//  Entity Assignment Types
 // --------------------
 
 export type AssignEntityType = 'group' | 'company' | 'tag';
@@ -157,6 +158,7 @@ export type AssignEntity = {
   id: string;
   name: string;
   type: AssignEntityType;
+  logo?: company_logo;
 };
 
 // --------------------
@@ -262,4 +264,25 @@ export type LogActivityArgs = {
   entityType: string;
   entityId?: string;
   details?: Record<string, any>;
+};
+
+// --- DATA TYPES ---
+type Group = {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  rank?: number;
+  totalGroups?: number;
+};
+type Note = { id: string; content: string; author: string; created_at: string };
+type Task = {
+  id: string;
+  title: string;
+  completed: boolean;
+  due_date?: string;
+};
+type ContactDetails = {
+  company: { name: string } | null;
+  tags: { name: string }[];
 };

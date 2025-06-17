@@ -2,8 +2,6 @@ import { LoginForm } from '@/features/auth/login-form';
 import { supabase } from '@/lib/supabaseClient';
 import { GalleryVerticalEnd } from 'lucide-react';
 
-// Make sure you import the Pacifico font in your CSS or via Google Fonts in your project
-
 export default function Login() {
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({

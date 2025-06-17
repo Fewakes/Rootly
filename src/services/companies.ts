@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Company, NewCompanyData, PopularCompany } from '@/types/types';
+import type { Company, NewCompanyData } from '@/types/types';
 
 export async function getAllCompanies(): Promise<Company[]> {
   const { data, error } = await supabase
     .from('companies')
-    .select('id, created_at, company_logo, name, contact_companies(count)');
+    .select(
+      'id, created_at, company_logo, description, name, description, contact_companies(count)',
+    );
 
   if (error) {
     console.error('Error fetching companies:', error.message);
@@ -55,14 +57,14 @@ export async function getCompanyById(
   companyId: string,
 ): Promise<Company | null> {
   const { data, error } = await supabase
-    .from('companies')
-    .select('id, created_at, company_logo, name, user_count')
-    .eq('id', companyId)
+    .rpc('get_company_details_with_rank', {
+      p_company_id: companyId,
+    })
     .single();
 
   if (error) {
-    console.error('Error fetching company by ID:', error.message);
-    return null;
+    console.error('Error fetching company by ID with rank:', error.message);
+    throw error;
   }
 
   return data;
@@ -92,7 +94,7 @@ export async function updateCompany(
 export const getAllCompaniesWithContacts = async () => {
   const { data, error } = await supabase
     .from('companies')
-    .select('id, name, company_logo, contacts(id, avatar_url)'); // Removed the .limit()
+    .select('id, name, company_logo, description, contacts(id, avatar_url)');
 
   if (error) {
     console.error('Error fetching all companies:', error);
@@ -108,3 +110,19 @@ export const getAllCompaniesWithContacts = async () => {
 
   return companiesWithCount;
 };
+
+export async function uploadLogo(file: File): Promise<string> {
+  const fileName = `${crypto.randomUUID()}-${file.name}`;
+
+  const { error } = await supabase.storage
+    .from('logos') // Make sure 'logos' is your correct bucket name
+    .upload(fileName, file);
+
+  if (error) {
+    console.error('Logo upload failed:', error);
+    throw new Error('Logo upload failed: ' + error.message);
+  }
+
+  const { data } = supabase.storage.from('logos').getPublicUrl(fileName);
+  return data.publicUrl;
+}

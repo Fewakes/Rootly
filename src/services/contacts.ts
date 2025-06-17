@@ -128,9 +128,9 @@ export const getContactById = async (
 const linkContactToItems = async (
   contactId: string,
   itemIds: string[],
-  // 👇 Added 'contact_companies' to the type
+
   joinTableName: 'contact_tags' | 'contact_groups' | 'contact_companies',
-  // 👇 Added 'company_id' to the type
+
   linkingColumnName: 'tag_id' | 'group_id' | 'company_id',
 ) => {
   if (!itemIds || itemIds.length === 0) {
@@ -283,13 +283,12 @@ export async function getAssignableContactsForEntity(
       const { data, error } = await supabase
         .from('contact_tags')
         .select('contact_id')
-        .eq('tag_id', entityId); // Only exclude contacts that already have THIS tag
+        .eq('tag_id', entityId);
 
       if (error) throw error;
       assignedIds = data.map(entry => entry.contact_id);
     }
 
-    // Now fetch all contacts not in assignedIds
     const { data: contacts, error: contactsError } = await supabase
       .from('contacts')
       .select('*')

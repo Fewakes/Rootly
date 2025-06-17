@@ -12,6 +12,9 @@ import Tags from './pages/Tags';
 import Groups from './pages/Groups';
 import Companies from './pages/Companies';
 import ActivityLogPage from './pages/ActivityLog';
+import GroupDetails from './pages/GroupDetails';
+import TagDetails from './pages/TagDetails';
+import CompanyDetails from './pages/CompanyDetails';
 
 function App() {
   return (
@@ -30,6 +33,10 @@ function App() {
 
             <Route path="Contacts" element={<Contacts />} />
             <Route path="Contacts/:id" element={<ContactDetails />} />
+            <Route path="Groups/:id" element={<GroupDetails />} />
+            <Route path="Tags/:id" element={<TagDetails />} />
+            <Route path="Companies/:id" element={<CompanyDetails />} />
+
             <Route path="Tags" element={<Tags />} />
             <Route path="Groups" element={<Groups />} />
             <Route path="Companies" element={<Companies />} />

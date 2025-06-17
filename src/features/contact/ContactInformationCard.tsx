@@ -1,5 +1,3 @@
-// src/components/contact/ContactInformationCard.tsx
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDialog } from '@/contexts/DialogContext';
@@ -14,7 +12,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
-// A more detailed type for the contact object used in this component
 type Contact = {
   id: string;
   email?: string | null;
@@ -31,9 +28,6 @@ type Contact = {
   }[];
 };
 
-/**
- * Displays a card with detailed contact information (email, phone, location, etc.).
- */
 export function ContactInformationCard({ contact }: { contact: Contact }) {
   const { openDialog } = useDialog();
 
@@ -67,7 +61,6 @@ export function ContactInformationCard({ contact }: { contact: Contact }) {
         </Button>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
-        {/* Email */}
         <div className="flex items-center gap-3">
           <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <div>
@@ -79,7 +72,7 @@ export function ContactInformationCard({ contact }: { contact: Contact }) {
             </span>
           </div>
         </div>
-        {/* Phone */}
+
         <div className="flex items-center gap-3">
           <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <div>

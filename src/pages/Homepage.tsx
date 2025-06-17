@@ -6,12 +6,12 @@ import { useRecentContacts } from '@/logic/useRecentContacts';
 import { useDialog } from '@/contexts/DialogContext';
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import type { TagColor } from '@/types/types';
-import ActivityFeed from '@/components/ActivityFeed';
-import { GroupsDistributionWidget } from '@/components/GroupsDistributionWidget';
-import { StatCard } from '@/components/StatCard';
-import { TagsDistributionWidget } from '@/components/TagsPieChartWidget';
-import { TopCompaniesWidget } from '@/components/TopCompaniesWidget';
-import RecentContacts from '@/components/ui/recentContacts';
+import ActivityFeed from '@/features/homepage/ActivityFeed';
+import { GroupsDistributionWidget } from '@/features/homepage/GroupsDistributionWidget';
+import { StatCard } from '@/features/homepage/StatCard';
+import { TagsDistributionWidget } from '@/features/homepage/TagsPieChartWidget';
+import { TopCompaniesWidget } from '@/features/homepage/TopCompaniesWidget';
+import RecentContacts from '@/features/homepage/recentContacts';
 
 // --- Helper Functions ---
 const getTagBgClass = (color: string) =>
@@ -30,7 +30,7 @@ export default function Homepage() {
   const { openDialog } = useDialog();
   const { stats, loading: statsLoading } = useDashboardStats();
   const { contacts: recentContacts = [], isLoading: contactsLoading } =
-    useRecentContacts(3);
+    useRecentContacts(5);
 
   // A single loading state for the entire page.
   const isLoading = statsLoading || contactsLoading;
@@ -56,7 +56,7 @@ export default function Homepage() {
         </Button>
       </section>
 
-      {/* Section 2: Top-level key performance indicators (KPIs) */}
+      {/* Section 2: Top-level (KPIs) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {isLoading ? (
           <>
@@ -111,7 +111,7 @@ export default function Homepage() {
             getTagBgClass={getTagBgClass}
             getTagTextClass={getTagTextClass}
           />
-          <ActivityFeed limit={5} />
+          <ActivityFeed limit={10} />
         </div>
 
         {/* Sidebar column for charts and insights */}

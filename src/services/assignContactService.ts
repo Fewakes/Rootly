@@ -1,7 +1,13 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { AssignEntity } from '@/types/types';
+import type { AssignEntity, ContactWithAvatar } from '@/types/types';
 
-// Helper to resolve the correct join table
+export type ContactWithDetails = ContactWithAvatar & {
+  email: string | null;
+  company: { id: string; name: string } | null;
+  group: { id: string; name: string } | null; // ✨ Changed from `groups` array to single object
+  tags: { id: string; name: string; color: string | null }[];
+};
+
 function getJoinTable(type: AssignEntity['type']) {
   if (type === 'group') return 'contact_groups';
   if (type === 'company') return 'contact_companies';
@@ -9,82 +15,98 @@ function getJoinTable(type: AssignEntity['type']) {
   throw new Error(`Invalid entity type: ${type}`);
 }
 
-// Get contacts already assigned to the entity
-export async function getAssignedContacts(entity: AssignEntity) {
+const CONTACT_DETAILS_QUERY = `
+  id,
+  name,
+  email,
+  avatar_url,
+  contact_companies ( companies ( id, name, company_logo) ),
+  contact_groups ( groups ( id, name ) ),
+  contact_tags ( tags ( id, name, color ) )
+`;
+
+function reshapeContactData(supabaseContact: any): ContactWithDetails {
+  return {
+    ...supabaseContact,
+    company: supabaseContact.contact_companies[0]?.companies || null,
+    // Since a contact can only be in one group, we take the first element.
+    group: supabaseContact.contact_groups[0]?.groups || null,
+    // Tags can be multiple, so we keep this as an array.
+    tags: supabaseContact.contact_tags.map((t: any) => t.tags),
+  };
+}
+
+/**
+ * Get contacts already assigned to a specific entity, now with their full details.
+ */
+export async function getAssignedContacts(
+  entity: AssignEntity,
+): Promise<ContactWithDetails[]> {
   const joinTable = getJoinTable(entity.type);
 
   const { data, error } = await supabase
     .from(joinTable)
-    .select('contact_id, contacts (id, name, avatar_url)')
+    .select(`contacts (${CONTACT_DETAILS_QUERY})`)
     .eq(`${entity.type}_id`, entity.id);
 
   if (error) throw error;
 
-  return data.map((entry: any) => entry.contacts); // Supabase typing workaround
+  const detailedContacts = data
+    .map((entry: any) =>
+      entry.contacts ? reshapeContactData(entry.contacts) : null,
+    )
+    .filter(Boolean) as ContactWithDetails[];
+
+  return detailedContacts;
 }
 
-// Get contacts that are eligible to be assigned
-export async function getEligibleContacts(entity: AssignEntity) {
-  const { type } = entity;
+/**
+ * Get contacts that are eligible to be assigned to the entity, now with their full details.
+ */
+export async function getEligibleContacts(
+  entity: AssignEntity,
+): Promise<ContactWithDetails[]> {
+  const { type, id: entityId } = entity;
 
-  if (type === 'tag') {
-    // Get all contact-tag assignments
-    const { data: tagAssignments, error: tagError } = await supabase
-      .from('contact_tags')
-      .select('contact_id, tag_id');
-
-    if (tagError) throw tagError;
-
-    // Build tag count and detect already assigned
-    const tagCounts: Record<string, number> = {};
-    const alreadyTagged = new Set<string>();
-
-    for (const { contact_id, tag_id } of tagAssignments) {
-      tagCounts[contact_id] = (tagCounts[contact_id] || 0) + 1;
-      if (tag_id === entity.id) {
-        alreadyTagged.add(contact_id);
-      }
-    }
-
-    // Get all contacts
-    const { data: allContacts, error: contactError } = await supabase
-      .from('contacts')
-      .select('id, name, avatar_url');
-
-    if (contactError) throw contactError;
-
-    // Filter eligible: <5 tags and not already in this tag
-    const eligibleContacts = allContacts.filter(
-      contact =>
-        (tagCounts[contact.id] ?? 0) < 5 && !alreadyTagged.has(contact.id),
-    );
-
-    return eligibleContacts;
-  }
-
-  // Groups and companies: allow only one assignment per contact
-  const joinTable = getJoinTable(type);
-
-  const { data: assigned, error: assignedError } = await supabase
-    .from(joinTable)
-    .select('contact_id');
+  const { data: assignedData, error: assignedError } = await supabase
+    .from(getJoinTable(type))
+    .select('contact_id')
+    .eq(`${type}_id`, entityId);
 
   if (assignedError) throw assignedError;
+  const assignedContactIds = new Set(assignedData.map(a => a.contact_id));
 
-  const assignedIds = assigned.map(entry => entry.contact_id);
+  const { data: allContacts, error: allContactsError } = await supabase
+    .from('contacts')
+    .select(CONTACT_DETAILS_QUERY);
 
-  let query = supabase.from('contacts').select('id, name, avatar_url');
+  if (allContactsError) throw allContactsError;
 
-  if (assignedIds.length > 0) {
-    query = query.not('id', 'in', `(${assignedIds.join(',')})`);
-  }
+  const allDetailedContacts = allContacts.map(reshapeContactData);
 
-  const { data, error } = await query;
-  if (error) throw error;
-  return data;
+  const eligibleContacts = allDetailedContacts.filter(contact => {
+    if (assignedContactIds.has(contact.id)) {
+      return false;
+    }
+    if (type === 'tag') {
+      return contact.tags.length < 3;
+    }
+    if (type === 'group') {
+      // A contact is eligible if they don't have a group yet.
+      return !contact.group;
+    }
+    if (type === 'company') {
+      return !contact.company;
+    }
+    return true;
+  });
+
+  return eligibleContacts;
 }
 
-// Assign a contact to an entity (tag/group/company)
+/**
+ * Assign a contact to an entity (tag/group/company).
+ */
 export async function addContactToEntity(
   entity: AssignEntity,
   contactId: string,
@@ -98,7 +120,9 @@ export async function addContactToEntity(
   if (error) throw error;
 }
 
-// Remove a contact from an entity (tag/group/company)
+/**
+ * Remove a contact from an entity (tag/group/company).
+ */
 export async function removeContactFromEntity(
   entity: AssignEntity,
   contactId: string,

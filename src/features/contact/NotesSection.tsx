@@ -28,19 +28,19 @@ export function NotesSection({
   const { form: addNoteForm, onSubmit: onAddNoteSubmit } = useAddNoteForm(
     contactId,
     contactName,
-    async () => await refetch(), // Await refetch here
+    async () => await refetch(),
   );
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   const { form: updateNoteForm, onSubmit: onUpdateNoteSubmit } =
     useUpdateNoteForm(editingNoteId, contactName, async () => {
       setEditingNoteId(null);
-      await refetch(); // Await refetch here
+      await refetch();
     });
 
   const { deleteNote: deleteNoteMutation, isDeleting } = useDeleteNote(
     contactName,
-    async () => await refetch(), // Await refetch here
+    async () => await refetch(),
   );
 
   const handleEditClick = (note: { id: string; content: string }) => {

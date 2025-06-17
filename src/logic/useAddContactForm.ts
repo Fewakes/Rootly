@@ -42,7 +42,6 @@ export function useAddContactForm() {
   const navigate = useNavigate();
   const { closeDialog } = useDialog();
 
-  // Initialize activity logger
   const [userId, setUserId] = useState<string | null>(null);
   const { logActivity } = useLogActivity(userId);
 
@@ -92,7 +91,6 @@ export function useAddContactForm() {
         email: data.email,
         gender: data.gender,
         avatar_url: finalAvatarUrl,
-        company_id: data.companyIds || null,
         created_at: new Date().toISOString(),
         contact_number: data.contactNumber || null,
         town: null,
@@ -111,7 +109,6 @@ export function useAddContactForm() {
 
       if (!saved) throw new Error('Failed to save contact');
 
-      // Log the activity on successful creation
       logActivity('CONTACT_CREATED', 'Contact', saved.id, {
         name: newContact.name,
       });

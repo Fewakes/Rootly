@@ -1,22 +1,26 @@
+// src/contexts/DialogContext.tsx
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
 type GroupPayload = {
   type: 'group';
   id: string;
   name: string;
+  description?: string;
 };
 
 type CompanyPayload = {
   type: 'company';
   id: string;
   name: string;
-  company_logo: string;
+  description?: string;
+  company_logo?: string;
 };
 
 type TagPayload = {
   type: 'tag';
   id: string;
   name: string;
+  description?: string;
   color: string;
 };
 

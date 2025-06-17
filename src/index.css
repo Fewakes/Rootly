@@ -1,18 +1,12 @@
-/* Importing Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
-/* Importing Tailwind CSS */
 @import 'tailwindcss';
 
-/* Optional animation library */
 @import 'tw-animate-css';
 
-/* Tailwind Base Styles */
 @tailwind utilities;
 
-/* Customizing Tailwind */
 @layer utilities {
-  /* Custom background color utility */
   .bg-primaryBlue {
     background-color: #005df4;
   }
@@ -21,7 +15,6 @@
     color: #005df4;
   }
 
-  /* Custom Pacifico font class */
   .font-pacifico {
     font-family: 'Pacifico', sans-serif;
   }
@@ -166,7 +159,6 @@
   }
 }
 
-/* Hide default focus of search bars */
 input[type='search']:focus {
   outline: none !important;
   box-shadow: none !important;
@@ -205,7 +197,7 @@ input[type='search']:focus {
 }
 
 button[data-button='true'][data-action='true'] {
-  background-color: #005df4 !important; /* Your desired blue */
+  background-color: #005df4 !important;
   color: white !important;
   font-weight: 600;
   border: none;
@@ -215,7 +207,7 @@ button[data-button='true'][data-action='true'] {
 }
 
 button[data-button='true'][data-action='true']:hover {
-  background-color: #0042b5 !important; /* Darker on hover */
+  background-color: #0042b5 !important;
 }
 
 button:focus {

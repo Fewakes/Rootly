@@ -19,7 +19,7 @@ export function CalendarPopover({
   useEffect(() => {
     if (!anchorRect) return;
 
-    const calendarWidth = 330; // Adjust if needed
+    const calendarWidth = 330;
     const calendarHeight = 280;
 
     let left = anchorRect.left + window.scrollX;
