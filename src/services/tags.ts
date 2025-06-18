@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { NewTag, Tag, PopularTag } from '@/types/types';
+import {
+  TAG_SOLID_COLORS,
+  TAG_BG_CLASSES,
+  TAG_TEXT_CLASSES,
+} from '@/lib/utils';
+import type { NewTag, Tag, PopularTag, TagColor } from '@/types/types';
 
 type TagUpdatePayload = {
   name?: string;
@@ -133,10 +138,13 @@ export async function addMultipleTagsToContact(
   }
 }
 
-export const getTagsDataForPieChart = async () => {
+// Function to fetch tags data from Supabase
+export const getTagsDataForChart = async (): Promise<ChartData[]> => {
   const { data, error } = await supabase
     .from('tags')
-    .select(`id, name, color, contact_tags(count)`);
+    // Modified select statement to fetch contacts and their avatar_url
+    // Assuming 'contacts' is related to 'tags' via a join table 'contact_tags'
+    .select('id, name, color, contacts!contact_tags(id, avatar_url)');
 
   if (error) {
     console.error('Error fetching tags for chart:', error.message);
@@ -144,13 +152,23 @@ export const getTagsDataForPieChart = async () => {
   }
 
   const chartData = data
-    .map((tag: any) => ({
-      id: tag.id,
-      name: tag.name,
-      color: tag.color || '#8884d8',
-      value: tag.contact_tags[0]?.count ?? 0,
-    }))
-    .filter(tag => tag.value > 0);
+    .map((tag: any) => {
+      const colorKey = (
+        tag.color in TAG_SOLID_COLORS ? tag.color : 'gray'
+      ) as TagColor;
+      return {
+        id: tag.id,
+        name: tag.name,
+        // The value (count) is now derived from the length of the fetched contacts array
+        value: tag.contacts?.length ?? 0,
+        color: TAG_SOLID_COLORS[colorKey],
+        bgColorClass: TAG_BG_CLASSES[colorKey],
+        textColorClass: TAG_TEXT_CLASSES[colorKey],
+        contacts: tag.contacts || [], // Ensure contacts array is present
+      };
+    })
+    .filter(tag => tag.value > 0) // Only include tags with associated contacts
+    .sort((a, b) => b.value - a.value); // Sort by count descending (highest to smallest)
 
   return chartData;
 };

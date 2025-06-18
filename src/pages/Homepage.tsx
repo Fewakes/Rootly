@@ -9,8 +9,8 @@ import type { TagColor } from '@/types/types';
 import ActivityFeed from '@/features/homepage/ActivityFeed';
 import { GroupsDistributionWidget } from '@/features/homepage/GroupsDistributionWidget';
 import { StatCard } from '@/features/homepage/StatCard';
-import { TagsDistributionWidget } from '@/features/homepage/TagsPieChartWidget';
-import { TopCompaniesWidget } from '@/features/homepage/TopCompaniesWidget';
+import { TagsDistributionWidget } from '@/features/homepage/TagsDistributionWidget';
+import { CompaniesDistributionWidget } from '@/features/homepage/CompaniesDistributionWidget';
 import RecentContacts from '@/features/homepage/recentContacts';
 
 // --- Helper Functions ---
@@ -121,7 +121,7 @@ export default function Homepage() {
             getTagTextClass={getTagTextClass}
           />
           <GroupsDistributionWidget />
-          <TopCompaniesWidget />
+          <CompaniesDistributionWidget />
         </div>
       </section>
     </main>

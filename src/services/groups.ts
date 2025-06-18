@@ -132,16 +132,19 @@ export async function getGroupById(groupId: string): Promise<Group | null> {
 export const getAllGroupsWithContactCounts = async () => {
   const { data, error } = await supabase
     .from('groups')
-    .select('id, name, contact_groups!left(count)');
+    .select('id, name, contacts!contact_groups(id, avatar_url)');
 
   if (error) {
-    console.error('Error fetching groups with counts:', error);
+    console.error('Error fetching groups with contacts:', error);
     throw error;
   }
 
-  return data.map(group => ({
-    id: group.id,
-    name: group.name,
-    value: group.contact_groups[0]?.count || 0,
-  }));
+  return data
+    .map(group => ({
+      id: group.id,
+      name: group.name,
+      value: group.contacts?.length || 0,
+      contacts: group.contacts || [],
+    }))
+    .sort((a, b) => b.value - a.value);
 };

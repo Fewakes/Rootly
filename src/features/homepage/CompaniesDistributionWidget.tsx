@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'; // Make sure Badge is imported
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -17,8 +17,16 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { getAllCompaniesWithContacts } from '@/services/companies'; // Adjust path
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
+// Data fetching service for companies
+import { getAllCompaniesWithContacts } from '@/services/companies';
+
+// Type definition for company data
 type CompanyData = {
   id: string;
   name: string;
@@ -30,14 +38,17 @@ type CompanyData = {
   }[];
 };
 
+// Constant for pagination size
 const WIDGET_PAGE_SIZE = 4;
 
-export const TopCompaniesWidget = () => {
+export const CompaniesDistributionWidget = () => {
+  // State for data, loading, error, and pagination
   const [allCompanies, setAllCompanies] = useState<CompanyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Data fetching effect
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -52,6 +63,7 @@ export const TopCompaniesWidget = () => {
     fetchData();
   }, []);
 
+  // Pagination logic
   const totalPages = Math.ceil(allCompanies.length / WIDGET_PAGE_SIZE);
   const paginatedCompanies = allCompanies.slice(
     (currentPage - 1) * WIDGET_PAGE_SIZE,
@@ -59,6 +71,7 @@ export const TopCompaniesWidget = () => {
   );
   const maxCount = Math.max(...allCompanies.map(c => c.count), 0);
 
+  // Renders main content based on loading/error/data state
   const renderContent = () => {
     if (loading) {
       return (
@@ -95,7 +108,7 @@ export const TopCompaniesWidget = () => {
                 <img
                   src={company.company_logo}
                   alt={`${company.name} logo`}
-                  className="h-9 w-9 object-contain rounded-md border p-1"
+                  className="h-9 w-9 object-cover rounded-md border"
                 />
                 <span
                   className="text-sm font-bold text-foreground truncate"
@@ -105,17 +118,29 @@ export const TopCompaniesWidget = () => {
                 </span>
               </div>
 
-              {/* ✨ FIX: Avatar Stack AND Total Count Badge */}
+              {/* Avatar Stack and Total Count Badge */}
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-3">
-                  {company.contacts.slice(0, 3).map(contact => (
-                    <img
-                      key={contact.id}
-                      src={contact.avatar_url || ''}
-                      alt="contact avatar"
-                      className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
-                    />
-                  ))}
+                  <TooltipProvider>
+                    {company.contacts.slice(0, 3).map(contact => (
+                      <Tooltip key={contact.id} delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <img
+                            src={
+                              contact.avatar_url ||
+                              'https://placehold.co/100x100/F0F0F0/000000?text=NA'
+                            }
+                            onError={e => {
+                              e.currentTarget.src =
+                                'https://placehold.co/100x100/F0F0F0/000000?text=NA';
+                            }}
+                            alt="contact avatar"
+                            className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
+                          />
+                        </TooltipTrigger>
+                      </Tooltip>
+                    ))}
+                  </TooltipProvider>
                 </div>
                 <Badge variant="secondary" className="font-semibold">
                   {company.count}
@@ -139,6 +164,7 @@ export const TopCompaniesWidget = () => {
 
   return (
     <Card>
+      {/* Card Header Section */}
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -150,8 +176,13 @@ export const TopCompaniesWidget = () => {
           How your contacts are distributed across all companies.
         </CardDescription>
       </CardHeader>
+
+      {/* Card Content Section */}
       <CardContent className="min-h-[280px]">{renderContent()}</CardContent>
+
+      {/* Card Footer Section */}
       <CardFooter className="flex justify-between items-center border-t px-4 py-2">
+        {/* Pagination Controls */}
         <div className="flex items-center gap-2">
           {totalPages > 1 && (
             <>
@@ -179,6 +210,7 @@ export const TopCompaniesWidget = () => {
             </>
           )}
         </div>
+        {/* View All Companies Button */}
         <Button variant="link" size="sm" className="p-0 text-sm" asChild>
           <Link to="/companies">
             View All Companies <ArrowRight className="h-4 w-4 ml-1" />

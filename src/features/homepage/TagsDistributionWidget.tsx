@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -7,30 +10,31 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import {
-  Loader2,
-  Users,
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
-  ArrowRight,
+  Loader2,
+  Tags,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Data fetching service for groups
-import { getAllGroupsWithContactCounts } from '@/services/groups';
+// Data fetching service for tags
+import { getTagsDataForChart } from '@/services/tags';
 
-// Type definition for group data
+// Type definition for tag data
+
 type ChartData = {
   id: string;
   name: string;
   value: number;
+  color: string;
+  bgColorClass: string;
+  textColorClass: string;
   contacts: {
     id: string;
     avatar_url: string | null;
@@ -40,9 +44,9 @@ type ChartData = {
 // Constant for pagination size
 const WIDGET_PAGE_SIZE = 4;
 
-export const GroupsDistributionWidget = () => {
+export const TagsDistributionWidget = () => {
   // State for data, loading, error, and pagination
-  const [allGroups, setAllGroups] = useState<ChartData[]>([]);
+  const [allTags, setAllTags] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,10 +55,10 @@ export const GroupsDistributionWidget = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getAllGroupsWithContactCounts();
-        setAllGroups(data);
+        const data = await getTagsDataForChart();
+        setAllTags(data);
       } catch (err) {
-        setError('Failed to load group data.');
+        setError('Failed to load tag data.');
       } finally {
         setLoading(false);
       }
@@ -63,23 +67,12 @@ export const GroupsDistributionWidget = () => {
   }, []);
 
   // Pagination logic
-  const totalPages = Math.ceil(allGroups.length / WIDGET_PAGE_SIZE);
-  const paginatedGroups = allGroups.slice(
+  const totalPages = Math.ceil(allTags.length / WIDGET_PAGE_SIZE);
+  const paginatedTags = allTags.slice(
     (currentPage - 1) * WIDGET_PAGE_SIZE,
     currentPage * WIDGET_PAGE_SIZE,
   );
-  const maxCount = Math.max(...allGroups.map(group => group.value), 0);
-
-  // Helper to generate initials for group logo
-  const getInitials = (name: string) => {
-    if (!name) return '??';
-    const cleanedName = name.replace(/[^a-zA-Z0-9 ]/g, ' ');
-    const words = cleanedName.split(' ').filter(Boolean);
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return words[0] ? words[0].slice(0, 2).toUpperCase() : '??';
-  };
+  const maxCount = Math.max(...allTags.map(tag => tag.value), 0);
 
   // Renders main content based on loading/error/data state
   const renderContent = () => {
@@ -97,61 +90,65 @@ export const GroupsDistributionWidget = () => {
         </div>
       );
     }
-    if (allGroups.length === 0) {
+    if (allTags.length === 0) {
       return (
         <div className="flex h-[280px] flex-col items-center justify-center text-center">
-          <Users className="h-10 w-10 text-muted-foreground mb-2" />
-          <p className="font-medium">No Groups Found</p>
+          <Tags className="h-10 w-10 text-muted-foreground mb-2" />
+          <p className="font-medium">No Tags Found</p>
           <p className="text-sm text-muted-foreground">
-            Create a group to see it here.
+            Assign contacts to tags to see them here.
           </p>
         </div>
       );
     }
     return (
       <ul className="space-y-5">
-        {paginatedGroups.map(group => (
-          <li key={group.id}>
+        {paginatedTags.map(tag => (
+          <li key={tag.id}>
             <div className="flex justify-between items-center mb-2">
-              {/* Group Logo and Name */}
+              {/* Tag Icon and Name */}
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-md border p-1 flex items-center justify-center bg-gray-200 text-gray-800 font-bold text-xs flex-shrink-0">
-                  {getInitials(group.name)}
-                </div>
+                <span
+                  className="h-9 w-9 rounded-md border p-1 flex items-center justify-center"
+                  style={{ backgroundColor: tag.color }}
+                  title={tag.name}
+                >
+                  <Tags className="h-5 w-5 text-white" />
+                </span>
                 <span
                   className="text-sm font-bold text-foreground truncate"
-                  title={group.name}
+                  title={tag.name}
                 >
-                  {group.name}
+                  {tag.name}
                 </span>
               </div>
+
               {/* Avatar Stack and Total Count Badge */}
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-3">
                   <TooltipProvider>
-                    {group.contacts &&
-                      group.contacts.slice(0, 3).map(contact => (
-                        <Tooltip key={contact.id} delayDuration={100}>
-                          <TooltipTrigger asChild>
-                            <img
-                              src={
-                                contact.avatar_url ||
-                                'https://placehold.co/100x100/F0F0F0/000000?text=NA'
-                              }
-                              onError={e => {
-                                e.currentTarget.src =
-                                  'https://placehold.co/100x100/F0F0F0/000000?text=NA';
-                              }}
-                              alt="contact avatar"
-                              className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
-                            />
-                          </TooltipTrigger>
-                        </Tooltip>
-                      ))}
+                    {tag.contacts.slice(0, 3).map(contact => (
+                      <Tooltip key={contact.id} delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <img
+                            src={
+                              contact.avatar_url ||
+                              'https://placehold.co/100x100/F0F0F0/000000?text=NA'
+                            }
+                            onError={e => {
+                              e.currentTarget.src =
+                                'https://placehold.co/100x100/F0F0F0/000000?text=NA';
+                            }}
+                            alt="contact avatar"
+                            className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
+                          />
+                        </TooltipTrigger>
+                      </Tooltip>
+                    ))}
                   </TooltipProvider>
                 </div>
                 <Badge variant="secondary" className="font-semibold">
-                  {group.value}
+                  {tag.value}
                 </Badge>
               </div>
             </div>
@@ -160,7 +157,7 @@ export const GroupsDistributionWidget = () => {
               <div
                 className="h-full rounded-full bg-primary/80"
                 style={{
-                  width: `${maxCount > 0 ? (group.value / maxCount) * 100 : 0}%`,
+                  width: `${maxCount > 0 ? (tag.value / maxCount) * 100 : 0}%`,
                 }}
               />
             </div>
@@ -174,12 +171,14 @@ export const GroupsDistributionWidget = () => {
     <Card>
       {/* Card Header Section */}
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Users className="h-5 w-5 text-muted-foreground" />
-          Groups Distribution
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Tags className="h-5 w-5 text-muted-foreground" />
+            Tags Distribution
+          </CardTitle>
+        </div>
         <CardDescription>
-          How your contacts are distributed across all groups.
+          How your contacts are distributed across all tags.
         </CardDescription>
       </CardHeader>
 
@@ -216,10 +215,10 @@ export const GroupsDistributionWidget = () => {
             </>
           )}
         </div>
-        {/* View All Groups Button */}
+        {/* View All Tags Button */}
         <Button variant="link" size="sm" className="p-0 text-sm" asChild>
-          <Link to="/groups">
-            View All Groups <ArrowRight className="h-4 w-4 ml-1" />
+          <Link to="/tags">
+            View All Tags <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </Button>
       </CardFooter>
