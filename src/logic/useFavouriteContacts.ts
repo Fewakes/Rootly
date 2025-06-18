@@ -1,22 +1,21 @@
-// hooks/useRecentContacts.ts
 import { useEffect, useState } from 'react';
 import type { Contact } from '@/types/types';
-import { getRecentContacts } from '@/services/contacts';
+import { getFavouriteContacts } from '@/services/contacts';
 
-export function useRecentContacts(number: number) {
+export function useFavouriteContacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRecentContacts = async () => {
       setLoading(true);
-      const recent = await getRecentContacts(number);
+      const recent = await getFavouriteContacts();
       setContacts(recent);
       setLoading(false);
     };
 
     fetchRecentContacts();
-  }, [number]);
+  }, []);
 
   return { contacts, loading };
 }

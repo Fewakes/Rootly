@@ -15,7 +15,7 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
       town,
       country,
       birthday,
-      link_name,
+      link_name,s
       link_url,
       gender,
       contact_groups(groups(id, name)),
@@ -38,40 +38,51 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
     contact_companies: c.contact_companies?.map((c: any) => c.companies) ?? [],
   }));
 };
+type Contact = {
+  id: string;
+  name: string;
+  avatar_url: string;
+  tags: { id: string; name: string; color: string | null }[];
+  groups: { id: string; name: string }[];
+  companies: { id: string; name: string; company_logo?: string }[];
+  favourite?: boolean; // Add the favourite property to the Contact type
+};
 
-export const getRecentContacts = async (limit: number): Promise<Contact[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('contacts')
-      .select(
-        `
-        id,
-        name,
-        avatar_url,
-        contact_tags:contact_tags(tags(id, name, color))
-      `,
-      )
-      .order('created_at', { ascending: false })
-      .limit(limit);
+export const getFavouriteContacts = async (): Promise<Contact[]> => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select(
+      `
+      id,
+      name,
+      avatar_url,
+      email,
+      tags(id, name, color),
+      groups(id, name),
+      companies(id, name, company_logo),
+      favourite
+    `, // Removed the JavaScript comment here
+    )
+    .eq('favourite', true) // Filter for favourite contacts
+    .order('created_at', { ascending: false })
+    .limit(5); // Still limiting to 5, as in the original function
 
-    if (error) {
-      console.error('Error fetching recent contacts:', error.message);
-      throw new Error(error.message);
-    }
-
-    return (data ?? []).map((contact: any) => ({
-      ...contact,
-      contact_tags: Array.isArray(contact.contact_tags)
-        ? contact.contact_tags.map((ct: any) => ct.tags)
-        : [],
-    }));
-  } catch (err) {
-    console.error(
-      'Unexpected error fetching recent contacts:',
-      (err as Error).message,
-    );
-    return [];
+  if (error) {
+    console.error('Error fetching favourite contacts:', error);
+    throw error;
   }
+
+  return data.map((contact: any) => ({
+    // Cast to 'any' for direct property access before mapping
+    id: contact.id,
+    name: contact.name,
+    email: contact.email,
+    avatar_url: contact.avatar_url,
+    tags: contact.tags || [],
+    groups: contact.groups || [],
+    companies: contact.companies || [],
+    favourite: contact.favourite, // Include the favourite property in the mapped object
+  }));
 };
 
 export const getContactById = async (
