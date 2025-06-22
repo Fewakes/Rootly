@@ -64,8 +64,7 @@ export const getFavouriteContacts = async (): Promise<Contact[]> => {
     `, // Removed the JavaScript comment here
     )
     .eq('favourite', true) // Filter for favourite contacts
-    .order('created_at', { ascending: false })
-    .limit(5); // Still limiting to 5, as in the original function
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching favourite contacts:', error);
@@ -105,6 +104,7 @@ export const getContactById = async (
         link_name,
         link_url,
         gender,
+        favourite,
         contact_groups(groups(id, name)),
         contact_tags(tags(id, name, color)),
         contact_companies(companies(id, name, company_logo))
@@ -313,3 +313,21 @@ export async function getAssignableContactsForEntity(
     return [];
   }
 }
+
+export const toggleContactFavouriteStatus = async (
+  contactId: string,
+  currentStatus: boolean,
+) => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .update({ favourite: !currentStatus })
+    .eq('id', contactId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Database error toggling favourite status:', error);
+  }
+
+  return { data, error };
+};

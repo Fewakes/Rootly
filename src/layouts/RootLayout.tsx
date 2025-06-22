@@ -7,7 +7,7 @@ import AppSidebar from '@/features/Layout/app-sidebar';
 import EditContactInfoDialog from '@/features/contact/EditContactInfoDialog';
 import TagDialog from '@/features/tags/TagDialog';
 import GroupDialog from '@/features/groups/GroupDialog';
-import CompanyDialog from '@/components/ui/CompanyDialog';
+import CompanyDialog from '@/features/companies/CompanyDialog';
 import AddContactDialog from '@/features/contacts/AddContactDialog';
 import EditContactProfileDialog from '@/features/contact/EditContactProfileDialog';
 

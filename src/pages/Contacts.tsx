@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDialog } from '@/contexts/DialogContext';
-
 import {
   UserPlus,
   Search,
@@ -36,16 +35,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import {
-  useAllContacts,
-  type ContactWithDetails,
-} from '@/logic/useAllContacts';
 
 import { ContactListItem } from '@/features/contacts/ContactListItem';
 import { useAllCompanies } from '@/logic/useAllCompanies';
 import { useAllGroups } from '@/logic/useAllGroups';
 import { useAllTags } from '@/logic/useAllTags';
 import { ContactCard } from '@/features/contacts/ContactCard';
+import { useAllContacts, sortContacts } from '@/logic/useAllContacts';
+import type { ContactWithDetails } from '@/services/assignContactService';
 
 const CardSkeleton = () => (
   <div className="h-[170px] bg-muted rounded-xl animate-pulse" />
@@ -121,7 +118,8 @@ function FilterBadge({ title, value, onClear }: any) {
 export default function Contacts() {
   const { openDialog } = useDialog();
 
-  const { contacts, loading: cLoading } = useAllContacts();
+  // Destructure setContacts to allow for client-side updates
+  const { contacts, setContacts, loading: cLoading } = useAllContacts();
   const { groups, loading: gLoading } = useAllGroups();
   const { tags, loading: tLoading } = useAllTags();
   const { companies, loading: coLoading } = useAllCompanies();
@@ -136,6 +134,14 @@ export default function Contacts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [visibleCards, setVisibleCards] = useState(12);
+
+  // This handler now correctly performs the immediate client-side sort
+  const handleFavouriteChange = (updatedContact: ContactWithDetails) => {
+    const newList = contacts.map(c =>
+      c.id === updatedContact.id ? updatedContact : c,
+    );
+    setContacts(sortContacts(newList));
+  };
 
   const filteredContacts = useMemo(() => {
     if (!Array.isArray(contacts)) return [];
@@ -195,7 +201,11 @@ export default function Contacts() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             {paginatedCards.map((contact: ContactWithDetails) => (
-              <ContactCard key={contact.id} contact={contact} />
+              <ContactCard
+                key={contact.id}
+                contact={contact}
+                onFavouriteChange={handleFavouriteChange}
+              />
             ))}
           </div>
           {visibleCards < filteredContacts.length && (
@@ -228,7 +238,11 @@ export default function Contacts() {
 
           <div className="divide-y divide-border">
             {paginatedTableData.map((contact: ContactWithDetails) => (
-              <ContactListItem key={contact.id} contact={contact} />
+              <ContactListItem
+                key={contact.id}
+                contact={contact}
+                onFavouriteChange={handleFavouriteChange}
+              />
             ))}
           </div>
 

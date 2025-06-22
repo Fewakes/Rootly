@@ -1,58 +1,76 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { ContactWithDetails } from '@/types/types'; // You'll need an updated type
+import type { ContactWithDetails } from '@/services/assignContactService';
+
+// Export the sorting logic so it can be reused
+export const sortContacts = (contactList: ContactWithDetails[]) => {
+  return [...contactList].sort((a, b) => {
+    // If 'b' is a favourite and 'a' is not, 'b' should come first.
+    if (b.favourite && !a.favourite) return 1;
+    // If 'a' is a favourite and 'b' is not, 'a' should come first.
+    if (a.favourite && !b.favourite) return -1;
+    // Otherwise, sort alphabetically by name.
+    return a.name.localeCompare(b.name);
+  });
+};
 
 export const useAllContacts = () => {
   const [contacts, setContacts] = useState<ContactWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAllContacts = async () => {
+  // Memoize the fetch function to ensure it has a stable identity
+  const fetchAndSortContacts = useCallback(async () => {
+    try {
       setLoading(true);
-      setError(null);
-      try {
-        // This query fetches contacts and all their related info at once
-        const { data, error } = await supabase.from('contacts').select(`
-            id, name, email, avatar_url, created_at,
-            contact_companies ( companies ( id, name, company_logo ) ),
-            contact_groups ( groups ( id, name ) ),
-            contact_tags ( tags ( id, name, color ) )
-          `);
+      const { data, error } = await supabase.from('contacts').select(`
+          id, name, email, avatar_url, created_at, favourite,
+          contact_companies ( companies ( id, name, company_logo ) ),
+          contact_groups ( groups ( id, name ) ),
+          contact_tags ( tags ( id, name, color ) )
+        `);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Transform the data to a flatter, easier-to-use structure
-        const processedData = data.map(c => ({
-          ...c,
-          company: c.contact_companies[0]?.companies || null,
-          groups: c.contact_groups.map(g => g.groups),
-          tags: c.contact_tags.map(t => t.tags),
-        }));
+      // Transform the data to a flatter structure
+      const processedData = data.map(c => ({
+        ...c,
+        company: c.contact_companies[0]?.companies || null,
+        groups: c.contact_groups.map(g => g.groups),
+        tags: c.contact_tags.map(t => t.tags),
+      }));
 
-        setContacts(processedData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllContacts();
+      // Use the exported sort function
+      setContacts(sortContacts(processedData));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { contacts, loading, error };
-};
+  useEffect(() => {
+    // Perform the initial fetch
+    fetchAndSortContacts();
 
-// You should also define the `ContactWithDetails` type in your types file
-// File: src/types/types.ts
-export type ContactWithDetails = {
-  id: string;
-  name: string;
-  email: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  company: { id: string; name: string; company_logo: string | null } | null;
-  groups: { id: string; name: string }[];
-  tags: { id: string; name: string; color: string | null }[];
+    // Set up a real-time subscription to handle changes from other clients/tabs
+    const channel = supabase
+      .channel('realtime-contacts-subscription')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'contacts' },
+        payload => {
+          console.log('Realtime change received!', payload);
+          fetchAndSortContacts();
+        },
+      )
+      .subscribe();
+
+    // Cleanup function to remove the subscription
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAndSortContacts]);
+
+  return { contacts, setContacts, loading, error };
 };

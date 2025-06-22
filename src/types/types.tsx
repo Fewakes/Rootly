@@ -2,24 +2,6 @@
 //  Contact Types
 // --------------------
 
-export interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  avatar_url?: string | null;
-  contact_number?: string | null;
-  town?: string | null;
-  country?: string | null;
-  birthday?: string | null;
-  link_name?: string | null;
-  link_url?: string | null;
-  gender?: string | null;
-  created_at: string;
-  contact_groups: Group[];
-  contact_tags: Tag[];
-  contact_companies: Company[];
-}
-
 // For simplified avatar lists
 export type ContactWithAvatar = Pick<Contact, 'id' | 'name' | 'avatar_url'>;
 
@@ -286,3 +268,22 @@ type ContactDetails = {
   company: { name: string } | null;
   tags: { name: string }[];
 };
+
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string | null;
+  contact_number?: string | null;
+  town?: string | null;
+  country?: string | null;
+  birthday?: string | null;
+  favourite?: boolean;
+  link_name?: string | null;
+  link_url?: string | null;
+  gender?: string | null;
+  created_at: string;
+  contact_groups: Group[];
+  contact_tags: Tag[];
+  contact_companies: Company[];
+}

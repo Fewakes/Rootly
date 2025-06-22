@@ -1,33 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
-
+import { z } from 'zod';
 import {
   getNotesForContact,
-  updateNote,
-  deleteNote,
-  addNote,
+  updateNote as apiUpdateNote,
+  deleteNote as apiDeleteNote,
+  addNote as apiAddNote,
 } from '@/services/crm_details';
-
 import type { Note } from '@/types/types';
 import { useLogActivity } from './useLogActivity';
 
-export function useContactNotes(contactId: string) {
+export const noteSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Note cannot be empty.')
+    .max(80, 'Note cannot exceed 80 characters.'),
+});
+
+export function useContactNotes(contactId: string | undefined) {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { logActivity } = useLogActivity();
 
   const fetchNotes = useCallback(async () => {
-    if (!contactId) return;
+    if (!contactId) {
+      setNotes([]);
+      return;
+    }
     try {
-      setLoading(true);
       const data = await getNotesForContact(contactId);
-      setNotes(data);
-    } catch {
+      setNotes(
+        (data || []).sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        ),
+      );
+    } catch (error) {
       toast.error('Failed to load notes.');
-    } finally {
-      setLoading(false);
+      console.error(error);
     }
   }, [contactId]);
 
@@ -35,94 +44,52 @@ export function useContactNotes(contactId: string) {
     fetchNotes();
   }, [fetchNotes]);
 
-  return { notes, loading, refetch: fetchNotes };
-}
-
-const noteSchema = z.object({
-  content: z.string().min(1, 'Note cannot be empty.'),
-});
-
-export function useAddNoteForm(
-  contactId: string,
-  contactName: string,
-  onNoteAdded: () => Promise<void>,
-) {
-  const { logActivity } = useLogActivity();
-
-  const form = useForm({
-    resolver: zodResolver(noteSchema),
-    defaultValues: { content: '' },
-  });
-
-  const onSubmit = async (data: z.infer<typeof noteSchema>) => {
+  const addNote = async (contactName: string, content: string) => {
+    if (!contactId) throw new Error('Contact ID is missing.');
     try {
-      const newNote = await addNote(contactId, data.content);
+      const newNote = await apiAddNote(contactId, content);
+      logActivity('NOTE_CREATED', 'Note', newNote.id, { content, contactName });
       toast.success('Note added!');
-      logActivity('NOTE_CREATED', 'Note', newNote.id, {
-        content: data.content,
-        contactName,
-      });
-      form.reset();
-      await onNoteAdded(); // Await here
-    } catch {
+      await fetchNotes();
+    } catch (error) {
       toast.error('Failed to add note.');
+      console.error(error);
+      throw error;
     }
   };
 
-  return { form, onSubmit };
-}
-
-export function useUpdateNoteForm(
-  noteId: string | null,
-  contactName: string,
-  onNoteUpdated: () => Promise<void>,
-) {
-  const { logActivity } = useLogActivity();
-
-  const form = useForm({
-    resolver: zodResolver(noteSchema),
-    defaultValues: { content: '' },
-  });
-
-  const onSubmit = async (data: z.infer<typeof noteSchema>) => {
-    if (!noteId) return;
+  const updateNote = async (
+    noteId: string,
+    contactName: string,
+    content: string,
+  ) => {
+    if (!noteId) throw new Error('Note ID is missing.');
     try {
-      await updateNote(noteId, data.content);
+      await apiUpdateNote(noteId, content);
+      logActivity('NOTE_EDITED', 'Note', noteId, { content, contactName });
       toast.success('Note updated!');
-      logActivity('NOTE_EDITED', 'Note', noteId, {
-        content: data.content,
-        contactName,
-      });
-      await onNoteUpdated(); // Await here
-    } catch {
+      await fetchNotes();
+    } catch (error) {
       toast.error('Failed to update note.');
+      console.error(error);
+      throw error;
     }
   };
 
-  return { form, onSubmit };
-}
-
-export function useDeleteNote(
-  contactName: string,
-  onSuccess: () => Promise<void>,
-) {
-  const { logActivity } = useLogActivity();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const deleteNoteMutation = async (noteId: string) => {
+  const deleteNote = async (noteId: string, contactName: string) => {
+    if (!noteId) throw new Error('Note ID is missing.');
     if (!window.confirm('Are you sure you want to delete this note?')) return;
-    setIsDeleting(true);
     try {
-      await deleteNote(noteId);
-      toast.success('Note deleted.');
+      await apiDeleteNote(noteId);
       logActivity('NOTE_REMOVED', 'Note', noteId, { contactName });
-      await onSuccess(); // Await here
-    } catch {
+      toast.success('Note deleted.');
+      await fetchNotes();
+    } catch (error) {
       toast.error('Failed to delete note.');
-    } finally {
-      setIsDeleting(false);
+      console.error(error);
+      throw error;
     }
   };
 
-  return { deleteNote: deleteNoteMutation, isDeleting };
+  return { notes, addNote, updateNote, deleteNote };
 }

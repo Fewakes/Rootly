@@ -173,7 +173,7 @@ export const GroupsDistributionWidget = () => {
   return (
     <Card>
       {/* Card Header Section */}
-      <CardHeader>
+      <CardHeader className="">
         <CardTitle className="text-lg flex items-center gap-2">
           <Users className="h-5 w-5 text-muted-foreground" />
           Groups Distribution

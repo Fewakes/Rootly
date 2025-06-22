@@ -1,34 +1,44 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-
 import {
   getTasksForContact,
-  addTask,
-  updateTask,
-  deleteTask,
-  updateTaskStatus,
+  addTask as apiAddTask,
+  updateTask as apiUpdateTask,
+  deleteTask as apiDeleteTask,
+  updateTaskStatus as apiUpdateTaskStatus,
 } from '@/services/crm_details';
-
 import type { Task } from '@/types/types';
 import { useLogActivity } from './useLogActivity';
 
-export function useContactTasks(contactId: string) {
+export const taskSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Task title is required.')
+    .max(70, 'Task cannot exceed 70 characters.'),
+  due_date: z.date({ required_error: 'A due date is required.' }),
+});
+
+export function useContactTasks(contactId: string | undefined) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { logActivity } = useLogActivity();
 
   const fetchTasks = useCallback(async () => {
-    if (!contactId) return;
+    if (!contactId) {
+      setTasks([]);
+      return;
+    }
     try {
-      setLoading(true);
       const data = await getTasksForContact(contactId);
-      setTasks(data);
-    } catch {
+      setTasks(
+        (data || []).sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        ),
+      );
+    } catch (error) {
       toast.error('Failed to load tasks.');
-    } finally {
-      setLoading(false);
+      console.error(error);
     }
   }, [contactId]);
 
@@ -36,129 +46,95 @@ export function useContactTasks(contactId: string) {
     fetchTasks();
   }, [fetchTasks]);
 
-  return { tasks, loading, refetch: fetchTasks };
-}
-
-const taskSchema = z.object({
-  title: z.string().min(1, 'Task title is required.'),
-  due_date: z.string().optional(),
-});
-
-export function useAddTaskForm(
-  contactId: string,
-  contactName: string,
-  onTaskAdded: () => void,
-) {
-  const { logActivity } = useLogActivity();
-
-  const form = useForm<z.infer<typeof taskSchema>>({
-    mode: 'onSubmit',
-    resolver: zodResolver(taskSchema),
-    defaultValues: { title: '', due_date: '' },
-  });
-
-  const onSubmit = async (data: z.infer<typeof taskSchema>) => {
+  const addTask = async (
+    contactName: string,
+    data: z.infer<typeof taskSchema>,
+  ) => {
+    if (!contactId) throw new Error('Contact ID is missing.');
     try {
-      const newTask = await addTask(contactId, data);
+      const { title, due_date } = data;
+      const utcDate = new Date(
+        Date.UTC(
+          due_date.getFullYear(),
+          due_date.getMonth(),
+          due_date.getDate(),
+        ),
+      );
+      const payload = { title, due_date: utcDate.toISOString() };
+      const newResponse = await apiAddTask(contactId, payload);
+      logActivity('TASK_CREATED', 'Task', newResponse.id, {
+        ...payload,
+        contactName,
+      });
       toast.success('Task added!');
-      logActivity('TASK_CREATED', 'Task', newTask.id, {
-        title: data.title,
-        due_date: data.due_date,
-        contactName,
-      });
-      form.reset();
-      onTaskAdded();
-    } catch {
+      await fetchTasks();
+    } catch (error) {
       toast.error('Failed to add task.');
+      console.error('Add Task Error:', error);
+      throw error;
     }
   };
 
-  return { form, onSubmit };
-}
-
-export function useUpdateTaskForm(
-  taskId: string | null,
-  contactName: string,
-  onSuccess: () => void,
-) {
-  const { logActivity } = useLogActivity();
-
-  const form = useForm<z.infer<typeof taskSchema>>({
-    mode: 'onSubmit',
-    resolver: zodResolver(taskSchema),
-    defaultValues: { title: '', due_date: '' },
-  });
-
-  const onSubmit = async (data: z.infer<typeof taskSchema>) => {
-    if (!taskId) return;
+  const updateTask = async (
+    taskId: string,
+    contactName: string,
+    data: z.infer<typeof taskSchema>,
+  ) => {
+    if (!taskId) throw new Error('Update failed: Task ID is missing.');
     try {
-      await updateTask(taskId, data);
+      const { title, due_date } = data;
+      const utcDate = new Date(
+        Date.UTC(
+          due_date.getFullYear(),
+          due_date.getMonth(),
+          due_date.getDate(),
+        ),
+      );
+      const payload = { title, due_date: utcDate.toISOString() };
+      await apiUpdateTask(taskId, payload);
+      logActivity('TASK_EDITED', 'Task', taskId, { ...payload, contactName });
       toast.success('Task updated!');
-      logActivity('TASK_EDITED', 'Task', taskId, {
-        title: data.title,
-        due_date: data.due_date,
-        contactName,
-      });
-      onSuccess();
-    } catch {
+      await fetchTasks();
+    } catch (error) {
       toast.error('Failed to update task.');
+      console.error('Update Task Error:', error);
+      throw error;
     }
   };
 
-  return { form, onSubmit };
-}
-
-export function useDeleteTask(contactName: string, onSuccess: () => void) {
-  const { logActivity } = useLogActivity();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const deleteTaskMutation = async (taskId: string) => {
+  const deleteTask = async (taskId: string, contactName: string) => {
+    if (!taskId) throw new Error('Delete failed: Task ID is missing.');
     if (!window.confirm('Are you sure you want to delete this task?')) return;
-    setIsDeleting(true);
     try {
-      await deleteTask(taskId);
-      toast.success('Task deleted.');
+      await apiDeleteTask(taskId);
       logActivity('TASK_REMOVED', 'Task', taskId, { contactName });
-      onSuccess();
-    } catch {
+      toast.success('Task deleted.');
+      await fetchTasks();
+    } catch (error) {
       toast.error('Failed to delete task.');
-    } finally {
-      setIsDeleting(false);
+      console.error('Delete Task Error:', error);
+      throw error;
     }
   };
 
-  return { deleteTask: deleteTaskMutation, isDeleting };
-}
-
-export function useUpdateTaskStatus(contactName: string) {
-  const { logActivity } = useLogActivity();
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const updateStatus = async (taskId: string, newStatus: string) => {
-    setIsUpdating(true);
+  const updateTaskStatus = async (
+    taskId: string,
+    contactName: string,
+    completed: boolean,
+  ) => {
+    if (!taskId) throw new Error('Status update failed: Task ID is missing.');
     try {
-      // Convert string status to boolean for updateTaskStatus
-      const completed = newStatus === 'completed';
-      await updateTaskStatus(taskId, completed);
-
-      toast.success(
-        newStatus === 'completed'
-          ? 'Task completed!'
-          : 'Task marked as incomplete.',
-      );
-
-      logActivity(
-        newStatus === 'completed' ? 'TASK_COMPLETED' : 'TASK_REOPENED',
-        'Task',
-        taskId,
-        { contactName },
-      );
-    } catch {
-      toast.error('Failed to update task status.');
-    } finally {
-      setIsUpdating(false);
+      await apiUpdateTaskStatus(taskId, completed);
+      const eventType = completed ? 'TASK_COMPLETED' : 'TASK_REOPENED';
+      logActivity(eventType, 'Task', taskId, { contactName });
+      toast.success(`Task marked as ${completed ? 'complete' : 'incomplete'}.`);
+      await fetchTasks();
+    } catch (error) {
+      toast.error('Failed to update status.');
+      console.error('Update Status Error:', error);
+      throw error;
     }
   };
 
-  return { updateStatus, isUpdating };
+  return { tasks, addTask, updateTask, deleteTask, updateTaskStatus };
 }
