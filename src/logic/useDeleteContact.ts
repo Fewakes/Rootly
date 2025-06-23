@@ -1,60 +1,45 @@
-import { useState, useEffect, useCallback } from 'react';
+// src/logic/useDeleteContact.ts
+
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { deleteContactById } from '@/services/contacts';
 import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
 
 export function useDeleteContact() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity } = useLogActivity();
 
   const deleteContact = useCallback(
-    async (
-      contactId: string,
-      details: { name: string },
-      onSuccess?: () => void,
-    ) => {
-      if (!userId) {
-        toast.error('User not authenticated. Cannot delete contact.');
-        return;
+    async (contactId: string, details: { name: string }): Promise<boolean> => {
+      if (!contactId) {
+        toast.error('Delete failed: Contact ID is missing.');
+        return false;
       }
-      setLoading(true);
-      setError(null);
+      if (!window.confirm(`Are you sure you want to delete ${details.name}?`)) {
+        return false;
+      }
 
+      setLoading(true);
       try {
         await deleteContactById(contactId);
 
-        logActivity('CONTACT_DELETED', 'Contact', contactId, details);
-        toast.success('Contact deleted successfully');
-
-        onSuccess?.();
-      } catch (err) {
-        const typedErr = err as Error;
-        setError(typedErr);
-        toast.error('Failed to delete contact', {
-          description: typedErr.message,
+        toast.success(`Contact "${details.name}" deleted.`);
+        logActivity('CONTACT_REMOVED', 'Contact', contactId, {
+          name: details.name,
         });
+        return true;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast.error(`Failed to delete contact: ${message}`);
+        console.error('Delete Contact Error:', err);
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [userId, logActivity],
+    [logActivity],
   );
 
-  return {
-    deleteContact,
-    loading,
-    error,
-  };
+  return { deleteContact, loading };
 }

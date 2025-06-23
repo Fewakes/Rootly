@@ -105,3 +105,14 @@ export const TAG_SOLID_COLORS = {
   rose: '#f43f5e',
   gray: '#6b7280',
 };
+
+// Helper to generate initials for group logo
+export const getInitials = (name: string) => {
+  if (!name) return '??';
+  const cleanedName = name.replace(/[^a-zA-Z0-9 ]/g, ' ');
+  const words = cleanedName.split(' ').filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return words[0] ? words[0].slice(0, 2).toUpperCase() : '??';
+};

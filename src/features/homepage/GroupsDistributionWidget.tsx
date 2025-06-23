@@ -23,8 +23,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Data fetching service for groups
 import { getAllGroupsWithContactCounts } from '@/services/groups';
+import { getInitials } from '@/lib/utils';
 
 // Type definition for group data
 type ChartData = {
@@ -37,17 +37,14 @@ type ChartData = {
   }[];
 };
 
-// Constant for pagination size
 const WIDGET_PAGE_SIZE = 4;
 
 export const GroupsDistributionWidget = () => {
-  // State for data, loading, error, and pagination
   const [allGroups, setAllGroups] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Data fetching effect
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,7 +59,6 @@ export const GroupsDistributionWidget = () => {
     fetchData();
   }, []);
 
-  // Pagination logic
   const totalPages = Math.ceil(allGroups.length / WIDGET_PAGE_SIZE);
   const paginatedGroups = allGroups.slice(
     (currentPage - 1) * WIDGET_PAGE_SIZE,
@@ -70,18 +66,6 @@ export const GroupsDistributionWidget = () => {
   );
   const maxCount = Math.max(...allGroups.map(group => group.value), 0);
 
-  // Helper to generate initials for group logo
-  const getInitials = (name: string) => {
-    if (!name) return '??';
-    const cleanedName = name.replace(/[^a-zA-Z0-9 ]/g, ' ');
-    const words = cleanedName.split(' ').filter(Boolean);
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return words[0] ? words[0].slice(0, 2).toUpperCase() : '??';
-  };
-
-  // Renders main content based on loading/error/data state
   const renderContent = () => {
     if (loading) {
       return (

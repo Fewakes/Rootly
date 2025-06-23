@@ -249,19 +249,27 @@ export async function uploadAvatar(
   return data.publicUrl;
 }
 
-export async function deleteContactById(contactId: string) {
-  const { error } = await supabase
+export const deleteContactById = async (id: string): Promise<boolean> => {
+  if (!id) {
+    throw new Error('A valid Contact ID is required for deletion.');
+  }
+
+  const { data, error } = await supabase
     .from('contacts')
     .delete()
-    .eq('id', contactId);
+    .eq('id', id)
+    .select();
 
   if (error) {
-    console.error('Error deleting contact:', error.message);
-    throw error;
+    throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Deletion failed: Contact not found or permission denied.');
   }
 
   return true;
-}
+};
 
 type EntityType = 'group' | 'tag' | 'company';
 

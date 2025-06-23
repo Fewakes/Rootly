@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,15 +35,17 @@ import {
 } from 'lucide-react';
 
 import { ContactListItem } from '@/features/contacts/ContactListItem';
+import { ContactCard } from '@/features/contacts/ContactCard';
+import { useAllContacts } from '@/logic/useAllContacts';
+import { useDeleteContact } from '@/logic/useDeleteContact';
+import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 import { useAllCompanies } from '@/logic/useAllCompanies';
 import { useAllGroups } from '@/logic/useAllGroups';
 import { useAllTags } from '@/logic/useAllTags';
-import { ContactCard } from '@/features/contacts/ContactCard';
-import { useAllContacts, sortContacts } from '@/logic/useAllContacts';
 import type { ContactWithDetails } from '@/services/assignContactService';
 
 const CardSkeleton = () => (
-  <div className="h-[170px] bg-muted rounded-xl animate-pulse" />
+  <div className="h-[210px] bg-muted rounded-lg animate-pulse" />
 );
 
 function FilterPopover({ options, value, onSelect, title }: any) {
@@ -118,8 +118,11 @@ function FilterBadge({ title, value, onClear }: any) {
 export default function Contacts() {
   const { openDialog } = useDialog();
 
-  // Destructure setContacts to allow for client-side updates
-  const { contacts, setContacts, loading: cLoading } = useAllContacts();
+  const {
+    contacts,
+    loading: cLoading,
+    refetch: refetchContacts,
+  } = useAllContacts();
   const { groups, loading: gLoading } = useAllGroups();
   const { tags, loading: tLoading } = useAllTags();
   const { companies, loading: coLoading } = useAllCompanies();
@@ -130,18 +133,9 @@ export default function Contacts() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [isCardView, setIsCardView] = useState(true);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [visibleCards, setVisibleCards] = useState(12);
-
-  // This handler now correctly performs the immediate client-side sort
-  const handleFavouriteChange = (updatedContact: ContactWithDetails) => {
-    const newList = contacts.map(c =>
-      c.id === updatedContact.id ? updatedContact : c,
-    );
-    setContacts(sortContacts(newList));
-  };
 
   const filteredContacts = useMemo(() => {
     if (!Array.isArray(contacts)) return [];
@@ -161,23 +155,22 @@ export default function Contacts() {
     setVisibleCards(12);
   }, [searchTerm, selectedGroup, selectedTag, selectedCompany, isCardView]);
 
-  const paginatedCards = useMemo(() => {
-    return filteredContacts.slice(0, visibleCards);
-  }, [filteredContacts, visibleCards]);
-
+  const paginatedCards = useMemo(
+    () => filteredContacts.slice(0, visibleCards),
+    [filteredContacts, visibleCards],
+  );
   const paginatedTableData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredContacts.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredContacts, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
-
   const groupName = groups.find(g => g.id === selectedGroup)?.name;
   const tagName = tags.find(t => t.id === selectedTag)?.name;
   const companyName = companies.find(c => c.id === selectedCompany)?.name;
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && contacts.length === 0) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -186,7 +179,6 @@ export default function Contacts() {
         </div>
       );
     }
-
     if (filteredContacts.length === 0) {
       return (
         <div className="col-span-full text-center py-10 text-muted-foreground">
@@ -195,16 +187,15 @@ export default function Contacts() {
         </div>
       );
     }
-
     if (isCardView) {
       return (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-            {paginatedCards.map((contact: ContactWithDetails) => (
+            {paginatedCards.map(contact => (
               <ContactCard
                 key={contact.id}
                 contact={contact}
-                onFavouriteChange={handleFavouriteChange}
+                onActionComplete={refetchContacts}
               />
             ))}
           </div>
@@ -226,26 +217,22 @@ export default function Contacts() {
         <div className="border rounded-lg overflow-hidden bg-card">
           <div className="flex items-center gap-4 p-4 bg-secondary text-secondary-foreground font-semibold text-sm">
             <div className="flex-shrink-0 w-1/3">Name</div>
-            <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-x-4">
+            <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-x-5">
               <div>Company</div>
               <div>Group</div>
               <div>Tags</div>
             </div>
-            <div className="hidden lg:flex justify-end w-28 flex-shrink-0">
-              Added
-            </div>
+            <div className="hidden lg:flex w-23 flex-shrink-0">Added</div>
           </div>
-
           <div className="divide-y divide-border">
-            {paginatedTableData.map((contact: ContactWithDetails) => (
+            {paginatedTableData.map(contact => (
               <ContactListItem
                 key={contact.id}
                 contact={contact}
-                onFavouriteChange={handleFavouriteChange}
+                onActionComplete={refetchContacts}
               />
             ))}
           </div>
-
           {totalPages > 1 && (
             <div className="flex items-center justify-between p-4 border-t">
               <div className="flex items-center gap-2">
@@ -333,7 +320,6 @@ export default function Contacts() {
           </Button>
         </div>
       </div>
-
       <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-card">
         <div className="relative flex-grow min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -386,7 +372,6 @@ export default function Contacts() {
           )}
         </div>
       </div>
-
       {renderContent()}
     </div>
   );
