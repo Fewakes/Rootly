@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { GroupWithContacts } from '@/types/types'; // You'll need an updated type
+import type { GroupWithContacts } from '@/types/types';
 
 export const useAllGroups = () => {
   const [groups, setGroups] = useState<GroupWithContacts[]>([]);
@@ -12,7 +12,6 @@ export const useAllGroups = () => {
       setLoading(true);
       setError(null);
       try {
-        // This query now fetches each group AND its related contacts
         const { data, error } = await supabase.from('groups').select(`
             id,
             name,
@@ -44,8 +43,6 @@ export const useAllGroups = () => {
   return { groups, loading, error };
 };
 
-// You should also define the `GroupWithContacts` type in your types file
-// File: src/types/types.ts
 export type GroupWithContacts = {
   id: string;
   name: string;

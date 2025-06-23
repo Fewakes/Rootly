@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
 import { toast } from 'sonner';
 import { Users } from 'lucide-react';
@@ -19,13 +19,15 @@ import { AssignedContactsManager } from '@/features/entities/AssignedContactsMan
 import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
-import { useEntityContacts } from '@/logic/useEntityContacts';
 
+import { useDeleteGroup } from '@/logic/useDeleteGroup';
+import { useEntityContacts } from '@/logic/useEntityContacts';
 export default function GroupDetails() {
   const { id } = useParams<{ id: string }>();
   const [userId, setUserId] = useState<string | null>(null);
   const { user } = useUserAuthProfile();
   const { openDialog, openDialogName } = useDialog();
+  const navigate = useNavigate();
 
   const entity = useMemo(
     () => (id ? ({ id, type: 'group' } as const) : null),
@@ -62,6 +64,8 @@ export default function GroupDetails() {
     fetchUser();
   }, []);
 
+  const { deleteGroup, isLoading: isDeleting } = useDeleteGroup();
+
   const prevOpenDialogName = useRef(openDialogName);
   useEffect(() => {
     if (prevOpenDialogName.current === 'editGroup' && openDialogName === null) {
@@ -70,6 +74,22 @@ export default function GroupDetails() {
     }
     prevOpenDialogName.current = openDialogName;
   }, [openDialogName, refetchGroup]);
+
+  const handleDelete = async () => {
+    if (!group) return;
+    if (
+      window.confirm(
+        `Are you sure you want to delete the company "${group.name}"? This action cannot be undone.`,
+      )
+    ) {
+      const success = await deleteGroup(group.id, {
+        groupName: group.name,
+      });
+      if (success) {
+        navigate('/groups');
+      }
+    }
+  };
 
   if (isLoadingGroup) return <EntityDetailsSkeleton />;
   if (!group) return <div className="p-8 text-center">Group not found.</div>;
@@ -82,6 +102,8 @@ export default function GroupDetails() {
         description={group.description}
         icon={<Users />}
         onEdit={() => openDialog('editGroup', { type: 'group', ...group })}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 xl:col-span-8">

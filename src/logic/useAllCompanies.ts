@@ -12,7 +12,6 @@ export const useAllCompanies = () => {
       setError(null);
 
       try {
-        // This query fetches all companies and their nested contacts
         const { data, error } = await supabase.from('companies').select(`
             id,
             name,

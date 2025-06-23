@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2, Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 type EntityHeaderProps = {
@@ -12,6 +12,8 @@ type EntityHeaderProps = {
   imageUrl?: string | null;
   icon: ReactNode;
   onEdit: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
 };
 
 export function EntityHeader({
@@ -21,6 +23,8 @@ export function EntityHeader({
   imageUrl,
   icon,
   onEdit,
+  onDelete,
+  isDeleting,
 }: EntityHeaderProps) {
   return (
     <Card>
@@ -32,7 +36,6 @@ export function EntityHeader({
               <AvatarFallback>{icon}</AvatarFallback>
             </Avatar>
           )}
-
           <div>
             <Badge variant="outline">{type}</Badge>
             <h1 className="text-3xl font-bold break-words mt-1">{name}</h1>
@@ -43,10 +46,26 @@ export function EntityHeader({
             )}
           </div>
         </div>
-        <Button variant="outline" onClick={onEdit} className="shrink-0">
-          <Pencil className="h-4 w-4 mr-2" />
-          Edit Details
-        </Button>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" onClick={onEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Details
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
+            Delete {type}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

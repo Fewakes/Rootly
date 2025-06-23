@@ -8,11 +8,9 @@ export function useDeleteContact() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Get userId and initialize the logger
   const [userId, setUserId] = useState<string | null>(null);
   const { logActivity } = useLogActivity(userId);
 
-  // Fetch userId when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       const id = await getCurrentUserId();
@@ -37,7 +35,6 @@ export function useDeleteContact() {
       try {
         await deleteContactById(contactId);
 
-        // Log the activity on successful deletion
         logActivity('CONTACT_DELETED', 'Contact', contactId, details);
         toast.success('Contact deleted successfully');
 

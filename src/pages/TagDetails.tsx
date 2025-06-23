@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
 import { toast } from 'sonner';
 import { Tag as TagIcon } from 'lucide-react';
@@ -17,6 +17,7 @@ import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
+import { useDeleteTag } from '@/logic/useDeleteTag';
 import { useEntityContacts } from '@/logic/useEntityContacts';
 
 export default function TagDetails() {
@@ -24,6 +25,7 @@ export default function TagDetails() {
   const [userId, setUserId] = useState<string | null>(null);
   const { user } = useUserAuthProfile();
   const { openDialog, openDialogName } = useDialog();
+  const navigate = useNavigate();
 
   const entity = useMemo(
     () => (id ? ({ id, type: 'tag' } as const) : null),
@@ -49,6 +51,9 @@ export default function TagDetails() {
     refetch: refetchTasks,
   } = useTagTasks(userId || '', id || '');
 
+  // --- Mutation Hooks ---
+  const { removeTag, isLoading: isDeleting } = useDeleteTag();
+
   useEffect(() => {
     const fetchUser = async () => {
       setUserId(await getCurrentUserId());
@@ -65,6 +70,22 @@ export default function TagDetails() {
     prevOpenDialogName.current = openDialogName;
   }, [openDialogName, refetchTag]);
 
+  const handleDelete = async () => {
+    if (!tag) return;
+    if (
+      window.confirm(
+        `Are you sure you want to delete the company "${tag.name}"? This action cannot be undone.`,
+      )
+    ) {
+      const success = await removeTag(tag.id, {
+        tagName: tag.name,
+      });
+      if (success) {
+        navigate('/tags');
+      }
+    }
+  };
+
   if (isLoadingTag) return <EntityDetailsSkeleton />;
   if (!tag) return <div className="p-8 text-center">Tag not found.</div>;
 
@@ -76,6 +97,8 @@ export default function TagDetails() {
         description={tag.description}
         icon={<TagIcon style={{ color: TAG_TEXT_CLASSES[tag.color] || '' }} />}
         onEdit={() => openDialog('editTag', { type: 'tag', ...tag })}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 xl:col-span-8">

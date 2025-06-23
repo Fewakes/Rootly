@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
 import { toast } from 'sonner';
 import { Building } from 'lucide-react';
+
+import { useCompany } from '@/logic/useCompany';
 
 import { useCompanyNotes, useCompanyTasks } from '@/logic/useEntityNotesTasks';
 import {
@@ -17,11 +19,11 @@ import { AssignedContactsManager } from '@/features/entities/AssignedContactsMan
 import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
+import { useDeleteCompany } from '@/logic/useDeleteCompany';
 import { useEntityContacts } from '@/logic/useEntityContacts';
-import { useCompany } from '@/logic/useCompany';
-
 export default function CompanyDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const { user } = useUserAuthProfile();
   const { openDialog, openDialogName } = useDialog();
@@ -31,7 +33,7 @@ export default function CompanyDetails() {
     [id],
   );
 
-  // Fetch all necessary data with page-level hooks
+  // --- Data Fetching Hooks ---
   const {
     company,
     loading: isLoadingCompany,
@@ -55,6 +57,9 @@ export default function CompanyDetails() {
     refetch: refetchTasks,
   } = useCompanyTasks(userId || '', id || '');
 
+  // --- Mutation Hooks ---
+  const { deleteCompany, isLoading: isDeleting } = useDeleteCompany();
+
   // Effect to get current user ID
   useEffect(() => {
     const fetchUser = async () => {
@@ -63,7 +68,6 @@ export default function CompanyDetails() {
     fetchUser();
   }, []);
 
-  // Effect to refetch data when an edit dialog closes
   const prevOpenDialogName = useRef(openDialogName);
   useEffect(() => {
     if (
@@ -75,6 +79,22 @@ export default function CompanyDetails() {
     }
     prevOpenDialogName.current = openDialogName;
   }, [openDialogName, refetchCompany]);
+
+  const handleDelete = async () => {
+    if (!company) return;
+    if (
+      window.confirm(
+        `Are you sure you want to delete the company "${company.name}"? This action cannot be undone.`,
+      )
+    ) {
+      const success = await deleteCompany(company.id, {
+        companyName: company.name,
+      });
+      if (success) {
+        navigate('/companies');
+      }
+    }
+  };
 
   if (isLoadingCompany) return <EntityDetailsSkeleton />;
   if (!company)
@@ -91,6 +111,8 @@ export default function CompanyDetails() {
         onEdit={() =>
           openDialog('editCompany', { type: 'company', ...company })
         }
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

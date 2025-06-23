@@ -9,7 +9,6 @@ import { useDialog } from '@/contexts/DialogContext';
 import { insertGroup, updateGroup } from '@/services/groups';
 import { useLogActivity } from './useLogActivity';
 
-// ✅ FIX #1: Standardized schema names to `name` and `description`.
 const groupFormSchema = z.object({
   name: z.string().min(1, 'Group name is required'),
   description: z.string().optional(),
@@ -26,21 +25,18 @@ export function useGroupForm() {
 
   const form = useForm<GroupFormValues>({
     resolver: zodResolver(groupFormSchema),
-    // ✅ FIX #2: Default values match the new schema.
+
     defaultValues: { name: '', description: '' },
   });
 
-  // ✅ FIX #3: The useEffect now correctly handles both CREATE and EDIT modes.
   useEffect(() => {
     if (open) {
       if (dialogPayload) {
-        // EDIT MODE: Populate form with existing data.
         form.reset({
           name: dialogPayload.name || '',
           description: (dialogPayload as any)?.description || '',
         });
       } else {
-        // CREATE MODE: Reset the form to a blank slate.
         form.reset({
           name: '',
           description: '',
@@ -60,7 +56,6 @@ export function useGroupForm() {
         if (!dialogPayload?.id)
           throw new Error('Group ID not found for editing.');
 
-        // ✅ FIX #4: Data passed to `updateGroup` uses the corrected field names.
         await updateGroup(dialogPayload.id, {
           name: data.name,
           description: data.description,

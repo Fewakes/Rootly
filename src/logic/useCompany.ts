@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { getCompanyById } from '@/services/companies';
 import type { Company } from '@/types/types';
 
-// Add the rank properties to the type for this specific view
 type CompanyWithRank = Company & { rank?: number; totalCompanies?: number };
 
 export function useCompany(companyId: string | undefined) {
@@ -19,7 +18,6 @@ export function useCompany(companyId: string | undefined) {
     }
     setLoading(true);
     try {
-      // Assuming getCompanyById returns the data with rank info
       const data = await getCompanyById(companyId);
       setCompany(data);
     } catch (error) {

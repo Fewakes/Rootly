@@ -11,7 +11,6 @@ import { useDialog } from '@/contexts/DialogContext';
 import { insertCompany, updateCompany, uploadLogo } from '@/services/companies';
 import { useLogActivity } from './useLogActivity';
 
-// ✅ FIX #1: Standardized schema names to match form fields and added description.
 const companyFormSchema = z.object({
   name: z.string().min(2, 'Company name is required'),
   description: z.string().optional(),
@@ -35,15 +34,13 @@ export function useCompanyForm() {
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
-    // ✅ FIX #2: Default values match the new schema.
+
     defaultValues: { name: '', description: '', logoFile: undefined },
   });
 
   useEffect(() => {
     if (open) {
       if (dialogPayload) {
-        // EDIT MODE
-        // ✅ FIX #3: `form.reset` now correctly sets `name` and `description`.
         form.reset({
           name: dialogPayload.name || '',
           description: (dialogPayload as any)?.description || '',
@@ -51,7 +48,6 @@ export function useCompanyForm() {
         });
         setLogoPreview((dialogPayload as any)?.company_logo || null);
       } else {
-        // CREATE MODE
         form.reset({
           name: '',
           description: '',
@@ -65,7 +61,6 @@ export function useCompanyForm() {
   const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // ✅ FIX #4: `setValue` uses the corrected field name `logoFile`.
       form.setValue('logoFile', file, { shouldValidate: true });
       setLogoPreview(URL.createObjectURL(file));
     }
@@ -84,7 +79,6 @@ export function useCompanyForm() {
         logoUrl = await uploadLogo(data.logoFile);
       }
 
-      // ✅ FIX #5: `companyData` object now correctly uses `data.name` and `data.description`.
       const companyData = {
         name: data.name,
         description: data.description,

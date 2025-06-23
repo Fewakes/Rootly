@@ -2,12 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { subDays } from 'date-fns';
 
-/**
- * ✨ FIX: This helper function now accepts the exact action names, making it flexible.
- * It calculates the net trend for an entity since midnight today.
- * @param createAction - The exact string for the creation action (e.g., 'CONTACT_CREATED').
- * @param deleteAction - The exact string for the deletion action (e.g., 'CONTACT_DELETED' or 'COMPANY_REMOVED').
- */
 const getDailyTrend = async (createAction: string, deleteAction: string) => {
   const startOfToday = new Date();
   startOfToday.setUTCHours(0, 0, 0, 0);
@@ -27,14 +21,6 @@ const getDailyTrend = async (createAction: string, deleteAction: string) => {
   ]);
 
   return (createdCount || 0) - (deletedCount || 0);
-};
-
-// These other helper functions remain the same
-const getUntaggedContactsCount = async () => {
-  /* ... */
-};
-const getActivitiesTodayCount = async () => {
-  /* ... */
 };
 
 export const useDashboardStats = () => {
@@ -63,7 +49,6 @@ export const useDashboardStats = () => {
           untaggedCount,
           activitiesTodayCount,
         ] = await Promise.all([
-          // These fetch the total counts
           supabase.from('contacts').select('*', { count: 'exact', head: true }),
           supabase.from('tags').select('*', { count: 'exact', head: true }),
           supabase.from('groups').select('*', { count: 'exact', head: true }),
@@ -71,14 +56,10 @@ export const useDashboardStats = () => {
             .from('companies')
             .select('*', { count: 'exact', head: true }),
 
-          // ✨ FIX: We now pass the correct action names for each entity
-          getDailyTrend('CONTACT_CREATED', 'CONTACT_DELETED'), // Uses _DELETED
-          getDailyTrend('TAG_CREATED', 'TAG_REMOVED'), // Uses _REMOVED
-          getDailyTrend('GROUP_CREATED', 'GROUP_REMOVED'), // Uses _REMOVED
-          getDailyTrend('COMPANY_CREATED', 'COMPANY_REMOVED'), // Uses _REMOVED
-
-          getUntaggedContactsCount(),
-          getActivitiesTodayCount(),
+          getDailyTrend('CONTACT_CREATED', 'CONTACT_DELETED'),
+          getDailyTrend('TAG_CREATED', 'TAG_REMOVED'),
+          getDailyTrend('GROUP_CREATED', 'GROUP_REMOVED'),
+          getDailyTrend('COMPANY_CREATED', 'COMPANY_REMOVED'),
         ]);
 
         setStats({

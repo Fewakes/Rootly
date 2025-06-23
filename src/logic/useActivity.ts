@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { formatDistanceToNow } from 'date-fns';
 
-// This should match your global type definition
 type ActivityLogEntry = {
   id: string;
   action: string;

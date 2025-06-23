@@ -29,7 +29,7 @@ type ContactInfoFormData = z.infer<typeof contactInfoSchema>;
 // --- Type definition for the contact object ---
 type Contact = {
   id: string;
-  name: string; // Required for logging purposes
+  name: string;
   email: string;
   contact_number?: string | null;
   town?: string | null;

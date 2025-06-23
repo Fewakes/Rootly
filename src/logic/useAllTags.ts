@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { TagWithContacts } from '@/types/types'; // You'll need an updated type
+import type { TagWithContacts } from '@/types/types';
 
-// ✨ This hook now fetches the nested contact data needed for the avatar stack
 export const useAllTags = () => {
   const [tags, setTags] = useState<TagWithContacts[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +13,6 @@ export const useAllTags = () => {
       setError(null);
 
       try {
-        // This query now fetches each tag AND its related contacts (id and avatar_url)
         const { data, error } = await supabase.from('tags').select(`
             id,
             name,
@@ -27,10 +25,9 @@ export const useAllTags = () => {
 
         if (error) throw error;
 
-        // Transform the data to the shape our component expects
         const tagsWithData = data.map(tag => ({
           ...tag,
-          // The nested structure is a bit deep, so we flatten it
+
           contact_avatars: tag.contacts.map(c => c.contacts).filter(Boolean),
           contact_count: tag.contacts.length,
         }));
@@ -49,8 +46,6 @@ export const useAllTags = () => {
   return { tags, loading, error };
 };
 
-// You should also define the `TagWithContacts` type in your types file
-// File: src/types/types.ts
 export type TagWithContacts = {
   id: string;
   name: string;

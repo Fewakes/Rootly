@@ -8,11 +8,9 @@ export function useDeleteCompany() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get userId and initialize the logger
   const [userId, setUserId] = useState<string | null>(null);
   const { logActivity } = useLogActivity(userId);
 
-  // Fetch userId when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       const id = await getCurrentUserId();
@@ -38,7 +36,7 @@ export function useDeleteCompany() {
 
         if (success) {
           toast.success('Company deleted successfully');
-          // Log the activity on successful deletion
+
           logActivity('COMPANY_REMOVED', 'Company', companyId, details);
           setIsLoading(false);
           return true;
