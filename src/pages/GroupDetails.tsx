@@ -125,6 +125,8 @@ export default function GroupDetails() {
           <ActivityFeed
             entityId={id!}
             userId={userId!}
+            entityName={group.name}
+            entityType="group"
             user={user}
             notes={notes}
             tasks={tasks}
@@ -134,7 +136,6 @@ export default function GroupDetails() {
             refetchTasks={refetchTasks}
             notesService={groupNotesService}
             tasksService={groupTasksService}
-            entityType="group"
           />
         </div>
       </div>

@@ -11,8 +11,8 @@ export function useDeleteContact() {
 
   const deleteContact = useCallback(
     async (contactId: string, details: { name: string }): Promise<boolean> => {
-      if (!contactId) {
-        toast.error('Delete failed: Contact ID is missing.');
+      if (!contactId || !details.name) {
+        toast.error('Delete failed: Contact details are missing.');
         return false;
       }
       if (!window.confirm(`Are you sure you want to delete ${details.name}?`)) {
@@ -22,17 +22,18 @@ export function useDeleteContact() {
       setLoading(true);
       try {
         await deleteContactById(contactId);
-
         toast.success(`Contact "${details.name}" deleted.`);
-        logActivity('CONTACT_REMOVED', 'Contact', contactId, {
+
+        // This is correct according to your logActivity function
+        logActivity('CONTACT_DELETED', 'Contact', contactId, {
           name: details.name,
         });
+
         return true;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'An unknown error occurred.';
         toast.error(`Failed to delete contact: ${message}`);
-        console.error('Delete Contact Error:', err);
         return false;
       } finally {
         setLoading(false);

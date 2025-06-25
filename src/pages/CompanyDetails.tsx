@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Building } from 'lucide-react';
 
 import { useCompany } from '@/logic/useCompany';
-
+import { useEntityContacts } from '@/logic/useEntityContacts';
 import { useCompanyNotes, useCompanyTasks } from '@/logic/useEntityNotesTasks';
 import {
   companyNotesService,
@@ -13,27 +13,28 @@ import {
 } from '@/services/entityNotesTasks';
 import { useUserAuthProfile } from '@/logic/useUserAuthProfile';
 import { getCurrentUserId } from '@/services/users';
+import { useDeleteCompany } from '@/logic/useDeleteCompany';
 
 import { EntityHeader } from '@/features/entities/EntityHeader';
 import { AssignedContactsManager } from '@/features/entities/AssignedContactsManager';
 import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
-import { useDeleteCompany } from '@/logic/useDeleteCompany';
-import { useEntityContacts } from '@/logic/useEntityContacts';
+import type { AssignEntity } from '@/types/types';
+
 export default function CompanyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const { user } = useUserAuthProfile();
   const { openDialog, openDialogName } = useDialog();
+  const prevOpenDialogName = useRef(openDialogName);
 
   const entity = useMemo(
     () => (id ? ({ id, type: 'company' } as const) : null),
     [id],
   );
 
-  // --- Data Fetching Hooks ---
   const {
     company,
     loading: isLoadingCompany,
@@ -46,6 +47,8 @@ export default function CompanyDetails() {
     addContact,
     removeContact,
   } = useEntityContacts(entity);
+  const { deleteCompany, isLoading: isDeleting } = useDeleteCompany();
+
   const {
     items: notes,
     loading: isLoadingNotes,
@@ -57,10 +60,6 @@ export default function CompanyDetails() {
     refetch: refetchTasks,
   } = useCompanyTasks(userId || '', id || '');
 
-  // --- Mutation Hooks ---
-  const { deleteCompany, isLoading: isDeleting } = useDeleteCompany();
-
-  // Effect to get current user ID
   useEffect(() => {
     const fetchUser = async () => {
       setUserId(await getCurrentUserId());
@@ -68,13 +67,11 @@ export default function CompanyDetails() {
     fetchUser();
   }, []);
 
-  const prevOpenDialogName = useRef(openDialogName);
   useEffect(() => {
     if (
       prevOpenDialogName.current === 'editCompany' &&
       openDialogName === null
     ) {
-      toast.info('Refreshing company data...');
       refetchCompany();
     }
     prevOpenDialogName.current = openDialogName;
@@ -82,17 +79,11 @@ export default function CompanyDetails() {
 
   const handleDelete = async () => {
     if (!company) return;
-    if (
-      window.confirm(
-        `Are you sure you want to delete the company "${company.name}"? This action cannot be undone.`,
-      )
-    ) {
-      const success = await deleteCompany(company.id, {
-        companyName: company.name,
-      });
-      if (success) {
-        navigate('/companies');
-      }
+    const success = await deleteCompany(company.id, {
+      companyName: company.name,
+    });
+    if (success) {
+      navigate('/companies');
     }
   };
 
@@ -114,7 +105,6 @@ export default function CompanyDetails() {
         onDelete={handleDelete}
         isDeleting={isDeleting}
       />
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 xl:col-span-8">
           <AssignedContactsManager
@@ -134,17 +124,17 @@ export default function CompanyDetails() {
           />
           <ActivityFeed
             entityId={id!}
+            entityName={company.name}
+            entityType="company"
             userId={userId!}
             user={user}
             notes={notes}
             tasks={tasks}
-            isLoadingNotes={isLoadingNotes}
-            isLoadingTasks={isLoadingTasks}
+            isLoading={isLoadingNotes || isLoadingTasks}
             refetchNotes={refetchNotes}
             refetchTasks={refetchTasks}
             notesService={companyNotesService}
             tasksService={companyTasksService}
-            entityType="company"
           />
         </div>
       </div>

@@ -2,7 +2,6 @@
 //  Contact Types
 // --------------------
 
-// For simplified avatar lists
 export type ContactWithAvatar = Pick<Contact, 'id' | 'name' | 'avatar_url'>;
 
 export interface NewContact {
@@ -143,11 +142,6 @@ export type AssignEntity = {
   logo?: company_logo;
 };
 
-// --------------------
-//  Misc UI Types
-// --------------------
-
-// Used for rendering recent contacts, etc.
 export interface RecentContactsProps {
   number: number;
 }
@@ -162,19 +156,16 @@ export type DialogContextType = {
   closeDialog: () => void;
 };
 
-//Context Types
-// Define the type for the entity
 export type EntityType = {
   id: string;
   type: 'group' | 'company' | 'tag';
   name: string;
 } | null;
 
-// Define the context value type
 export interface AssignContactContextType {
   open: boolean;
   entity: EntityType;
-  openDialog: (entity: Exclude<EntityType, null>) => void; // entity cannot be null when opening
+  openDialog: (entity: Exclude<EntityType, null>) => void;
   closeDialog: () => void;
 }
 
@@ -213,37 +204,75 @@ export type ProfessionalInfo = {
   skills: string[] | null;
 };
 
+// src/types/types.ts
+
 export type ActivityAction =
+  // Contact
   | 'CONTACT_CREATED'
   | 'CONTACT_UPDATED'
   | 'CONTACT_DELETED'
+  // Contact Notes
   | 'NOTE_CREATED'
   | 'NOTE_REMOVED'
   | 'NOTE_EDITED'
+  // Contact Tasks
   | 'TASK_CREATED'
   | 'TASK_COMPLETED'
   | 'TASK_EDITED'
   | 'TASK_REMOVED'
   | 'TASK_REOPENED'
+  // Assignments
   | 'GROUP_ASSIGNED'
-  | 'GROUP_CREATED'
-  | 'GROUP_REMOVED'
-  | 'GROUP_EDITED'
+  | 'GROUP_UNASSIGNED'
   | 'TAG_ASSIGNED'
-  | 'TAG_CREATED'
-  | 'TAG_REMOVED'
-  | 'TAG_EDITED'
+  | 'TAG_UNASSIGNED'
   | 'COMPANY_ASSIGNED'
+  | 'COMPANY_UNASSIGNED'
+  // Company
   | 'COMPANY_CREATED'
   | 'COMPANY_REMOVED'
   | 'COMPANY_EDITED'
-  | 'GROUP_UNASSIGNED'
-  | 'TAG_UNASSIGNED'
-  | 'COMPANY_UNASSIGNED';
+  // Group
+  | 'GROUP_CREATED'
+  | 'GROUP_REMOVED'
+  | 'GROUP_EDITED'
+  // Tag
+  | 'TAG_CREATED'
+  | 'TAG_REMOVED'
+  | 'TAG_EDITED'
+  // --- NEW: Company Notes & Tasks ---
+  | 'COMPANY_NOTE_CREATED'
+  | 'COMPANY_NOTE_EDITED'
+  | 'COMPANY_NOTE_REMOVED'
+  | 'COMPANY_TASK_CREATED'
+  | 'COMPANY_TASK_EDITED'
+  | 'COMPANY_TASK_REMOVED'
+  | 'COMPANY_TASK_COMPLETED'
+  | 'COMPANY_TASK_REOPENED'
+  // --- NEW: Group Notes & Tasks ---
+  | 'GROUP_NOTE_CREATED'
+  | 'GROUP_NOTE_EDITED'
+  | 'GROUP_NOTE_REMOVED'
+  | 'GROUP_TASK_CREATED'
+  | 'GROUP_TASK_EDITED'
+  | 'GROUP_TASK_REMOVED'
+  | 'GROUP_TASK_COMPLETED'
+  | 'GROUP_TASK_REOPENED'
+  // --- NEW: Tag Notes & Tasks ---
+  | 'TAG_NOTE_CREATED'
+  | 'TAG_NOTE_EDITED'
+  | 'TAG_NOTE_REMOVED'
+  | 'TAG_TASK_CREATED'
+  | 'TAG_TASK_EDITED'
+  | 'TAG_TASK_REMOVED'
+  | 'TAG_TASK_COMPLETED'
+  | 'TAG_TASK_REOPENED';
+
+// Your other types like LogActivityArgs can remain here
 export type LogActivityArgs = {
-  userId: string;
+  userId?: string | null;
   action: ActivityAction;
-  entityType: string;
+  entityType: 'Contact' | 'Note' | 'Task' | 'Company' | 'Group' | 'Tag';
   entityId?: string;
   details?: Record<string, any>;
 };

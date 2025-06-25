@@ -51,7 +51,6 @@ export default function TagDetails() {
     refetch: refetchTasks,
   } = useTagTasks(userId || '', id || '');
 
-  // --- Mutation Hooks ---
   const { removeTag, isLoading: isDeleting } = useDeleteTag();
 
   useEffect(() => {
@@ -119,6 +118,8 @@ export default function TagDetails() {
           />
           <ActivityFeed
             entityId={id!}
+            entityName={tag.name}
+            entityType="tag"
             userId={userId!}
             user={user}
             notes={notes}
@@ -129,7 +130,6 @@ export default function TagDetails() {
             refetchTasks={refetchTasks}
             notesService={tagNotesService}
             tasksService={tagTasksService}
-            entityType="tag"
           />
         </div>
       </div>

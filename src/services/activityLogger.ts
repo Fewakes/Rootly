@@ -1,3 +1,5 @@
+// src/services/activityLogService.ts
+
 import { supabase } from '@/lib/supabaseClient';
 import type { ActivityAction, LogActivityArgs } from '@/types/types';
 
@@ -5,61 +7,85 @@ function generateDescription(
   action: ActivityAction,
   details?: Record<string, any>,
 ): string {
+  // THE FIX: This helper variable is now more robust. It checks for all possible
+  // name keys in the details object to find the correct one.
+  const entityName =
+    details?.name || // For contacts
+    details?.companyName || // For companies
+    details?.groupName || // For groups
+    details?.tagName || // For tags
+    ''; // Fallback
+
+  const contactName = details?.contactName || '';
+
   switch (action) {
+    // --- Contact Actions ---
     case 'CONTACT_CREATED':
-      return `Created contact ${details?.name}`;
+      return `Created contact: ${entityName}`;
     case 'CONTACT_UPDATED':
-      return `Updated contact details for ${details?.name}`;
+      return `Updated contact details for: ${entityName}`;
     case 'CONTACT_DELETED':
-      return `Deleted contact ${details?.name}`;
+      return `Deleted contact: ${entityName}`;
+
+    // --- Contact Note Actions ---
     case 'NOTE_CREATED':
-      return `Added new note to ${details?.contactName}`;
-    case 'NOTE_REMOVED':
-      return `Removed note from ${details?.contactName}`;
+      return `Added a note to contact: ${contactName}`;
     case 'NOTE_EDITED':
-      return `Edited note for ${details?.contactName}`;
+      return `Edited a note for contact: ${contactName}`;
+    case 'NOTE_REMOVED':
+      return `Removed a note from contact: ${contactName}`;
+
+    // --- Contact Task Actions ---
     case 'TASK_CREATED':
-      return `Created task for ${details?.contactName}`;
-    case 'TASK_COMPLETED':
-      return `Marked task as completed for ${details?.contactName}`;
+      return `Created a task for contact: ${contactName}`;
     case 'TASK_EDITED':
-      return `Edited task for ${details?.contactName}`;
+      return `Edited a task for contact: ${contactName}`;
     case 'TASK_REMOVED':
-      return `Removed task from ${details?.contactName}`;
+      return `Removed a task from contact: ${contactName}`;
+    case 'TASK_COMPLETED':
+      return `Completed a task for contact: ${contactName}`;
     case 'TASK_REOPENED':
-      return `Reopened task for ${details?.contactName}`;
-    case 'GROUP_ASSIGNED':
-      return `Assigned ${details?.contactName} to group ${details?.groupName}`;
-    case 'GROUP_CREATED':
-      return `Created new group ${details?.groupName}`;
-    case 'GROUP_REMOVED':
-      return `Removed group ${details?.groupName}`;
-    case 'GROUP_EDITED':
-      return `Edited group ${details?.groupName}`;
-    case 'TAG_ASSIGNED':
-      return `Assigned  ${details?.contactName} to tag ${details?.tagName}`;
-    case 'TAG_CREATED':
-      return `Created new tag ${details?.tagName}`;
-    case 'TAG_REMOVED':
-      return `Removed tag ${details?.tagName}`;
-    case 'TAG_EDITED':
-      return `Edited tag ${details?.tagName}`;
-    case 'COMPANY_ASSIGNED':
-      return `Assigned ${details?.contactName} to company ${details?.companyName}`;
+      return `Reopened a task for contact: ${contactName}`;
+
+    // --- Entity Creation/Edit/Removal ---
     case 'COMPANY_CREATED':
-      return `Created new company ${details?.companyName}`;
-    case 'COMPANY_REMOVED':
-      return `Removed company ${details?.companyName}`;
     case 'COMPANY_EDITED':
-      return `Edited company ${details?.companyName}`;
-    case 'GROUP_UNASSIGNED':
-      return `Unassigned ${details?.contactName} from group ${details?.groupName}`;
-    case 'TAG_UNASSIGNED':
-      return `Unassigned  ${details?.contactName} from tag ${details?.tagName}`;
+    case 'COMPANY_REMOVED':
+      return `${action.split('_')[1].toLowerCase()} company: ${entityName}`;
+    case 'GROUP_CREATED':
+    case 'GROUP_EDITED':
+    case 'GROUP_REMOVED':
+      return `${action.split('_')[1].toLowerCase()} group: ${entityName}`;
+    case 'TAG_CREATED':
+    case 'TAG_EDITED':
+    case 'TAG_REMOVED':
+      return `${action.split('_')[1].toLowerCase()} tag: ${entityName}`;
+
+    // --- Entity Note Actions ---
+    case 'COMPANY_NOTE_CREATED':
+      return `Added a note to company: ${entityName}`;
+    case 'GROUP_NOTE_CREATED':
+      return `Added a note to group: ${entityName}`;
+    case 'TAG_NOTE_CREATED':
+      return `Added a note to tag: ${entityName}`;
+    // ... other entity note/task cases ...
+
+    // --- Assignment Actions ---
+    case 'COMPANY_ASSIGNED':
+      return `Assigned ${contactName} to company: ${entityName}`;
     case 'COMPANY_UNASSIGNED':
-      return `Unassigned ${details?.contactName} from company ${details?.companyName}`;
+      return `Unassigned ${contactName} from company: ${entityName}`;
+    case 'GROUP_ASSIGNED':
+      return `Assigned ${contactName} to group: ${entityName}`;
+    case 'GROUP_UNASSIGNED':
+      return `Unassigned ${contactName} from group: ${entityName}`;
+    case 'TAG_ASSIGNED':
+      return `Assigned ${contactName} to tag: ${entityName}`;
+    case 'TAG_UNASSIGNED':
+      return `Unassigned ${contactName} from tag: ${entityName}`;
 
     default:
+      // A safe fallback for any unhandled actions
       return action.replace(/_/g, ' ').toLowerCase();
   }
 }
@@ -71,6 +97,10 @@ export async function logActivity({
   entityId,
   details = {},
 }: LogActivityArgs): Promise<void> {
+  if (!userId) {
+    console.error('Activity log failed: User ID is missing.');
+    return;
+  }
   const description = generateDescription(action, details);
 
   const { error } = await supabase.from('activity_log').insert({
@@ -85,20 +115,9 @@ export async function logActivity({
   if (error) console.error('Activity log failed:', error.message);
 }
 
-export type ActivityLogEntry = {
-  id: string;
-  user_id: string;
-  action: ActivityAction;
-  entity_type: string;
-  entity_id?: string;
-  description: string;
-  created_at: string;
-  details?: Record<string, any>;
-};
-
 export async function fetchActivities(limit = 50): Promise<ActivityLogEntry[]> {
   const { data, error } = await supabase
-    .from<'activity_log', ActivityLogEntry>('activity_log')
+    .from<any, ActivityLogEntry>('activity_log')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -107,6 +126,5 @@ export async function fetchActivities(limit = 50): Promise<ActivityLogEntry[]> {
     console.error('Failed to fetch activities:', error.message);
     return [];
   }
-
   return data || [];
 }

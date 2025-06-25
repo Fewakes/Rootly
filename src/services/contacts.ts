@@ -45,7 +45,7 @@ type Contact = {
   tags: { id: string; name: string; color: string | null }[];
   groups: { id: string; name: string }[];
   companies: { id: string; name: string; company_logo?: string }[];
-  favourite?: boolean; // Add the favourite property to the Contact type
+  favourite?: boolean;
 };
 
 export const getFavouriteContacts = async (): Promise<Contact[]> => {
@@ -61,9 +61,9 @@ export const getFavouriteContacts = async (): Promise<Contact[]> => {
       groups(id, name),
       companies(id, name, company_logo),
       favourite
-    `, // Removed the JavaScript comment here
+    `,
     )
-    .eq('favourite', true) // Filter for favourite contacts
+    .eq('favourite', true)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -72,7 +72,6 @@ export const getFavouriteContacts = async (): Promise<Contact[]> => {
   }
 
   return data.map((contact: any) => ({
-    // Cast to 'any' for direct property access before mapping
     id: contact.id,
     name: contact.name,
     email: contact.email,
@@ -80,7 +79,7 @@ export const getFavouriteContacts = async (): Promise<Contact[]> => {
     tags: contact.tags || [],
     groups: contact.groups || [],
     companies: contact.companies || [],
-    favourite: contact.favourite, // Include the favourite property in the mapped object
+    favourite: contact.favourite,
   }));
 };
 
