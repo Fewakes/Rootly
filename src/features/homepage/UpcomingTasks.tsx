@@ -22,6 +22,7 @@ import {
   Contact as ContactIcon,
   ArrowRight,
   NotebookPen,
+  Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -64,7 +65,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const TASKS_PER_PAGE = 3;
+  const TASKS_PER_PAGE = 2;
 
   // Effect to fetch and sort tasks
   useEffect(() => {
@@ -223,7 +224,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
               <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={entityFilterType}
-                onValueChange={value =>
+                onValueValueChange={value =>
                   setEntityFilterType(value as EntityType | 'none')
                 }
               >
@@ -260,12 +261,18 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
         </Tabs>
       </CardHeader>
 
-      <CardContent className="flex-grow p-4 space-y-2">
+      <CardContent className="flex-grow p-4 space-y-2 min-h-65">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading tasks...</div>
+          <div className="flex h-[280px] items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 italic">
-            No upcoming tasks match your filters.
+          <div className="flex h-[320px] flex-col items-center justify-center text-center">
+            <NotebookPen className="h-10 w-10 text-muted-foreground mb-2" />
+            <p className="font-medium">No Upcoming Tasks</p>
+            <p className="text-sm text-muted-foreground">
+              Tasks matching your filters will appear here.
+            </p>
           </div>
         ) : (
           <div className="space-y-2">

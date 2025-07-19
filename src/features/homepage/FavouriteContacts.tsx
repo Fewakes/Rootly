@@ -31,21 +31,16 @@ type FavouriteContactsProps = {
 };
 
 const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
-  // State for the list is managed inside the component
   const [contacts, setContacts] = useState(favouriteContacts);
-  // State for pagination is managed inside the component
   const [currentPage, setCurrentPage] = useState(1);
-  const CONTACTS_PER_PAGE = 5;
+  const CONTACTS_PER_PAGE = 4;
 
-  // Sync internal state if the prop changes from the parent component
   useEffect(() => {
     setContacts(favouriteContacts);
   }, [favouriteContacts]);
 
-  // Hook for handling the favourite toggle action
   const { toggleFavourite, isToggling } = useToggleContactFavourite();
 
-  // Pagination logic derived from internal state
   const totalPages = Math.ceil(contacts.length / CONTACTS_PER_PAGE);
   const indexOfLastContact = currentPage * CONTACTS_PER_PAGE;
   const indexOfFirstContact = indexOfLastContact - CONTACTS_PER_PAGE;
@@ -54,7 +49,6 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
     indexOfLastContact,
   );
 
-  // Pagination handlers
   const goToNextPage = () => {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
@@ -62,19 +56,15 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
     setCurrentPage(prev => Math.max(prev - 1, 1));
   };
 
-  // The component orchestrates the state update and the async action
   const handleToggle = async (contactId: string, currentStatus: boolean) => {
-    // 1. Optimistic UI Update: Update the list state immediately
     setContacts(prev =>
       prev.map(c =>
         c.id === contactId ? { ...c, favourite: !currentStatus } : c,
       ),
     );
 
-    // 2. Call the action hook to update the database
     const { success } = await toggleFavourite(contactId, currentStatus);
 
-    // 3. Revert the change if the database update failed
     if (!success) {
       setContacts(prev =>
         prev.map(c =>
@@ -88,12 +78,18 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
+          <Star className="h-5 w-5 text-primary" />
           Favourite Contacts
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent
+        className={cn(
+          'min-h-[320px] ',
+
+          contacts.length === 0 && 'flex flex-col items-center justify-center',
+        )}
+      >
         {contacts.length > 0 ? (
           <div className="space-y-3">
             {currentContacts.map(contact => {
@@ -230,13 +226,17 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
             })}
           </div>
         ) : (
-          <div className="text-muted-foreground italic text-center py-10">
-            No favourite contacts to display.
+          <div className="text-center">
+            <Star className="h-10 w-10 text-muted-foreground mb-2 mx-auto" />
+            <p className="font-medium">No Favourite Contacts</p>
+            <p className="text-sm text-muted-foreground">
+              Click the star on a contact to add them here.
+            </p>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between items-center border-t px-6 py-3">
+      <CardFooter className="flex justify-end border-t px-6">
         {contacts.length > CONTACTS_PER_PAGE ? (
           <div className="flex items-center gap-2">
             <Button

@@ -26,6 +26,7 @@ import UpcomingTasks from '@/features/homepage/UpcomingTasks';
 import { useUserAuthProfile } from '@/logic/useUserAuthProfile';
 import { useUserId } from '@/logic/useUserId';
 import { getUserAuthProfile } from '@/services/users';
+import { CallToActionBanner } from '@/features/homepage/CallToActionBanner';
 
 const StatCardSkeleton = () => (
   <div className="h-[108px] bg-muted rounded-xl animate-pulse" />
@@ -44,21 +45,8 @@ export default function Homepage() {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg mb-6 flex flex-col md:flex-row items-center justify-between  md:space-y-0 md:space-x-4 mr-5 ml-5">
-        <div className="text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Welcome Back !
-          </h1>
-          <p className="text-lg md:text-xl opacity-90">
-            Let's make today productive.
-          </p>
-        </div>
-        <Button className="bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 dark:bg-gray-800 dark:text-blue-300 dark:hover:bg-gray-700 dark:hover:text-blue-200 transition-colors duration-200 px-6 py-3 text-lg font-semibold rounded-full shadow-md flex items-center gap-2">
-          <PlusCircle className="h-5 w-5" />
-          Add New Contact
-        </Button>
-      </div>
       <main className="max-w-7xl mx-auto p-6 space-y-10">
+        <CallToActionBanner />
         {/* Section 1: Dashboard Stats */}
 
         <Card>
@@ -118,23 +106,25 @@ export default function Homepage() {
         <Separator />
 
         {/* Section 2: Main Grid */}
-        {/* CHANGED: Switched from 'grid' to 'flex' for equal height columns */}
+
         <section className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
           {/* Left column: Favourite Contacts, Upcoming Tasks, Activity Feed */}
-          {/* CHANGED: Replaced 'lg:col-span-3' with 'w-full lg:w-3/5' */}
-          <div className="w-full lg:w-3/5 space-y-12 flex flex-col ">
-            {/* Uncomment below to enable favourite contacts */}
+
+          <div className="w-full lg:w-3/5 space-y-8 ">
             <FavouriteContacts favouriteContacts={favouriteContactsData} />
             <UpcomingTasks currentUserId={id} />
             <ActivityFeed limit={5} />
           </div>
 
           {/* Right column: Distribution Widgets */}
-          {/* CHANGED: Replaced 'lg:col-span-2' with 'w-full lg:w-2/5' */}
-          <div className="w-full lg:w-2/5 space-y-8 flex flex-col gap-8">
-            <TagsDistributionWidget />
-            <GroupsDistributionWidget />
-            <CompaniesDistributionWidget />
+
+          <div className="w-full lg:w-2/5">
+            {/* 1. Add this wrapper div with sticky positioning */}
+            <div className=" top-8 space-y-8 flex flex-col">
+              <TagsDistributionWidget />
+              <GroupsDistributionWidget />
+              <CompaniesDistributionWidget />
+            </div>
           </div>
         </section>
       </main>

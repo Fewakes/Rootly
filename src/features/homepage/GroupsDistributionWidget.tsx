@@ -168,10 +168,10 @@ export const GroupsDistributionWidget = () => {
       </CardHeader>
 
       {/* Card Content Section */}
-      <CardContent className="min-h-[280px]">{renderContent()}</CardContent>
+      <CardContent className="min-h-[300px]">{renderContent()}</CardContent>
 
       {/* Card Footer Section */}
-      <CardFooter className="flex justify-between items-center border-t px-4 py-2">
+      <CardFooter className="flex justify-end border-t px-6">
         {/* Pagination Controls */}
         <div className="flex items-center gap-2">
           {totalPages > 1 && (
@@ -201,7 +201,12 @@ export const GroupsDistributionWidget = () => {
           )}
         </div>
         {/* View All Groups Button */}
-        <Button variant="link" size="sm" className="p-0 text-sm" asChild>
+        <Button
+          variant="link"
+          size="sm"
+          className="p-0 text-sm text-primary"
+          asChild
+        >
           <Link to="/groups">
             View All Groups <ArrowRight className="h-4 w-4 ml-1" />
           </Link>

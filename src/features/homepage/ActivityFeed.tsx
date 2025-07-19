@@ -35,12 +35,10 @@ const ActivityFeed = ({ limit = 5 }: { limit?: number }) => {
     }
     if (activities.length === 0) {
       return (
-        <div className="flex h-48 flex-col items-center justify-center text-center">
-          <ListTodo className="h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm font-medium text-foreground">
-            No Recent Activity
-          </p>
-          <p className="text-xs text-muted-foreground">
+        <div className="flex h-[320px] flex-col items-center justify-center text-center">
+          <ListTodo className="h-10 w-10 text-muted-foreground mb-2" />
+          <p className="font-medium">No Recent Activity</p>
+          <p className="text-sm text-muted-foreground">
             Actions you take will appear here.
           </p>
         </div>
@@ -92,10 +90,10 @@ const ActivityFeed = ({ limit = 5 }: { limit?: number }) => {
   return (
     <Card>
       <CardTitle className="ml-5 text-xl flex items-center gap-2">
-        <Activity className="h-5 w-5 text-primary" /> Recent Activity
+        <ListTodo className="h-5 w-5 text-primary" /> Recent Activity
       </CardTitle>
 
-      <CardContent className="p-0">{renderContent()}</CardContent>
+      <CardContent className="p-0 min-h-82">{renderContent()}</CardContent>
       <CardFooter className="flex justify-end border-t px-6 ">
         <Button
           variant="link"

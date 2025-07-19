@@ -183,10 +183,10 @@ export const TagsDistributionWidget = () => {
       </CardHeader>
 
       {/* Card Content Section */}
-      <CardContent className="min-h-[280px]">{renderContent()}</CardContent>
+      <CardContent className="min-h-[300px]">{renderContent()}</CardContent>
 
       {/* Card Footer Section */}
-      <CardFooter className="flex justify-between items-center border-t px-4 py-2">
+      <CardFooter className="flex justify-end border-t px-6">
         {/* Pagination Controls */}
         <div className="flex items-center gap-2">
           {totalPages > 1 && (

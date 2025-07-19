@@ -25,7 +25,6 @@ import {
   Star,
 } from 'lucide-react';
 
-// Type Definitions
 export type Contact = {
   id: string;
   name: string;
