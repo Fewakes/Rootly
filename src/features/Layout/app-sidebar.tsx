@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -15,21 +14,14 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
-import { useDialog } from '@/contexts/DialogContext';
+import { useDialog, type DialogName } from '@/contexts/DialogContext';
 import { useSignOut } from '@/logic/useSignOut';
 import { useUserAuthProfile } from '@/logic/useUserAuthProfile';
 import { useFavouriteContacts } from '@/logic/useFavouriteContacts';
@@ -40,7 +32,6 @@ import {
   Tags,
   Users,
   Building,
-  PlusCircle,
   Star,
   Search,
   UserCircle2,
@@ -48,22 +39,23 @@ import {
   History,
   ChevronsLeft,
   ChevronsRight,
+  Plus,
 } from 'lucide-react';
 
 const dashboardItems = [
-  { title: 'Home', url: '/', icon: Home },
-  { title: 'Contacts', url: '/contacts', icon: Contact },
-  { title: 'Companies', url: '/companies', icon: Building },
-  { title: 'Groups', url: '/groups', icon: Users },
-  { title: 'Tags', url: '/tags', icon: Tags },
-  { title: 'Activity Log', url: '/activity-log', icon: History },
+  { title: 'Home', url: '/', icon: Home, dialog: null },
+  { title: 'Contacts', url: '/contacts', icon: Contact, dialog: 'addContact' },
+  {
+    title: 'Companies',
+    url: '/companies',
+    icon: Building,
+    dialog: 'addCompany',
+  },
+  { title: 'Groups', url: '/groups', icon: Users, dialog: 'addGroup' },
+  { title: 'Tags', url: '/tags', icon: Tags, dialog: 'addTag' },
+  { title: 'Activity Log', url: '/activity-log', icon: History, dialog: null },
 ];
-const workspaceActions = [
-  { label: 'New Contact', dialog: 'addContact', icon: UserCircle2 },
-  { label: 'New Company', dialog: 'addCompany', icon: Building },
-  { label: 'New Group', dialog: 'addGroup', icon: Users },
-  { label: 'New Tag', dialog: 'addTag', icon: Tags },
-];
+
 const performGlobalSearch = async (term: string) => {
   if (!term) return [];
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -86,6 +78,7 @@ const SidebarNavContent = ({
     ? favouriteContacts
     : favouriteContacts.slice(0, 4);
 
+  // Render content for collapsed sidebar
   if (isCollapsed) {
     return (
       <nav className="flex-1 px-2 py-4 space-y-2">
@@ -101,6 +94,7 @@ const SidebarNavContent = ({
                       ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-600 hover:bg-gray-100',
                   )}
+                  onClick={onLinkClick}
                 >
                   <item.icon className="h-5 w-5" />
                 </Link>
@@ -113,6 +107,7 @@ const SidebarNavContent = ({
     );
   }
 
+  // Render content for expanded sidebar
   return (
     <div className="flex-1 overflow-y-auto px-2 py-4 space-y-6">
       <div className="px-2">
@@ -139,23 +134,49 @@ const SidebarNavContent = ({
           Dashboard
         </h3>
         {dashboardItems.map(item => (
-          <Link
-            key={item.title}
-            to={item.url}
-            onClick={onLinkClick}
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-              location.pathname === item.url
-                ? 'bg-blue-100 text-blue-700 font-semibold'
-                : 'text-gray-600 hover:bg-gray-100',
+          <div key={item.title} className="group relative">
+            <Link
+              to={item.url}
+              onClick={onLinkClick}
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                location.pathname === item.url
+                  ? 'bg-blue-100 text-blue-700 font-semibold'
+                  : 'text-gray-600 hover:bg-gray-100',
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.title}</span>
+            </Link>
+            {item.dialog && (
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:bg-gray-200 transition-opacity"
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onLinkClick?.();
+                        openDialog(item.dialog as DialogName);
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    New {item.title.slice(0, -1)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.title}</span>
-          </Link>
+          </div>
         ))}
       </div>
 
+      {/* Favourites Section */}
       {(favsLoading || favouriteContacts.length > 0) && (
         <div className="space-y-1">
           <h3 className="px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase flex items-center gap-2">
@@ -211,6 +232,11 @@ export default function AppSidebar({
   onMobileClose,
   isCollapsed,
   onCollapseToggle,
+}: {
+  isMobileOpen: boolean;
+  onMobileClose: () => void;
+  isCollapsed: boolean;
+  onCollapseToggle: () => void;
 }) {
   const navigate = useNavigate();
   const { signOut } = useSignOut();
@@ -220,6 +246,7 @@ export default function AppSidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
+  // Keyboard shortcut for Command Dialog
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -231,6 +258,7 @@ export default function AppSidebar({
     return () => document.removeEventListener('keydown', down);
   }, []);
 
+  // Global Search functionality with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) {
@@ -248,6 +276,7 @@ export default function AppSidebar({
     command();
   };
 
+  // Sidebar Header
   const sidebarHeader = (
     <div className="px-4 py-5 border-b text-center">
       <Link to="/">
@@ -261,16 +290,17 @@ export default function AppSidebar({
     </div>
   );
 
+  // Sidebar Footer
   const sidebarFooter = (
     <div className="p-4 border-t">
       {isCollapsed ? (
-        // --- Collapsed Footer ---
         <div className="space-y-2">
           <Button
             onClick={onCollapseToggle}
             variant="ghost"
             size="icon"
             className="w-full h-10"
+            title="Expand Sidebar"
           >
             <ChevronsRight className="h-5 w-5" />
           </Button>
@@ -285,32 +315,7 @@ export default function AppSidebar({
           </Button>
         </div>
       ) : (
-        // --- Expanded Footer ---
         <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="w-full justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-sm mb-4">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Create New
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side="top"
-              align="start"
-              className="w-56 ml-2 mb-1"
-            >
-              {workspaceActions.map(action => (
-                <DropdownMenuItem
-                  key={action.dialog}
-                  onClick={() => openDialog(action.dialog)}
-                  className="gap-2"
-                >
-                  <action.icon className="h-4 w-4 text-muted-foreground" />
-                  <span>{action.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="w-10 h-10 border">
@@ -343,6 +348,7 @@ export default function AppSidebar({
                 variant="ghost"
                 size="icon"
                 className="hidden md:inline-flex text-muted-foreground"
+                title="Collapse Sidebar"
               >
                 <ChevronsLeft className="h-5 w-5" />
               </Button>
@@ -355,6 +361,7 @@ export default function AppSidebar({
 
   return (
     <>
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
           'h-screen flex-col border-r bg-gray-50 transition-all duration-300 hidden md:flex',
@@ -366,6 +373,7 @@ export default function AppSidebar({
         {sidebarFooter}
       </aside>
 
+      {/* Mobile Sidebar Sheet */}
       <Sheet open={isMobileOpen} onOpenChange={onMobileClose}>
         <SheetContent side="left" className="w-64 p-0 flex flex-col bg-gray-50">
           {sidebarHeader}
@@ -374,6 +382,7 @@ export default function AppSidebar({
         </SheetContent>
       </Sheet>
 
+      {/* Command Dialog (Search/Actions) */}
       <CommandDialog open={openCommand} onOpenChange={setOpenCommand}>
         <CommandInput
           placeholder="Type a command or search..."
@@ -406,15 +415,19 @@ export default function AppSidebar({
           )}
           <CommandSeparator />
           <CommandGroup heading="Actions">
-            {workspaceActions.map(action => (
-              <CommandItem
-                key={`cmd-${action.dialog}`}
-                onSelect={() => runCommand(() => openDialog(action.dialog))}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                <span>{action.label}</span>
-              </CommandItem>
-            ))}
+            {dashboardItems
+              .filter(item => item.dialog)
+              .map(item => (
+                <CommandItem
+                  key={`cmd-${item.dialog}`}
+                  onSelect={() =>
+                    runCommand(() => openDialog(item.dialog as DialogName))
+                  }
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>New {item.title.slice(0, -1)}</span>
+                </CommandItem>
+              ))}
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Navigation">

@@ -1,24 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-
 import { useDialog } from '@/contexts/DialogContext';
+import { useLogActivity } from '@/logic/useLogActivity';
 import { updateContactProfile } from '@/services/contact';
-import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
+import type { Company, Group, Tag } from '@/types/types';
 
-// --- Form Validation Schema ---
 const profileFormSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
+  firstName: z.string().min(1, 'First name is required.'),
   surname: z.string().optional(),
-  groupId: z.string().optional(),
+  avatarUrl: z.any().optional(),
+  companyId: z.string().optional().nullable(),
+  groupId: z.string().optional().nullable(),
   tagIds: z
     .array(z.string())
     .max(3, { message: 'A contact can have a maximum of 3 tags.' })
     .default([]),
-  avatarUrl: z.any().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -27,74 +26,70 @@ type ContactToEdit = {
   id: string;
   name: string;
   avatar_url?: string | null;
-  contact_groups?: { id: string; name: string }[];
-  contact_tags?: { id: string; name: string }[];
+  gender?: string | null;
+  contact_groups?: Group[];
+  contact_tags?: Tag[];
+  contact_companies?: Company[];
 } | null;
 
-// --- Hook to manage the edit profile form ---
 export function useEditProfileForm(contactToEdit: ContactToEdit) {
-  const { closeDialog } = useDialog();
-
-  // Initialize activity logger
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { closeDialog, dialogPayload } = useDialog();
+  const { logActivity } = useLogActivity();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       firstName: '',
       surname: '',
-      groupId: '',
-      tagId: '',
-      avatarUrl: '',
+      avatarUrl: null,
+      companyId: null,
+      groupId: null,
+      tagIds: [],
     },
   });
 
-  // Pre-fill form with existing contact data
   useEffect(() => {
     if (contactToEdit) {
-      const nameParts = contactToEdit.name.split(' ');
-      const firstName = nameParts[0] || '';
-      const surname = nameParts.slice(1).join(' ') || '';
+      const nameParts = contactToEdit.name.split(' ') || [];
 
-      // --- ✨ FIX 3: Update form.reset to use the array of tags ---
       form.reset({
-        firstName: firstName,
-        surname: surname,
-        groupId: contactToEdit.contact_groups?.[0]?.id || '',
-        tagIds: contactToEdit.contact_tags?.map(t => t.id) || [], // Map the array of tags
-        avatarUrl: contactToEdit.avatar_url || '',
+        firstName: nameParts[0] || '',
+        surname: nameParts.slice(1).join(' ') || '',
+        avatarUrl: contactToEdit.avatar_url || null,
+        companyId: contactToEdit.contact_companies?.[0]?.id || null,
+        groupId: contactToEdit.contact_groups?.[0]?.id || null,
+        tagIds: contactToEdit.contact_tags?.map(t => t.id) || [],
       });
     }
-  }, [form, contactToEdit]); // Removed 'form' from dependency array for stability
+  }, [contactToEdit, form.reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
-    if (!contactToEdit || !userId) {
-      toast.error('No contact or user selected for editing.');
-      return;
-    }
+    if (!contactToEdit) return;
 
-    try {
-      await updateContactProfile(contactToEdit.id, data);
+    await toast.promise(
+      async () => {
+        await updateContactProfile(contactToEdit.id, data);
 
-      // Log the activity on successful update
-      logActivity('CONTACT_UPDATED', 'Contact', contactToEdit.id, {
-        name: `${data.firstName} ${data.surname}`,
-      });
+        logActivity('CONTACT_UPDATED', 'Contact', contactToEdit.id, {
+          name: `${data.firstName} ${data.surname || ''}`.trim(),
+        });
 
-      toast.success('Profile updated successfully!');
-      closeDialog();
-    } catch (error: any) {
-      toast.error(`Failed to update profile: ${error.message}`);
-    }
+        if (
+          dialogPayload?.onActionSuccess &&
+          typeof dialogPayload.onActionSuccess === 'function'
+        ) {
+          await dialogPayload.onActionSuccess();
+        }
+      },
+      {
+        loading: 'Saving profile...',
+        success: () => {
+          closeDialog();
+          return 'Profile updated successfully!';
+        },
+        error: (err: any) => err.message || 'An unexpected error occurred.',
+      },
+    );
   };
 
   return { form, onSubmit };

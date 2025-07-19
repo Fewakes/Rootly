@@ -20,11 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
-
-import { noteSchema } from '@/logic/useContactNotes';
-import { taskSchema } from '@/logic/useContactTasks';
+import { Calendar } from '@/components/ui/calendar'; // Using the shadcn Calendar component
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -32,8 +28,11 @@ import {
   MessageSquare,
   PhoneCall,
   Send,
-  CalendarIcon,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
+
+import { noteSchema } from '@/logic/useContactNotes';
+import { taskSchema } from '@/logic/useContactTasks';
 
 type QuickActionsCardProps = {
   contactName: string;
@@ -64,8 +63,7 @@ export function QuickActionsCard({
         form.reset();
         setMode('idle');
       } catch (error) {
-        toast.error('Could not save note. Please try again.');
-        console.error(error);
+        // The hook now handles its own error toasts
       }
     };
 
@@ -139,8 +137,7 @@ export function QuickActionsCard({
         form.reset();
         setMode('idle');
       } catch (error) {
-        toast.error('Could not save task. Please try again.');
-        console.error(error);
+        // The hook now handles its own error toasts
       }
     };
 
@@ -203,11 +200,13 @@ export function QuickActionsCard({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <DayPicker
+                      <Calendar
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={{ before: new Date() }}
+                        disabled={date =>
+                          date < new Date() || date < new Date('1900-01-01')
+                        }
                         initialFocus
                       />
                     </PopoverContent>

@@ -1,5 +1,5 @@
-// src/contexts/DialogContext.tsx
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import type { Contact, Company, Group, Tag } from '@/types/types';
 
 type GroupPayload = {
   type: 'group';
@@ -24,22 +24,54 @@ type TagPayload = {
   color: string;
 };
 
-export type DialogPayload = GroupPayload | CompanyPayload | TagPayload | null;
+type SuccessCallback = () => void | Promise<void>;
+
+type AddContactPayload = {
+  type: 'addContact';
+  onActionSuccess?: SuccessCallback;
+};
+
+type EditContactPayload = {
+  type: 'editContact' | 'editProfile' | 'editContactInfo';
+  contact: Contact;
+  onActionSuccess?: SuccessCallback;
+};
+
+export type DialogPayload =
+  | GroupPayload
+  | CompanyPayload
+  | TagPayload
+  | AddContactPayload
+  | EditContactPayload
+  | null;
+
+export type DialogName =
+  | 'editGroup'
+  | 'editCompany'
+  | 'editTag'
+  | 'addContact'
+  | 'editProfile'
+  | 'editContactInfo'
+  | 'addGroup'
+  | 'addCompany'
+  | 'addTag';
 
 export type DialogContextType = {
-  openDialogName: string | null;
+  openDialogName: DialogName | null;
   dialogPayload: DialogPayload;
-  openDialog: (name: string, payload?: DialogPayload) => void;
+  openDialog: (name: DialogName, payload?: DialogPayload) => void;
   closeDialog: () => void;
+
+  onActionSuccess?: SuccessCallback;
 };
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
-  const [openDialogName, setOpenDialogName] = useState<string | null>(null);
+  const [openDialogName, setOpenDialogName] = useState<DialogName | null>(null);
   const [dialogPayload, setDialogPayload] = useState<DialogPayload>(null);
 
-  const openDialog = (name: string, payload: DialogPayload = null) => {
+  const openDialog = (name: DialogName, payload: DialogPayload = null) => {
     setOpenDialogName(name);
     setDialogPayload(payload);
   };
@@ -49,9 +81,25 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     setDialogPayload(null);
   };
 
+  const onActionSuccess = () => {
+    if (
+      dialogPayload &&
+      'onActionSuccess' in dialogPayload &&
+      typeof dialogPayload.onActionSuccess === 'function'
+    ) {
+      dialogPayload.onActionSuccess();
+    }
+  };
+
   return (
     <DialogContext.Provider
-      value={{ openDialogName, dialogPayload, openDialog, closeDialog }}
+      value={{
+        openDialogName,
+        dialogPayload,
+        openDialog,
+        closeDialog,
+        onActionSuccess,
+      }}
     >
       {children}
     </DialogContext.Provider>

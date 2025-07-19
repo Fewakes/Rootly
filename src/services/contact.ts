@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import type { Contact } from '@/types/types';
 
 export type UpdateContactInfoPayload = {
   email?: string;
@@ -87,6 +88,7 @@ type UpdateContactProfilePayload = {
   groupId?: string;
   tagIds?: string[];
   avatarUrl?: string | File;
+  companyId?: string;
 };
 
 export async function updateContactProfile(
@@ -151,54 +153,78 @@ export async function updateContactProfile(
 
     if (groupInsertError) {
       console.error('Error setting new contact group:', groupInsertError);
-      throw new Error('Failed to associate contact with group.');
     }
   }
 
   const newTagIds = data.tagIds || [];
-
   const { data: existingLinks, error: fetchError } = await supabase
     .from('contact_tags')
     .select('tag_id')
     .eq('contact_id', contactId);
 
-  if (fetchError) {
-    console.error('Error fetching existing contact tags:', fetchError);
-    throw fetchError;
-  }
-
+  if (fetchError) throw fetchError;
   const existingTagIds = existingLinks.map(link => link.tag_id);
-
   const tagsToAdd = newTagIds.filter(id => !existingTagIds.includes(id));
   const tagsToRemove = existingTagIds.filter(id => !newTagIds.includes(id));
 
   if (tagsToRemove.length > 0) {
-    const { error: deleteError } = await supabase
+    const { error } = await supabase
       .from('contact_tags')
       .delete()
       .eq('contact_id', contactId)
       .in('tag_id', tagsToRemove);
-
-    if (deleteError) {
-      console.error('Error removing old tags:', deleteError);
-      throw new Error('Failed to update tag associations.');
-    }
+    if (error) throw new Error('Failed to update tag associations.');
   }
-
   if (tagsToAdd.length > 0) {
     const insertData = tagsToAdd.map(tagId => ({
       contact_id: contactId,
       tag_id: tagId,
     }));
-    const { error: insertError } = await supabase
-      .from('contact_tags')
-      .insert(insertData);
+    const { error } = await supabase.from('contact_tags').insert(insertData);
+    if (error) throw new Error('Failed to update tag associations.');
+  }
 
-    if (insertError) {
-      console.error('Error adding new tags:', insertError);
-      throw new Error('Failed to update tag associations.');
+  const { error: deleteCompanyError } = await supabase
+    .from('contact_companies')
+    .delete()
+    .eq('contact_id', contactId);
+
+  if (deleteCompanyError) {
+    console.error('Error clearing contact companies:', deleteCompanyError);
+    throw new Error('Could not update company association.');
+  }
+
+  if (data.companyId) {
+    const { error: insertCompanyError } = await supabase
+      .from('contact_companies')
+      .insert({ contact_id: contactId, company_id: data.companyId });
+
+    if (insertCompanyError) {
+      console.error('Error setting new contact company:', insertCompanyError);
+      throw new Error('Could not associate contact with new company.');
     }
   }
 
   return { success: true };
 }
+
+export const updateContactDetails = async (
+  contactId: string,
+  updates: Partial<Contact>,
+) => {
+  if (!contactId) {
+    throw new Error('A Contact ID is required to perform an update.');
+  }
+  const { data, error } = await supabase
+    .from('contacts')
+    .update(updates)
+    .eq('id', contactId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Supabase update error:', error);
+    throw new Error(error.message);
+  }
+  return data;
+};

@@ -27,6 +27,7 @@ import { useDialog } from '@/contexts/DialogContext';
 
 import { getAllTags } from '@/services/tags';
 import { getAllGroups } from '@/services/groups';
+import { getAllCompanies } from '@/services/companies';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 import { useEditProfileForm } from '@/logic/useEditProfileForm';
@@ -43,6 +44,9 @@ export default function EditContactProfileDialog() {
 
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>(
+    [],
+  );
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,22 +57,30 @@ export default function EditContactProfileDialog() {
       getAllTags().then(allTags =>
         setTags(allTags.map(({ id, name }) => ({ id, name }))),
       );
+      getAllCompanies().then(allCompanies => {
+        console.log('Available Companies (Dropdown Options):', allCompanies);
+        setCompanies(allCompanies.map(({ id, name }) => ({ id, name })));
+      });
     }
   }, [open]);
 
   useEffect(() => {
     if (contactToEdit && open) {
+      console.log('Assigned Company:', contactToEdit.contact_companies?.[0]);
+
       const nameParts = contactToEdit.name.split(' ') || [];
       const firstName = nameParts[0] || '';
       const surname = nameParts.slice(1).join(' ') || '';
       const groupId = contactToEdit.contact_groups?.[0]?.id || '';
       const tagIds = contactToEdit.contact_tags?.map(t => t.id) || [];
+      const companyId = contactToEdit.contact_companies?.[0]?.id || '';
 
       form.reset({
         firstName: firstName,
         surname: surname,
         groupId: groupId,
         tagIds: tagIds,
+        companyId: companyId,
         avatarUrl: contactToEdit.avatar_url || '',
       });
 
@@ -180,7 +192,7 @@ export default function EditContactProfileDialog() {
                       <FormLabel>Group</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value || ''}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -202,9 +214,37 @@ export default function EditContactProfileDialog() {
 
                 <FormField
                   control={form.control}
-                  name="tagIds"
+                  name="companyId"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Company</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ''}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select company" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {companies.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tagIds"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Tags</FormLabel>
                       <MultiSelect
                         options={tags.map(t => ({

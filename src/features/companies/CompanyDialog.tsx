@@ -34,12 +34,15 @@ export default function CompanyDialog() {
 
   return (
     <Dialog open={open} onOpenChange={closeDialog}>
-      <DialogContent>
+      <DialogContent
+        aria-labelledby="company-dialog-title"
+        aria-describedby="company-dialog-description"
+      >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle id="company-dialog-title">
             {isEditing ? 'Edit Company' : 'Add a New Company'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="company-dialog-description">
             {isEditing
               ? "Update the company's details below."
               : 'Add a new company to your records.'}
@@ -87,7 +90,8 @@ export default function CompanyDialog() {
                   <FormLabel>Logo</FormLabel>
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16 border">
-                      <AvatarImage src={logoPreview || ''} />
+                      {/* FIX: Pass undefined instead of empty string to src */}
+                      <AvatarImage src={logoPreview || undefined} />
                       <AvatarFallback>
                         <Building />
                       </AvatarFallback>
@@ -112,7 +116,11 @@ export default function CompanyDialog() {
               )}
             />
             <DialogFooter>
-              <Button variant="outline" type="button" onClick={closeDialog}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => closeDialog(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>

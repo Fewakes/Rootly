@@ -313,15 +313,6 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
                       </div>
                     </div>
                   </div>
-                  <Link to={`/tasks/${task.id}`} className="flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="View task details"
-                    >
-                      <ArrowRight className="h-5 w-5" />
-                    </Button>
-                  </Link>
                 </div>
               );
             })}

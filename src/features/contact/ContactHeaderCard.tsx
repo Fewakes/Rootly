@@ -2,18 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-// UI Components
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-// Logic Hooks
 import { useDialog } from '@/contexts/DialogContext';
 import { useDeleteContact } from '@/logic/useDeleteContact';
 import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 
-// Utils & Assets
 import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import default_woman from '@/assets/default_woman.svg';
@@ -24,8 +21,8 @@ import {
   Building2,
   Users,
   Tag,
-  Star,
   Loader2,
+  Star,
 } from 'lucide-react';
 
 // Type Definitions
@@ -47,11 +44,13 @@ export type Contact = {
 type ContactHeaderCardProps = {
   contact: Contact;
   onFavouriteChange: (updatedContact: Contact) => void;
+  onActionSuccess: () => void;
 };
 
 export function ContactHeaderCard({
   contact,
   onFavouriteChange,
+  onActionSuccess,
 }: ContactHeaderCardProps) {
   const { openDialog } = useDialog();
   const navigate = useNavigate();
@@ -63,42 +62,32 @@ export function ContactHeaderCard({
     setLocalContact(contact);
   }, [contact]);
 
-  const handleToggleFavourite = async () => {
-    const originalContact = localContact;
-    const optimisticContact = {
-      ...localContact,
-      favourite: !localContact.favourite,
-    };
-    setLocalContact(optimisticContact);
-
-    try {
-      const { success } = await toggleFavourite(
-        originalContact.id,
-        !!originalContact.favourite,
-      );
-      if (success) {
-        onFavouriteChange(optimisticContact);
-      } else {
-        setLocalContact(originalContact);
-        toast.error('Failed to update favourite status.');
-      }
-    } catch (error) {
-      setLocalContact(originalContact);
-      toast.error('An error occurred while updating favourites.');
+  const handleToggleFavourite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocalContact(prev => ({ ...prev, favourite: !prev.favourite }));
+    const { success } = await toggleFavourite(
+      localContact.id,
+      !!localContact.favourite,
+    );
+    if (success) {
+      onFavouriteChange({
+        ...localContact,
+        favourite: !localContact.favourite,
+      });
+    } else {
+      setLocalContact(contact);
     }
   };
 
-  const handleDelete = async () => {
-    // THE FIX: Always use the 'localContact' state for actions within this component.
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     const success = await deleteContact(localContact.id, {
       name: localContact.name,
     });
-
     if (success) {
-      // The hook handles the success toast. We just navigate.
       navigate('/contacts');
+      onActionSuccess();
     }
-    // The hook also handles its own error toasts, so no 'catch' block is needed here.
   };
 
   const company = localContact.contact_companies?.[0];
@@ -106,6 +95,7 @@ export function ContactHeaderCard({
 
   return (
     <Card className="shadow-md h-full flex flex-col relative group">
+      {/* Action Buttons (Edit, Favorite, Delete) */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           variant="ghost"
@@ -126,6 +116,7 @@ export function ContactHeaderCard({
               )}
             />
           )}
+          <span className="sr-only">Toggle Favourite</span>
         </Button>
         <Button
           variant="ghost"
@@ -136,6 +127,7 @@ export function ContactHeaderCard({
           }
         >
           <Pencil className="h-4 w-4" />
+          <span className="sr-only">Edit Profile</span>
         </Button>
         <Button
           variant="ghost"
@@ -149,9 +141,11 @@ export function ContactHeaderCard({
           ) : (
             <Trash2 className="h-4 w-4" />
           )}
+          <span className="sr-only">Delete Contact</span>
         </Button>
       </div>
 
+      {/* Contact Details Section */}
       <CardContent className="p-6 flex flex-col items-center justify-center text-center flex-grow">
         <Avatar className="h-28 w-28 border-4 border-white shadow-lg mb-4">
           <AvatarImage
@@ -169,6 +163,7 @@ export function ContactHeaderCard({
           {localContact.name}
         </h1>
         <div className="mt-4 pt-4 border-t w-full space-y-3 text-left">
+          {/* Company Information */}
           <div className="flex items-start gap-3">
             <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
             <div>
@@ -184,6 +179,7 @@ export function ContactHeaderCard({
               )}
             </div>
           </div>
+          {/* Group Information */}
           <div className="flex items-start gap-3">
             <Users className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
             <div>
@@ -199,6 +195,7 @@ export function ContactHeaderCard({
               )}
             </div>
           </div>
+          {/* Tags Information */}
           <div className="flex items-start gap-3">
             <Tag className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
             <div>
