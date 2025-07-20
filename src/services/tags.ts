@@ -167,7 +167,7 @@ export const getTagsDataForChart = async (): Promise<ChartData[]> => {
         contacts: tag.contacts || [], // Ensure contacts array is present
       };
     })
-    .filter(tag => tag.value > 0) // Only include tags with associated contacts
+
     .sort((a, b) => b.value - a.value); // Sort by count descending (highest to smallest)
 
   return chartData;

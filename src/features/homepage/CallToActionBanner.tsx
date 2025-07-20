@@ -17,7 +17,11 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { seedMockData } from '@/services/seed-mock-data';
 
 const actions = [
   {
@@ -58,6 +62,28 @@ export const CallToActionBanner = () => {
   const { openDialog } = useDialog();
   const [isVisible, setIsVisible] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // This function is now updated to call the correct service function
+  const handleLoadDemoData = async () => {
+    setIsLoading(true);
+    const promise = seedMockData(); // Call the new service function
+
+    toast.promise(promise, {
+      loading: 'Seeding your workspace with demo data...',
+      success: result => {
+        if (result.success) {
+          window.location.reload(); // Refresh to see new data
+          return 'Demo data loaded successfully!';
+        } else {
+          // This will show the error message from the catch block
+          throw new Error(result.error);
+        }
+      },
+      error: err => `Error: ${err.message}`,
+      finally: () => setIsLoading(false),
+    });
+  };
 
   if (!isVisible) {
     return null;
@@ -81,28 +107,40 @@ export const CallToActionBanner = () => {
           <CardTitle className="text-2xl">Ready to Get Started?</CardTitle>
         </div>
 
-        {/* Description and Toggle Button are now on the same line */}
-        <div className="flex items-center gap-2 pt-1">
-          <CardDescription className="p-0">
-            Click an action below to add your first entities and set up your
-            workspace.
-          </CardDescription>
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2">
+            <CardDescription className="p-0">
+              Click an action below, or load some demo data to explore.
+            </CardDescription>
+            <Button
+              variant="link"
+              className="p-0 text-sm text-primaryBlue whitespace-nowrap"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? 'Show Less' : 'Show More'}
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4 ml-1" />
+              ) : (
+                <ChevronDown className="h-4 w-4 ml-1" />
+              )}
+            </Button>
+          </div>
           <Button
-            variant="link"
-            className="p-0 text-sm text-primaryBlue whitespace-nowrap"
-            onClick={() => setIsExpanded(!isExpanded)}
+            variant="outline"
+            size="sm"
+            onClick={handleLoadDemoData}
+            disabled={isLoading}
           >
-            {isExpanded ? 'Show Less' : 'Show More'}
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4 ml-1" />
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <ChevronDown className="h-4 w-4 ml-1" />
+              <Sparkles className="h-4 w-4 mr-2" />
             )}
+            Load Demo Data
           </Button>
         </div>
       </CardHeader>
 
-      {/* Conditionally render the content based on the isExpanded state */}
       {isExpanded && (
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
