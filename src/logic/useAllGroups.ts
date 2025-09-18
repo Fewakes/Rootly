@@ -15,6 +15,7 @@ export const useAllGroups = () => {
         const { data, error } = await supabase.from('groups').select(`
             id,
             name,
+            description,
             created_at,
             contacts:contact_groups(
               contacts(id, name, avatar_url)
@@ -23,15 +24,25 @@ export const useAllGroups = () => {
 
         if (error) throw error;
 
-        const groupsWithData = (data ?? []).map(group => {
+        const groupsWithData: GroupWithContacts[] = (data ?? []).map(group => {
           const contacts = group.contacts ?? [];
+          const contactAvatars = contacts
+            .map((c: any) => c.contacts)
+            .filter(Boolean)
+            .map((contact: any) => ({
+              id: contact.id,
+              name: contact.name,
+              avatar_url: contact.avatar_url ?? null,
+            }));
+
           return {
-            ...group,
-            contact_avatars: contacts
-              .map((c: any) => c.contacts)
-              .filter(Boolean),
+            id: group.id,
+            name: group.name,
+            description: group.description ?? null,
+            created_at: group.created_at,
+            contact_avatars: contactAvatars,
             contact_count: contacts.length,
-          } as GroupWithContacts;
+          };
         });
 
         setGroups(groupsWithData);

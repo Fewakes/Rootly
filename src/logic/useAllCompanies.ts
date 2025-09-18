@@ -17,6 +17,7 @@ export const useAllCompanies = () => {
             id,
             name,
             company_logo,
+            description,
             created_at,
             contacts:contact_companies(
               contacts(id, name, avatar_url)
@@ -25,16 +26,29 @@ export const useAllCompanies = () => {
 
         if (error) throw error;
 
-        const companiesWithCount = (data ?? []).map(company => {
-          const contacts = company.contacts ?? [];
-          return {
-            ...company,
-            contact_avatars: contacts
+        const companiesWithCount: CompanyWithContacts[] = (data ?? []).map(
+          company => {
+            const contacts = company.contacts ?? [];
+            const contactAvatars = contacts
               .map((c: any) => c.contacts)
-              .filter(Boolean),
-            contact_count: contacts.length,
-          } as CompanyWithContacts;
-        });
+              .filter(Boolean)
+              .map((contact: any) => ({
+                id: contact.id,
+                name: contact.name,
+                avatar_url: contact.avatar_url ?? null,
+              }));
+
+            return {
+              id: company.id,
+              name: company.name,
+              company_logo: company.company_logo ?? null,
+              description: company.description ?? null,
+              created_at: company.created_at,
+              contact_count: contacts.length,
+              contact_avatars: contactAvatars,
+            } as CompanyWithContacts;
+          },
+        );
 
         setCompanies(companiesWithCount);
       } catch (err: any) {

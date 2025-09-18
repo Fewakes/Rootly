@@ -1,18 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
-
-export type ContactListContact = {
-  id: string;
-  name: string;
-  email: string | null;
-  avatar_url?: string | null;
-  favourite?: boolean;
-  created_at: string;
-  company: { id: string; name: string; company_logo?: string | null } | null;
-  groups: { id: string; name: string }[];
-  tags: { id: string; name: string; color: string | null }[];
-};
+import type { ContactListContact } from '@/types/types';
 
 // Sorts contacts by favourite status, then alphabetically by name.
 export const sortContacts = <T extends { name: string; favourite?: boolean }>(
@@ -45,7 +34,12 @@ export const useAllContacts = () => {
       if (error) throw error;
 
       const processedData: ContactListContact[] = data.map((c: any) => ({
-        ...c,
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        avatar_url: c.avatar_url ?? null,
+        favourite: c.favourite ?? false,
+        created_at: c.created_at,
         company: c.contact_companies[0]?.companies || null,
         groups: c.contact_groups.map((g: any) => g.groups),
         tags: c.contact_tags.map((t: any) => t.tags),

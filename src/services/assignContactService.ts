@@ -1,12 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { AssignEntity, ContactWithAvatar } from '@/types/types';
-
-export type ContactWithDetails = ContactWithAvatar & {
-  email: string | null;
-  company: { id: string; name: string; company_logo?: string | null } | null;
-  group: { id: string; name: string } | null; // ✨ Changed from `groups` array to single object
-  tags: { id: string; name: string; color: string | null }[];
-};
+import type { AssignEntity, AssignedContactDetails } from '@/types/types';
 
 function getJoinTable(type: AssignEntity['type']) {
   if (type === 'group') return 'contact_groups';
@@ -25,9 +18,12 @@ const CONTACT_DETAILS_QUERY = `
   contact_tags ( tags ( id, name, color ) )
 `;
 
-function reshapeContactData(supabaseContact: any): ContactWithDetails {
+function reshapeContactData(supabaseContact: any): AssignedContactDetails {
   return {
-    ...supabaseContact,
+    id: supabaseContact.id,
+    name: supabaseContact.name,
+    email: supabaseContact.email,
+    avatar_url: supabaseContact.avatar_url ?? null,
     company: supabaseContact.contact_companies[0]?.companies || null,
     // Since a contact can only be in one group, we take the first element.
     group: supabaseContact.contact_groups[0]?.groups || null,
@@ -41,7 +37,7 @@ function reshapeContactData(supabaseContact: any): ContactWithDetails {
  */
 export async function getAssignedContacts(
   entity: AssignEntity,
-): Promise<ContactWithDetails[]> {
+): Promise<AssignedContactDetails[]> {
   const joinTable = getJoinTable(entity.type);
 
   const { data, error } = await supabase
@@ -55,7 +51,7 @@ export async function getAssignedContacts(
     .map((entry: any) =>
       entry.contacts ? reshapeContactData(entry.contacts) : null,
     )
-    .filter(Boolean) as ContactWithDetails[];
+    .filter(Boolean) as AssignedContactDetails[];
 
   return detailedContacts;
 }
@@ -65,7 +61,7 @@ export async function getAssignedContacts(
  */
 export async function getEligibleContacts(
   entity: AssignEntity,
-): Promise<ContactWithDetails[]> {
+): Promise<AssignedContactDetails[]> {
   const { type, id: entityId } = entity;
 
   const { data: assignedData, error: assignedError } = await supabase

@@ -23,7 +23,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { getTagsDataForChart, type ChartData } from '@/services/tags';
+import { getTagsDataForChart } from '@/services/tags';
+import type { ChartData } from '@/types/types';
 
 const WIDGET_PAGE_SIZE = 4;
 
@@ -39,10 +40,12 @@ export const TagsDistributionWidget = () => {
         const data = await getTagsDataForChart();
         const normalized = data.map(tag => ({
           ...tag,
-          contacts: tag.contacts.map(contact => ({
-            id: contact.id,
-            avatar_url: contact.avatar_url ?? null,
-          })),
+          contacts: tag.contacts.map(
+            (contact: ChartData['contacts'][number]) => ({
+              id: contact.id,
+              avatar_url: contact.avatar_url ?? null,
+            }),
+          ),
         }));
         setAllTags(normalized);
       } catch (err) {

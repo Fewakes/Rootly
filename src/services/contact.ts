@@ -1,16 +1,9 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Contact } from '@/types/types';
-
-export type UpdateContactInfoPayload = {
-  email?: string;
-  contactNumber?: string;
-  location?: string;
-  country?: string;
-  birthday?: string;
-  linkName?: string;
-  socialLink?: string;
-  companyId?: string;
-};
+import type {
+  Contact,
+  UpdateContactInfoPayload,
+  UpdateContactProfilePayload,
+} from '@/types/types';
 
 export async function updateContactInfo(
   contactId: string,
@@ -81,15 +74,6 @@ export async function getAllCompanies() {
   }
   return data || [];
 }
-
-type UpdateContactProfilePayload = {
-  firstName: string;
-  surname?: string;
-  groupId?: string;
-  tagIds?: string[];
-  avatarUrl?: string | File;
-  companyId?: string;
-};
 
 export async function updateContactProfile(
   contactId: string,

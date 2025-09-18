@@ -11,6 +11,7 @@ import {
   CheckSquare,
   History,
   XCircle,
+  Star,
 } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 import type { ActivityLogEntry } from '@/types/types';
@@ -24,6 +25,10 @@ export const getActivityIcon = (action: string): ReactElement => {
   switch (normalizedAction) {
     case 'CONTACT_CREATED':
       return <UserPlus {...commonProps} className="text-green-500" />;
+    case 'CONTACT_FAVORITED':
+      return <Star {...commonProps} className="text-yellow-500" />;
+    case 'CONTACT_UNFAVORITED':
+      return <Star {...commonProps} className="text-muted-foreground" />;
 
     // Edit Actions
     case 'CONTACT_UPDATED':
@@ -123,6 +128,18 @@ export const formatActivityDetails = (
       return (
         <>
           Contact: <Name>{details?.name || 'N/A'}</Name>
+        </>
+      );
+    case 'CONTACT_FAVORITED':
+      return (
+        <>
+          Added <Name>{details?.name || 'N/A'}</Name> to favourites
+        </>
+      );
+    case 'CONTACT_UNFAVORITED':
+      return (
+        <>
+          Removed <Name>{details?.name || 'N/A'}</Name> from favourites
         </>
       );
 

@@ -50,5 +50,12 @@ export function useFavouriteContacts(): UseFavouriteContactsReturn {
     };
   }, [fetchFavourites]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = () => fetchFavourites();
+    window.addEventListener('favourites:updated', handler);
+    return () => window.removeEventListener('favourites:updated', handler);
+  }, [fetchFavourites]);
+
   return { contacts, loading };
 }

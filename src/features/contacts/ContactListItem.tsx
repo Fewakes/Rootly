@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Trash2, Star, Loader2, Briefcase, Users, Tag } from 'lucide-react';
 import { cn, getInitials, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import type { ContactListContact } from '@/logic/useAllContacts';
+import type { ContactListContact } from '@/types/types';
 import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 import { useDeleteContact } from '@/logic/useDeleteContact';
 import type { TagColor } from '@/types/types';
@@ -45,6 +45,7 @@ export const ContactListItem = ({
     const { success } = await toggleFavourite(
       localContact.id,
       !!localContact.favourite,
+      localContact.name,
     );
     if (success) {
       onActionComplete();

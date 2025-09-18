@@ -1,10 +1,3 @@
-// =================================================================
-//  Color & Entity Constants
-// =================================================================
-
-/**
- * A specific set of colors used for tags throughout the application.
- */
 export type TagColor =
   | 'red'
   | 'orange'
@@ -24,15 +17,8 @@ export type TagColor =
   | 'pink'
   | 'rose';
 
-/**
- * A constant array of possible entity types for assignment.
- */
 export const ASSIGN_ENTITY_TYPES = ['group', 'company', 'tag'] as const;
 export type AssignEntityType = (typeof ASSIGN_ENTITY_TYPES)[number];
-
-// =================================================================
-//  Base Database & Model Types
-// =================================================================
 
 export type Company = {
   id: string;
@@ -53,7 +39,7 @@ export type Group = {
 export type Tag = {
   id: string;
   name: string;
-  color: TagColor; // ✅ FIX: Using the specific TagColor type
+  color: TagColor;
   description?: string | null;
   created_at: string;
 };
@@ -119,13 +105,6 @@ export type UserProfile = {
   avatarUrl: string | null;
 };
 
-// =================================================================
-//  Extended, Joined, & Helper Types
-// =================================================================
-
-/**
- * Represents a Contact with all its related entities joined.
- */
 export type ContactWithDetails = Contact & {
   contact_groups: Group[];
   contact_tags: Tag[];
@@ -137,6 +116,18 @@ export type ContactWithAvatar = Pick<Contact, 'id' | 'name' | 'avatar_url'>;
 export type CompanyWithContacts = Company & {
   contact_count: number;
   contact_avatars: ContactWithAvatar[];
+};
+
+export type ContactListContact = {
+  id: string;
+  name: string;
+  email: string | null;
+  avatar_url: string | null;
+  favourite?: boolean;
+  created_at: string;
+  company: { id: string; name: string; company_logo?: string | null } | null;
+  groups: { id: string; name: string }[];
+  tags: { id: string; name: string; color: string | null }[];
 };
 
 export type PopularCompany = Company & {
@@ -151,14 +142,11 @@ export type PopularTag = Tag & {
   count: number;
 };
 
-/**
- * A generic type for assigning an entity (like a contact) to a group, company, or tag.
- */
 export type AssignEntity = {
   id: string;
   name: string;
   type: AssignEntityType;
-  logo?: string | null; // ✅ FIX: Corrected type from 'company_logo'
+  logo?: string | null;
 };
 
 export type GroupWithContacts = Group & {
@@ -169,6 +157,13 @@ export type GroupWithContacts = Group & {
 export type TagWithContacts = Tag & {
   contact_count: number;
   contact_avatars: ContactWithAvatar[];
+};
+
+export type AssignedContactDetails = ContactWithAvatar & {
+  email: string | null;
+  company: { id: string; name: string; company_logo?: string | null } | null;
+  group: { id: string; name: string } | null;
+  tags: { id: string; name: string; color: string | null }[];
 };
 
 export type TagWithRank = Tag & {
@@ -186,9 +181,50 @@ export type GroupWithRank = Group & {
   totalGroups?: number;
 };
 
-// =================================================================
-//  Context & Dialog Types
-// =================================================================
+export type UpdateContactInfoPayload = {
+  email?: string;
+  contactNumber?: string;
+  location?: string;
+  country?: string;
+  birthday?: string;
+  linkName?: string;
+  socialLink?: string;
+  companyId?: string;
+};
+
+export type UpdateContactProfilePayload = {
+  firstName: string;
+  surname?: string;
+  groupId?: string;
+  tagIds?: string[];
+  avatarUrl?: string | File;
+  companyId?: string;
+};
+
+export type TagUpdatePayload = {
+  name?: string;
+  description?: string;
+  color?: TagColor;
+};
+
+export type ChartData = {
+  id: string;
+  name: string;
+  value: number;
+  color: string;
+  bgColorClass: string;
+  textColorClass: string;
+  contacts: Pick<Contact, 'id' | 'avatar_url'>[];
+};
+
+export type UnifiedTask = Omit<Task, 'due_date'> & {
+  due_date: string | null;
+  origin: 'contact' | 'group' | 'company' | 'tag';
+  entity: {
+    id: string | null;
+    name: string;
+  };
+};
 
 type DialogPayload = Record<string, any> | null;
 
@@ -212,14 +248,12 @@ export interface AssignContactContextType {
   closeDialog: () => void;
 }
 
-// =================================================================
-//  Activity Log Types
-// =================================================================
-
 export type ActivityAction =
   | 'CONTACT_CREATED'
   | 'CONTACT_UPDATED'
   | 'CONTACT_DELETED'
+  | 'CONTACT_FAVORITED'
+  | 'CONTACT_UNFAVORITED'
   | 'NOTE_CREATED'
   | 'NOTE_REMOVED'
   | 'NOTE_EDITED'

@@ -1,15 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { isBefore, parseISO } from 'date-fns';
-import type { Task } from '@/types/types';
-
-export type UnifiedTask = Omit<Task, 'due_date'> & {
-  due_date: string | null;
-  origin: 'contact' | 'group' | 'company' | 'tag';
-  entity: {
-    id: string | null;
-    name: string;
-  };
-};
+import type { Task, UnifiedTask } from '@/types/types';
 
 type ContactTask = Task & {
   contact_id: string;
@@ -68,48 +59,50 @@ export async function getAllUpcomingTasks(
     })),
   ];
 
-  const allTasks: UnifiedTask[] = rawTasks.map(task => {
-    const baseTask = {
-      id: task.id,
-      title: task.title,
-      due_date: task.due_date,
-      completed: task.completed,
-      created_at: task.created_at,
-    };
+  const allTasks = rawTasks
+    .map(task => {
+      const baseTask = {
+        id: task.id,
+        title: task.title,
+        due_date: task.due_date,
+        completed: task.completed,
+        created_at: task.created_at,
+      };
 
-    switch (task.origin) {
-      case 'contact':
-        return {
-          ...baseTask,
-          origin: 'contact',
-          entity: {
-            id: task.contact_id,
-            name: task.contacts?.name || 'Unknown',
-          },
-        };
-      case 'group':
-        return {
-          ...baseTask,
-          origin: 'group',
-          entity: { id: task.group_id, name: task.groups?.name || 'Unknown' },
-        };
-      case 'company':
-        return {
-          ...baseTask,
-          origin: 'company',
-          entity: {
-            id: task.company_id,
-            name: task.companies?.name || 'Unknown',
-          },
-        };
-      case 'tag':
-        return {
-          ...baseTask,
-          origin: 'tag',
-          entity: { id: task.tag_id, name: task.tags?.name || 'Unknown' },
-        };
-    }
-  });
+      switch (task.origin) {
+        case 'contact':
+          return {
+            ...baseTask,
+            origin: 'contact',
+            entity: {
+              id: task.contact_id,
+              name: task.contacts?.name || 'Unknown',
+            },
+          };
+        case 'group':
+          return {
+            ...baseTask,
+            origin: 'group',
+            entity: { id: task.group_id, name: task.groups?.name || 'Unknown' },
+          };
+        case 'company':
+          return {
+            ...baseTask,
+            origin: 'company',
+            entity: {
+              id: task.company_id,
+              name: task.companies?.name || 'Unknown',
+            },
+          };
+        case 'tag':
+          return {
+            ...baseTask,
+            origin: 'tag',
+            entity: { id: task.tag_id, name: task.tags?.name || 'Unknown' },
+          };
+      }
+    })
+    .filter(Boolean) as UnifiedTask[];
 
   const upcomingTasks = allTasks
     .filter((task): task is UnifiedTask & { due_date: string } => {

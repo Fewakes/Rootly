@@ -73,8 +73,8 @@ export function useEditProfileForm(
         const payload = {
           firstName: data.firstName,
           surname: data.surname ?? '',
-          groupId: data.groupId ?? undefined,
-          companyId: data.companyId ?? undefined,
+          groupId: data.groupId || undefined,
+          companyId: data.companyId || undefined,
           tagIds: data.tagIds ?? [],
           avatarUrl: data.avatarUrl ?? undefined,
         };

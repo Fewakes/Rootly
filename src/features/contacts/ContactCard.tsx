@@ -13,7 +13,7 @@ import {
 import { Briefcase, Users, Tag, Trash2, Loader2, Star } from 'lucide-react';
 import type { TagColor } from '@/types/types';
 import { cn, getInitials, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import type { ContactListContact } from '@/logic/useAllContacts';
+import type { ContactListContact } from '@/types/types';
 import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 import { useDeleteContact } from '@/logic/useDeleteContact';
 
@@ -53,6 +53,7 @@ export const ContactCard = ({
     const { success } = await toggleFavourite(
       localContact.id,
       !!localContact.favourite,
+      localContact.name,
     );
     if (success) {
       onActionComplete();

@@ -8,13 +8,13 @@ import EntityContactListItem from '@/features/entities/EntityContactListItem';
 import EntityPaginationControls from '@/features/entities/EntityPaginationControls';
 import SkeletonList from '@/features/entities/SkeletonList';
 import EntityEmptyState from '@/features/entities/EntityEmptyState';
-import type { ContactWithDetails } from '@/services/assignContactService';
+import type { AssignedContactDetails } from '@/types/types';
 
 const ITEMS_PER_PAGE = 8;
 
 type AssignedContactsManagerProps = {
-  assigned: ContactWithDetails[];
-  eligible: ContactWithDetails[];
+  assigned: AssignedContactDetails[];
+  eligible: AssignedContactDetails[];
   loading: boolean;
   onAddContact: (contactId: string) => Promise<void>;
   onRemoveContact: (contactId: string) => Promise<void>;
@@ -33,7 +33,7 @@ export function AssignedContactsManager({
   const [eligiblePage, setEligiblePage] = useState(1);
 
   const filterAndPaginate = (
-    items: ContactWithDetails[],
+    items: AssignedContactDetails[],
     searchTerm: string,
     currentPage: number,
   ) => {

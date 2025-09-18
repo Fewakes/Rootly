@@ -20,8 +20,12 @@ import { ContactDetailsCard } from '@/features/contact/ContactDetailsCard';
 export default function ContactPage() {
   const navigate = useNavigate();
 
-  const { contact: initialContact, loading: contactLoading, error: contactError } =
-    useContactDetail();
+  const {
+    contact: initialContact,
+    loading: contactLoading,
+    error: contactError,
+    refetch: refetchContact,
+  } = useContactDetail();
 
   const [contact, setContact] = useState<ContactWithDetails | null>(null);
 
@@ -72,11 +76,13 @@ export default function ContactPage() {
             <ContactHeaderCard
               contact={contact}
               onFavouriteChange={handleFavouriteChange}
+              onActionSuccess={refetchContact}
             />
           </div>
           <div className="lg:col-span-2">
             <ContactDetailsCard
               contact={contact}
+              onEditSuccess={refetchContact}
             />
           </div>
           <div className="lg:col-span-1">

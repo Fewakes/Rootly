@@ -53,6 +53,7 @@ export function ContactHeaderCard({
     const { success } = await toggleFavourite(
       localContact.id,
       !!localContact.favourite,
+      localContact.name,
     );
     if (success) {
       onFavouriteChange({
@@ -108,7 +109,11 @@ export function ContactHeaderCard({
           size="icon"
           className="h-8 w-8"
           onClick={() =>
-            openDialog('editProfile', { type: 'editContact', contact })
+            openDialog('editProfile', {
+              type: 'editContact',
+              contact,
+              onActionSuccess,
+            })
           }
         >
           <Pencil className="h-4 w-4" />

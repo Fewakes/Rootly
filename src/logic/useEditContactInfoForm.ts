@@ -31,7 +31,7 @@ type ContactInfoFormData = z.infer<typeof contactInfoSchema>;
 export function useEditContactInfoForm(
   contactToEdit: ContactWithDetails | null,
 ) {
-  const { closeDialog } = useDialog();
+  const { closeDialog, dialogPayload } = useDialog();
 
   // Initialize activity logger
   const { logActivity, userId } = useLogActivity();
@@ -81,6 +81,14 @@ export function useEditContactInfoForm(
       logActivity('CONTACT_UPDATED', 'Contact', contactToEdit.id, {
         name: contactToEdit.name,
       });
+
+      if (
+        dialogPayload &&
+        'onActionSuccess' in dialogPayload &&
+        typeof dialogPayload.onActionSuccess === 'function'
+      ) {
+        await dialogPayload.onActionSuccess();
+      }
 
       toast.success('Contact information updated successfully!');
       closeDialog();

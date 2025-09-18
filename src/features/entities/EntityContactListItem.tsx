@@ -1,5 +1,5 @@
 import { cn, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import type { ContactWithDetails } from '@/services/assignContactService';
+import type { AssignedContactDetails } from '@/types/types';
 import type { TagColor } from '@/types/types';
 
 import {
@@ -24,7 +24,7 @@ export default function EntityContactListItem({
   type,
   onAction,
 }: {
-  contact: ContactWithDetails;
+  contact: AssignedContactDetails;
   type: 'add' | 'remove';
   onAction: () => void;
 }) {

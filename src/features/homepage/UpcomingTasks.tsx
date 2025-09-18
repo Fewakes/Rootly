@@ -27,7 +27,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getAllUpcomingTasks, type UnifiedTask } from '@/services/getAllUpcomingTasks';
+import { getAllUpcomingTasks } from '@/services/getAllUpcomingTasks';
+import type { UnifiedTask } from '@/types/types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(...inputs));
@@ -71,7 +72,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
           (a, b) =>
             parseISO(a.due_date).getTime() - parseISO(b.due_date).getTime(),
         );
-        setAllFetchedTasks(sortedTasks);
+        setAllFetchedTasks(sortedTasks as UnifiedTask[]);
       } catch (err) {
         console.error('Failed to fetch tasks:', err);
         setAllFetchedTasks([]);
@@ -92,7 +93,8 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
       now.setHours(0, 0, 0, 0);
 
       tasksToProcess = tasksToProcess.filter(task => {
-        const dueDate = parseISO(task.due_date!);
+        if (!task.due_date) return false;
+        const dueDate = parseISO(task.due_date);
         const daysDifference = differenceInDays(dueDate, now);
         if (daysDifference < 0) return false;
         if (dateFilter === '0') {

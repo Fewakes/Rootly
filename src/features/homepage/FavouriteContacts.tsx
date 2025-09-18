@@ -65,7 +65,13 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
       ),
     );
 
-    const { success } = await toggleFavourite(contactId, currentStatus);
+    const contact = contacts.find(c => c.id === contactId);
+
+    const { success } = await toggleFavourite(
+      contactId,
+      currentStatus,
+      contact?.name ?? 'Unknown contact',
+    );
 
     if (!success) {
       setContacts(prev =>

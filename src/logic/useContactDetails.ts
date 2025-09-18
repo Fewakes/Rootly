@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getContactById } from '@/services/contacts';
 import type { ContactWithDetails } from '@/types/types';
@@ -9,23 +9,22 @@ export function useContactDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
+  const fetchContact = useCallback(async () => {
     if (!id) return;
-
-    const fetchContact = async () => {
-      try {
-        setLoading(true);
-        const data = await getContactById(id);
-        setContact(data);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContact();
+    try {
+      setLoading(true);
+      const data = await getContactById(id);
+      setContact(data);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  return { contact, loading, error };
+  useEffect(() => {
+    fetchContact();
+  }, [fetchContact]);
+
+  return { contact, loading, error, refetch: fetchContact };
 }

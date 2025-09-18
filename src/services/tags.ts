@@ -8,25 +8,11 @@ import type {
   Tag,
   PopularTag,
   TagColor,
-  Contact,
   TagWithRank,
+  TagUpdatePayload,
+  ChartData,
+  Contact,
 } from '@/types/types';
-
-export type ChartData = {
-  id: string;
-  name: string;
-  value: number;
-  color: string;
-  bgColorClass: string;
-  textColorClass: string;
-  contacts: Pick<Contact, 'id' | 'avatar_url'>[];
-};
-
-type TagUpdatePayload = {
-  name?: string;
-  description?: string;
-  color?: TagColor;
-};
 
 /**
  * Fetches all tags and includes a count of associated contacts.
