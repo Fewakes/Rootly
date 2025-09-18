@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Company, NewCompanyData } from '@/types/types';
+import type { Company } from '@/types/types';
 
 export async function getAllCompanies(): Promise<Company[]> {
   const { data, error } = await supabase
@@ -22,7 +22,7 @@ export async function getAllCompanies(): Promise<Company[]> {
 }
 
 export const insertCompany = async (
-  company: NewCompanyData,
+  company: Company, //Changed from NewCompanyData
 ): Promise<object | null> => {
   try {
     const { data, error } = await supabase

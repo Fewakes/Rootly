@@ -23,10 +23,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Data fetching service for tags
 import { getTagsDataForChart } from '@/services/tags';
-
-// Type definition for tag data
 
 type ChartData = {
   id: string;
@@ -41,17 +38,14 @@ type ChartData = {
   }[];
 };
 
-// Constant for pagination size
 const WIDGET_PAGE_SIZE = 4;
 
 export const TagsDistributionWidget = () => {
-  // State for data, loading, error, and pagination
   const [allTags, setAllTags] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Data fetching effect
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -66,7 +60,6 @@ export const TagsDistributionWidget = () => {
     fetchData();
   }, []);
 
-  // Pagination logic
   const totalPages = Math.ceil(allTags.length / WIDGET_PAGE_SIZE);
   const paginatedTags = allTags.slice(
     (currentPage - 1) * WIDGET_PAGE_SIZE,
@@ -74,7 +67,6 @@ export const TagsDistributionWidget = () => {
   );
   const maxCount = Math.max(...allTags.map(tag => tag.value), 0);
 
-  // Renders main content based on loading/error/data state
   const renderContent = () => {
     if (loading) {
       return (
@@ -127,24 +119,26 @@ export const TagsDistributionWidget = () => {
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-3">
                   <TooltipProvider>
-                    {tag.contacts.slice(0, 3).map(contact => (
-                      <Tooltip key={contact.id} delayDuration={100}>
-                        <TooltipTrigger asChild>
-                          <img
-                            src={
-                              contact.avatar_url ||
-                              'https://placehold.co/100x100/F0F0F0/000000?text=NA'
-                            }
-                            onError={e => {
-                              e.currentTarget.src =
-                                'https://placehold.co/100x100/F0F0F0/000000?text=NA';
-                            }}
-                            alt="contact avatar"
-                            className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
-                          />
-                        </TooltipTrigger>
-                      </Tooltip>
-                    ))}
+                    <div className="flex -space-x-3">
+                      {tag.contacts.slice(0, 3).map(contact => (
+                        <Tooltip key={contact.id} delayDuration={100}>
+                          <TooltipTrigger asChild>
+                            <img
+                              src={
+                                contact.avatar_url ||
+                                'https://placehold.co/100x100/F0F0F0/000000?text=NA'
+                              }
+                              onError={e => {
+                                e.currentTarget.src =
+                                  'https://placehold.co/100x100/F0F0F0/000000?text=NA';
+                              }}
+                              alt="contact avatar"
+                              className="h-7 w-7 rounded-full object-cover ring-2 ring-background"
+                            />
+                          </TooltipTrigger>
+                        </Tooltip>
+                      ))}
+                    </div>
                   </TooltipProvider>
                 </div>
                 <Badge variant="secondary" className="font-semibold">

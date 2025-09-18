@@ -33,12 +33,12 @@ export const getActivityIcon = (action: string): JSX.Element => {
     case 'COMPANY_EDITED':
     case 'NOTE_EDITED':
     case 'TASK_EDITED':
-    case 'COMPANY_NOTE_EDITED': // New Instance
-    case 'GROUP_NOTE_EDITED': // New Instance
-    case 'TAG_NOTE_EDITED': // New Instance
-    case 'COMPANY_TASK_EDITED': // New Instance
-    case 'GROUP_TASK_EDITED': // New Instance
-    case 'TAG_TASK_EDITED': // New Instance
+    case 'COMPANY_NOTE_EDITED':
+    case 'GROUP_NOTE_EDITED':
+    case 'TAG_NOTE_EDITED':
+    case 'COMPANY_TASK_EDITED':
+    case 'GROUP_TASK_EDITED':
+    case 'TAG_TASK_EDITED':
       return <Edit {...commonProps} className="text-blue-500" />;
 
     // Delete Actions
@@ -48,12 +48,12 @@ export const getActivityIcon = (action: string): JSX.Element => {
     case 'COMPANY_REMOVED':
     case 'NOTE_REMOVED':
     case 'TASK_REMOVED':
-    case 'COMPANY_NOTE_REMOVED': // New Instance
-    case 'GROUP_NOTE_REMOVED': // New Instance
-    case 'TAG_NOTE_REMOVED': // New Instance
-    case 'COMPANY_TASK_REMOVED': // New Instance
-    case 'GROUP_TASK_REMOVED': // New Instance
-    case 'TAG_TASK_REMOVED': // New Instance
+    case 'COMPANY_NOTE_REMOVED':
+    case 'GROUP_NOTE_REMOVED':
+    case 'TAG_NOTE_REMOVED':
+    case 'COMPANY_TASK_REMOVED':
+    case 'GROUP_TASK_REMOVED':
+    case 'TAG_TASK_REMOVED':
       return <Trash2 {...commonProps} className="text-red-500" />;
 
     // Tag Actions
@@ -73,28 +73,28 @@ export const getActivityIcon = (action: string): JSX.Element => {
 
     // Note Actions
     case 'NOTE_CREATED':
-    case 'COMPANY_NOTE_CREATED': // New Instance
-    case 'GROUP_NOTE_CREATED': // New Instance
-    case 'TAG_NOTE_CREATED': // New Instance
+    case 'COMPANY_NOTE_CREATED':
+    case 'GROUP_NOTE_CREATED':
+    case 'TAG_NOTE_CREATED':
       return <FileText {...commonProps} className="text-yellow-600" />;
 
     // Task Actions
     case 'TASK_CREATED':
-    case 'COMPANY_TASK_CREATED': // New Instance
-    case 'GROUP_TASK_CREATED': // New Instance
-    case 'TAG_TASK_CREATED': // New Instance
+    case 'COMPANY_TASK_CREATED':
+    case 'GROUP_TASK_CREATED':
+    case 'TAG_TASK_CREATED':
       return <PlusCircle {...commonProps} className="text-sky-500" />;
 
     // Task Status Actions
     case 'TASK_COMPLETED':
-    case 'COMPANY_TASK_COMPLETED': // New Instance
-    case 'GROUP_TASK_COMPLETED': // New Instance
-    case 'TAG_TASK_COMPLETED': // New Instance
+    case 'COMPANY_TASK_COMPLETED':
+    case 'GROUP_TASK_COMPLETED':
+    case 'TAG_TASK_COMPLETED':
       return <CheckSquare {...commonProps} className="text-green-500" />;
     case 'TASK_REOPENED':
-    case 'COMPANY_TASK_REOPENED': // New Instance
-    case 'GROUP_TASK_REOPENED': // New Instance
-    case 'TAG_TASK_REOPENED': // New Instance
+    case 'COMPANY_TASK_REOPENED':
+    case 'GROUP_TASK_REOPENED':
+    case 'TAG_TASK_REOPENED':
       return <History {...commonProps} className="text-gray-500" />;
 
     // Unassignment Actions

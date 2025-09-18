@@ -317,12 +317,24 @@ export default function AppSidebar({
       ) : (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <Avatar className="w-10 h-10 border">
-              <AvatarImage src={user?.avatarUrl || ''} alt="User Avatar" />
-              <AvatarFallback>
-                <UserCircle2 className="w-6 h-6 text-muted-foreground" />
-              </AvatarFallback>
+            <Avatar>
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName || 'User Avatar'}
+                  className="h-full w-full rounded-full object-cover"
+                  onError={e => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = ''; // fallback will trigger
+                  }}
+                />
+              ) : (
+                <AvatarFallback>
+                  <UserCircle2 className="w-6 h-6 text-muted-foreground" />
+                </AvatarFallback>
+              )}
             </Avatar>
+
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">
                 {userLoading ? '...' : user?.fullName || 'User'}

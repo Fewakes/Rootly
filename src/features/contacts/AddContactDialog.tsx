@@ -114,6 +114,7 @@ export default function AddContactDialog() {
               <FormLabel>Avatar</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-4">
+                  {/* Avatar Preview */}
                   <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border">
                     <img
                       src={
@@ -126,12 +127,23 @@ export default function AddContactDialog() {
                       className="h-full w-full object-cover"
                     />
                   </div>
+
+                  {/* Hidden File Input */}
                   <input
                     type="file"
                     accept="image/*"
+                    id="avatar-upload"
                     onChange={onAvatarChange}
-                    className="block text-sm text-muted-foreground file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primaryBlue file:text-white hover:file:bg-primaryBlue/90"
+                    className="hidden"
                   />
+
+                  {/* Custom Upload Button */}
+                  <label
+                    htmlFor="avatar-upload"
+                    className="cursor-pointer px-4 py-2 rounded-full bg-primaryBlue text-white font-semibold hover:bg-primaryBlue/90 text-sm"
+                  >
+                    Upload Image
+                  </label>
                 </div>
               </FormControl>
               <FormMessage />

@@ -49,7 +49,6 @@ export default function RootLayout() {
           </main>
         </div>
 
-        {/* Dialogs and Toaster remain here */}
         <AddContactDialog />
         <EditContactProfileDialog />
         <EditContactInfoDialog />

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Contact, NewContact } from '@/types/types';
+import type { Contact, ContactWithDetails, NewContact } from '@/types/types';
 
 export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
   const { data, error } = await supabase
@@ -38,17 +38,17 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
     contact_companies: c.contact_companies?.map((c: any) => c.companies) ?? [],
   }));
 };
-type Contact = {
-  id: string;
-  name: string;
-  avatar_url: string;
-  tags: { id: string; name: string; color: string | null }[];
-  groups: { id: string; name: string }[];
-  companies: { id: string; name: string; company_logo?: string }[];
-  favourite?: boolean;
-};
+// type Contact = {
+//   id: string;
+//   name: string;
+//   avatar_url: string;
+//   tags: { id: string; name: string; color: string | null }[];
+//   groups: { id: string; name: string }[];
+//   companies: { id: string; name: string; company_logo?: string }[];
+//   favourite?: boolean;
+// };
 
-export const getFavouriteContacts = async (): Promise<Contact[]> => {
+export const getFavouriteContacts = async (): Promise<ContactWithDetails[]> => {
   const { data, error } = await supabase
     .from('contacts')
     .select(
@@ -57,30 +57,22 @@ export const getFavouriteContacts = async (): Promise<Contact[]> => {
       name,
       avatar_url,
       email,
-      tags(id, name, color),
-      groups(id, name),
-      companies(id, name, company_logo),
-      favourite
+      favourite,
+      contact_companies ( companies ( * ) ),
+      contact_groups ( groups ( * ) ),
+      contact_tags ( tags ( * ) )
     `,
     )
     .eq('favourite', true)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<ContactWithDetails[]>();
 
   if (error) {
     console.error('Error fetching favourite contacts:', error);
     throw error;
   }
 
-  return data.map((contact: any) => ({
-    id: contact.id,
-    name: contact.name,
-    email: contact.email,
-    avatar_url: contact.avatar_url,
-    tags: contact.tags || [],
-    groups: contact.groups || [],
-    companies: contact.companies || [],
-    favourite: contact.favourite,
-  }));
+  return data || [];
 };
 
 export const getContactById = async (

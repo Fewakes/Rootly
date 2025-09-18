@@ -94,10 +94,14 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
           <div className="space-y-3">
             {currentContacts.map(contact => {
               const company =
-                contact.companies.length > 0 ? contact.companies[0] : null;
+                contact.contact_companies?.length > 0
+                  ? contact.contact_companies[0]
+                  : null;
               const group =
-                contact.groups.length > 0 ? contact.groups[0] : null;
-              const tags = contact.tags || [];
+                contact.contact_groups?.length > 0
+                  ? contact.contact_groups[0]
+                  : null;
+              const tags = contact.contact_tags || [];
 
               return (
                 <div
@@ -131,7 +135,7 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
                       size="icon"
                       className="rounded-full w-9 h-9"
                       onClick={() =>
-                        handleToggle(contact.id, contact.favourite)
+                        handleToggle(contact.id, contact.favourite ?? false)
                       }
                       disabled={isToggling(contact.id)}
                       aria-label={

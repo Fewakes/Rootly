@@ -16,6 +16,7 @@ export const getCurrentUserId = async (): Promise<string | null> => {
     return null;
   }
 };
+
 export async function getUserAuthProfile() {
   const {
     data: { session },
@@ -32,9 +33,19 @@ export async function getUserAuthProfile() {
     throw new Error('No user session found');
   }
 
+  // Use storage public URL if avatar_url exists
+  let avatarUrl: string | null = null;
+  if (user.user_metadata.avatar_url) {
+    const { data } = supabase.storage
+      .from('avatars') // 👈 name of your storage bucket
+      .getPublicUrl(user.user_metadata.avatar_url);
+
+    avatarUrl = data?.publicUrl || null;
+  }
+
   return {
     email: user.email,
     fullName: user.user_metadata.full_name,
-    avatarUrl: user.user_metadata.avatar_url,
+    avatarUrl,
   };
 }

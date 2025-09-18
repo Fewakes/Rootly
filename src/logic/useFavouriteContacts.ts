@@ -1,15 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getFavouriteContacts } from '@/services/contacts';
 import { supabase } from '@/lib/supabaseClient';
-import type { ContactWithDetails } from '@/services/assignContactService';
+import type { ContactWithDetails } from '@/types/types';
 import { toast } from 'sonner';
 import { sortContacts } from './useAllContacts';
 
-export function useFavouriteContacts() {
+interface UseFavouriteContactsReturn {
+  contacts: ContactWithDetails[];
+  loading: boolean;
+}
+
+export function useFavouriteContacts(): UseFavouriteContactsReturn {
   const [contacts, setContacts] = useState<ContactWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchFavourites = useCallback(async () => {
+    setLoading(true);
     try {
       const favs = await getFavouriteContacts();
 
@@ -18,12 +24,9 @@ export function useFavouriteContacts() {
       console.error('Failed to fetch favourite contacts:', error);
       toast.error('Could not load favourites.');
     } finally {
-      if (loading) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [loading]);
-
+  }, []);
   useEffect(() => {
     fetchFavourites();
 
@@ -36,12 +39,7 @@ export function useFavouriteContacts() {
           schema: 'public',
           table: 'contacts',
         },
-        payload => {
-          console.log(
-            'Favourites hook received a realtime event! Refetching...',
-            payload,
-          );
-
+        () => {
           fetchFavourites();
         },
       )

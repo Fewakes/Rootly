@@ -4,126 +4,137 @@ import {
   TAG_BG_CLASSES,
   TAG_TEXT_CLASSES,
 } from '@/lib/utils';
-import type { NewTag, Tag, PopularTag, TagColor } from '@/types/types';
+import type { Tag, PopularTag, TagColor, Contact } from '@/types/types';
+
+export type ChartData = {
+  id: string;
+  name: string;
+  value: number;
+  color: string;
+  bgColorClass: string;
+  textColorClass: string;
+  contacts: Pick<Contact, 'id' | 'avatar_url'>[];
+};
 
 type TagUpdatePayload = {
   name?: string;
   description?: string;
-  color?: string;
+  color?: TagColor;
 };
 
-export const getAllTags = async (): Promise<Tag[]> => {
+/**
+ * Fetches all tags and includes a count of associated contacts.
+ */
+export const getAllTags = async (): Promise<
+  (Tag & { contact_count: number })[]
+> => {
   const { data, error } = await supabase
     .from('tags')
-    .select(`id, name, color, created_at, description, contact_tags(count)`);
+    .select(`id, name, color, created_at, description, contact_tags(count)`)
+    .returns<(Tag & { contact_tags: { count: number }[] })[]>();
 
   if (error) {
     console.error('Error fetching tags:', error.message);
     return [];
   }
 
-  const tagsWithCount = data.map((tag: any) => ({
+  return (data || []).map(tag => ({
     ...tag,
     contact_count: tag.contact_tags[0]?.count ?? 0,
   }));
-
-  return tagsWithCount;
 };
 
+/**
+ * Fetches tags sorted by the number of contacts they are associated with.
+ */
 export const getPopularTags = async (limit: number): Promise<PopularTag[]> => {
-  const { data, error } = await supabase.from('tags').select(`
-      id,
-      name,
-      color,
-      description,
-      contact_tags(contact_id)
-    `);
+  const { data, error } = await supabase
+    .from('tags')
+    .select(`id, name, color, description, contact_tags(contact_id)`)
+    .returns<(Tag & { contact_tags: { contact_id: string }[] })[]>();
 
   if (error) {
     console.error('Error fetching popular tags:', error.message);
     return [];
   }
 
-  const sortedTags = (data ?? [])
+  return (data ?? [])
     .map(tag => ({
-      id: tag.id,
-      name: tag.name,
-      color: tag.color,
+      ...tag,
       count: tag.contact_tags.length,
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
-
-  return sortedTags;
 };
 
-export const insertTag = async (tag: NewTag): Promise<object | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('tags')
-      .insert([tag])
-      .select()
-      .single();
+/**
+ * Inserts a single new tag into the database.
+ */
+export const insertTag = async (
+  tag: Omit<Tag, 'id' | 'created_at'>,
+): Promise<Tag | null> => {
+  const { data, error } = await supabase
+    .from('tags')
+    .insert([tag])
+    .select()
+    .single<Tag>();
 
-    if (error) {
-      console.error('Error inserting tag:', error.message);
-      throw new Error(error.message);
-    }
-
-    return data;
-  } catch (err) {
-    console.error('Unexpected error inserting tag:', (err as Error).message);
-    return null;
+  if (error) {
+    console.error('Error inserting tag:', error.message);
+    throw new Error(error.message);
   }
+  return data;
 };
 
+/**
+ * Fetches a single tag by its ID.
+ */
 export async function getTagById(tagId: string): Promise<Tag | null> {
   const { data, error } = await supabase
     .from('tags')
     .select('*')
     .eq('id', tagId)
-    .single();
+    .single<Tag>();
 
   if (error) {
-    console.error('Error fetching tag:', error);
     return null;
   }
-
   return data;
 }
 
+/**
+ * Deletes a tag by its ID.
+ */
 export async function deleteTag(tagId: string): Promise<boolean> {
   const { error } = await supabase.from('tags').delete().eq('id', tagId);
-
   if (error) {
     throw new Error(`Failed to delete tag: ${error.message}`);
   }
-
   return true;
 }
 
+/**
+ * Updates a tag with new data.
+ */
 export async function updateTag(
   id: string,
   data: TagUpdatePayload,
 ): Promise<boolean> {
   const { error } = await supabase.from('tags').update(data).eq('id', id);
-
   if (error) {
-    console.error('Supabase update error:', error);
     throw new Error(error.message);
   }
-
   return true;
 }
 
+/**
+ * Associates multiple tags with a single contact.
+ */
 export async function addMultipleTagsToContact(
   contactId: string,
   tagIds: string[],
 ) {
-  if (!tagIds || tagIds.length === 0) {
-    console.warn('No tags provided to add to contact.');
-    return;
-  }
+  if (!tagIds || tagIds.length === 0) return;
 
   const insertData = tagIds.map(tagId => ({
     contact_id: contactId,
@@ -131,60 +142,59 @@ export async function addMultipleTagsToContact(
   }));
 
   const { error } = await supabase.from('contact_tags').insert(insertData);
-
   if (error) {
-    console.error('Error adding multiple tags to contact:', error.message);
     throw error;
   }
 }
 
-// Function to fetch tags data from Supabase
+/**
+ * Fetches and formats tag data for use in charts.
+ */
 export const getTagsDataForChart = async (): Promise<ChartData[]> => {
   const { data, error } = await supabase
     .from('tags')
-    // Modified select statement to fetch contacts and their avatar_url
-    // Assuming 'contacts' is related to 'tags' via a join table 'contact_tags'
-    .select('id, name, color, contacts!contact_tags(id, avatar_url)');
+    .select('id, name, color, contact_tags(contacts(id, avatar_url))');
 
   if (error) {
     console.error('Error fetching tags for chart:', error.message);
     throw error;
   }
 
-  const chartData = data
-    .map((tag: any) => {
-      const colorKey = (
-        tag.color in TAG_SOLID_COLORS ? tag.color : 'gray'
-      ) as TagColor;
+  return (data || [])
+    .map(tag => {
+      const colorKey: TagColor =
+        tag.color in TAG_SOLID_COLORS ? tag.color : 'rose';
+
+      // Flatten nested structure: contact_tags[].contacts
+      const flattenedContacts =
+        tag.contact_tags?.map(ct => ct.contacts).filter(Boolean) ?? [];
+
       return {
         id: tag.id,
         name: tag.name,
-        // The value (count) is now derived from the length of the fetched contacts array
-        value: tag.contacts?.length ?? 0,
+        value: flattenedContacts.length,
         color: TAG_SOLID_COLORS[colorKey],
         bgColorClass: TAG_BG_CLASSES[colorKey],
         textColorClass: TAG_TEXT_CLASSES[colorKey],
-        contacts: tag.contacts || [], // Ensure contacts array is present
+        contacts: flattenedContacts,
       };
     })
-
-    .sort((a, b) => b.value - a.value); // Sort by count descending (highest to smallest)
-
-  return chartData;
+    .sort((a, b) => b.value - a.value);
 };
 
-export async function getTagByIdWithRank(tagId: string): Promise<Tag | null> {
+/**
+ * Fetches a single tag's details including its popularity rank.
+ */
+export async function getTagByIdWithRank(
+  tagId: string,
+): Promise<(Tag & { rank: number; total_tags: number }) | null> {
   const { data, error } = await supabase
-    .rpc('get_tag_details_with_rank', {
-      p_tag_id: tagId,
-    })
-    .single();
+    .rpc('get_tag_details_with_rank', { p_tag_id: tagId })
+    .single<Tag & { rank: number; total_tags: number }>();
 
   if (error) {
     console.error('Error fetching tag by ID with rank:', error.message);
-
-    throw error;
+    return null;
   }
-
   return data;
 }

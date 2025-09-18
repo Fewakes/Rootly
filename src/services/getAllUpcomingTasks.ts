@@ -1,88 +1,121 @@
 import { supabase } from '@/lib/supabaseClient';
 import { isBefore, parseISO } from 'date-fns';
+import type { Task } from '@/types/types';
 
-export async function getAllUpcomingTasks(userId: string) {
-  const today = new Date().toISOString();
+type UnifiedTask = Omit<Task, 'due_date'> & {
+  due_date: string | null;
+  origin: 'contact' | 'group' | 'company' | 'tag';
+  entity: {
+    id: string | null;
+    name: string;
+  };
+};
 
+type ContactTask = Task & {
+  contact_id: string;
+  contacts: { name: string } | null;
+};
+type GroupTask = Task & { group_id: string; groups: { name: string } | null };
+type CompanyTask = Task & {
+  company_id: string;
+  companies: { name: string } | null;
+};
+type TagTask = Task & { tag_id: string; tags: { name: string } | null };
+
+type RawTask =
+  | (ContactTask & { origin: 'contact' })
+  | (GroupTask & { origin: 'group' })
+  | (CompanyTask & { origin: 'company' })
+  | (TagTask & { origin: 'tag' });
+
+/**
+ * Fetches tasks from four different tables, combines them, and filters for upcoming due dates.
+ */
+export async function getAllUpcomingTasks(
+  userId: string,
+): Promise<UnifiedTask[]> {
   const queries = [
-    supabase
-      .from('tasks')
-      .select(
-        'id, title, due_date, completed, created_at, contact_id, contacts(name)',
-      )
-      .eq('user_id', userId),
-
+    supabase.from('tasks').select('*, contacts(name)').eq('user_id', userId),
     supabase
       .from('group_tasks')
-      .select(
-        'id, title, due_date, completed, created_at, group_id, groups(name)',
-      )
+      .select('*, groups(name)')
       .eq('user_id', userId),
-
     supabase
       .from('company_tasks')
-      .select(
-        'id, title, due_date, completed, created_at, company_id, companies(name)',
-      )
+      .select('*, companies(name)')
       .eq('user_id', userId),
-
-    supabase
-      .from('tag_tasks')
-      .select('id, title, due_date, completed, created_at, tag_id, tags(name)')
-      .eq('user_id', userId),
+    supabase.from('tag_tasks').select('*, tags(name)').eq('user_id', userId),
   ];
 
-  const [contact, group, company, tag] = await Promise.all(queries);
+  const [contactRes, groupRes, companyRes, tagRes] = await Promise.all(queries);
 
-  console.log('contact:', contact.data);
-  console.log('group:', group.data);
-  console.log('company:', company.data);
-  console.log('tag:', tag.data);
+  const rawTasks: RawTask[] = [
+    ...((contactRes.data as ContactTask[]) || []).map(t => ({
+      ...t,
+      origin: 'contact' as const,
+    })),
+    ...((groupRes.data as GroupTask[]) || []).map(t => ({
+      ...t,
+      origin: 'group' as const,
+    })),
+    ...((companyRes.data as CompanyTask[]) || []).map(t => ({
+      ...t,
+      origin: 'company' as const,
+    })),
+    ...((tagRes.data as TagTask[]) || []).map(t => ({
+      ...t,
+      origin: 'tag' as const,
+    })),
+  ];
 
-  if (contact.error || group.error || company.error || tag.error) {
-    console.error('Supabase query errors:', {
-      contact: contact.error,
-      group: group.error,
-      company: company.error,
-      tag: tag.error,
-    });
-  }
-
-  const format = (data: any[], type: string) =>
-    (data || []).map(task => ({
+  const allTasks: UnifiedTask[] = rawTasks.map(task => {
+    const baseTask = {
       id: task.id,
       title: task.title,
       due_date: task.due_date,
-      created_at: task.created_at,
       completed: task.completed,
-      origin: type,
-      entity: {
-        id:
-          task.contact_id ||
-          task.group_id ||
-          task.company_id ||
-          task.tag_id ||
-          null,
-        name:
-          task.contacts?.name ||
-          task.groups?.name ||
-          task.companies?.name ||
-          task.tags?.name ||
-          'Unknown',
-      },
-    }));
+      created_at: task.created_at,
+    };
 
-  const allTasks = [
-    ...format(contact.data, 'contact'),
-    ...format(group.data, 'group'),
-    ...format(company.data, 'company'),
-    ...format(tag.data, 'tag'),
-  ];
+    switch (task.origin) {
+      case 'contact':
+        return {
+          ...baseTask,
+          origin: 'contact',
+          entity: {
+            id: task.contact_id,
+            name: task.contacts?.name || 'Unknown',
+          },
+        };
+      case 'group':
+        return {
+          ...baseTask,
+          origin: 'group',
+          entity: { id: task.group_id, name: task.groups?.name || 'Unknown' },
+        };
+      case 'company':
+        return {
+          ...baseTask,
+          origin: 'company',
+          entity: {
+            id: task.company_id,
+            name: task.companies?.name || 'Unknown',
+          },
+        };
+      case 'tag':
+        return {
+          ...baseTask,
+          origin: 'tag',
+          entity: { id: task.tag_id, name: task.tags?.name || 'Unknown' },
+        };
+    }
+  });
 
   const upcomingTasks = allTasks
-    .filter(
-      task => task.due_date && isBefore(new Date(), parseISO(task.due_date)),
-    )
+    .filter((task): task is UnifiedTask & { due_date: string } => {
+      if (!task.due_date) return false;
+      return isBefore(new Date(), parseISO(task.due_date));
+    })
     .sort(
       (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime(),
     );

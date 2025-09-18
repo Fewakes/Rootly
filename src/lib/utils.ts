@@ -65,25 +65,9 @@ export const TAG_TEXT_CLASSES = {
   rose: 'text-rose-600',
 };
 
-export const TAG_COLORS = [
-  'red',
-  'orange',
-  'amber',
-  'yellow',
-  'lime',
-  'green',
-  'emerald',
-  'teal',
-  'cyan',
-  'sky',
-  'blue',
-  'indigo',
-  'violet',
-  'purple',
-  'fuchsia',
-  'pink',
-  'rose',
-];
+export type TagColor = keyof typeof TAG_BG_CLASSES;
+
+export const TAG_COLORS = Object.keys(TAG_BG_CLASSES) as TagColor[];
 
 export const TAG_SOLID_COLORS = {
   red: '#ef4444',
@@ -106,7 +90,6 @@ export const TAG_SOLID_COLORS = {
   gray: '#6b7280',
 };
 
-// Helper to generate initials for group logo
 export const getInitials = (name: string) => {
   if (!name) return '??';
   const cleanedName = name.replace(/[^a-zA-Z0-9 ]/g, ' ');

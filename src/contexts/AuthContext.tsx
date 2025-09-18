@@ -2,28 +2,35 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { syncUserToDB } from '@/lib/Auth';
 
-const AuthContext = createContext<any>(null);
+import type { User } from '@supabase/supabase-js';
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      const currentUser = data.session?.user ?? null;
-      setUser(currentUser);
+      setUser(data.session?.user ?? null);
       setLoading(false);
-
-      if (currentUser) syncUserToDB(currentUser);
+      if (data.session?.user) {
+        syncUserToDB(data.session.user);
+      }
     });
 
-    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-
-        if (currentUser) syncUserToDB(currentUser);
+        if (currentUser) {
+          syncUserToDB(currentUser);
+        }
       },
     );
 
@@ -39,4 +46,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === null) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

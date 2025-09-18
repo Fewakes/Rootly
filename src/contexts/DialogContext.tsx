@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { Contact, Company, Group, Tag } from '@/types/types';
+import type { Contact } from '@/types/types';
 
 type GroupPayload = {
   type: 'group';
