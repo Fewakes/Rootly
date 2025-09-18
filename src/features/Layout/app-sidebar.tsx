@@ -31,7 +31,6 @@ import {
   Building,
   Star,
   Search,
-  UserCircle2,
   LogOut as LucideLogOut,
   History,
   ChevronsLeft,
@@ -318,17 +317,19 @@ export default function AppSidebar({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar>
-              <AvatarImage
-                src={user?.avatarUrl || undefined}
-                alt={user?.fullName || 'User Avatar'}
-                onError={event => {
-                  event.currentTarget.src = '';
-                }}
-              />
+              {user?.avatarUrl ? (
+                <AvatarImage
+                  src={user.avatarUrl}
+                  alt={user.fullName || 'User Avatar'}
+                  onError={event => {
+                    event.currentTarget.src = '';
+                  }}
+                />
+              ) : null}
               <AvatarFallback>
-                {user?.fullName?.charAt(0).toUpperCase() || (
-                  <UserCircle2 className="w-6 h-6 text-muted-foreground" />
-                )}
+                {(user?.fullName || user?.email || 'U')
+                  .charAt(0)
+                  .toUpperCase()}
               </AvatarFallback>
             </Avatar>
 

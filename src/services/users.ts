@@ -33,19 +33,20 @@ export async function getUserAuthProfile() {
     throw new Error('No user session found');
   }
 
-  // Use storage public URL if avatar_url exists
   let avatarUrl: string | null = null;
-  if (user.user_metadata.avatar_url) {
-    const { data } = supabase.storage
-      .from('avatars') // 👈 name of your storage bucket
-      .getPublicUrl(user.user_metadata.avatar_url);
-
-    avatarUrl = data?.publicUrl || null;
+  const rawAvatar = user.user_metadata.avatar_url as string | undefined;
+  if (rawAvatar) {
+    if (rawAvatar.startsWith('http')) {
+      avatarUrl = rawAvatar;
+    } else {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(rawAvatar);
+      avatarUrl = data?.publicUrl || null;
+    }
   }
 
   return {
     email: user.email,
-    fullName: user.user_metadata.full_name,
+    fullName: user.user_metadata.full_name ?? null,
     avatarUrl,
   };
 }

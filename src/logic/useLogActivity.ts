@@ -32,6 +32,9 @@ export function useLogActivity() {
   ) => {
     if (!userId) return;
     await logToSupabase({ userId, action, entityType, entityId, details });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('activity:updated'));
+    }
   };
 
   return { logActivity, userId };

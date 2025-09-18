@@ -51,6 +51,20 @@ export const getContactsByUser = async (
 // };
 
 export const getFavouriteContacts = async (): Promise<ContactWithDetails[]> => {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error('Failed to fetch current user for favourites:', userError);
+    throw userError;
+  }
+
+  if (!user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('contacts')
     .select(
@@ -66,6 +80,7 @@ export const getFavouriteContacts = async (): Promise<ContactWithDetails[]> => {
     `,
     )
     .eq('favourite', true)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .returns<ContactWithDetails[]>();
 
