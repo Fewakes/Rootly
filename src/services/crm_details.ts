@@ -111,13 +111,14 @@ export async function addTask(
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error('User not logged in.');
-
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('tasks')
-    .insert({ contact_id: contactId, user_id: user.id, ...taskData });
+    .insert({ contact_id: contactId, user_id: user.id, ...taskData })
+    .select()
+    .single();
 
-  if (error) throw new Error(`Error adding task: ${error.message}`);
-  return { success: true };
+  if (error || !data) throw new Error(`Error adding task: ${error?.message}`);
+  return data;
 }
 
 export async function updateTask(

@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import EntityEmptyState from '@/features/entities/EntityEmptyState';
 import { useLogActivity } from '@/logic/useLogActivity';
 import type { Note, Task, UserProfile } from '@/types/types';
+import type { ActivityAction } from '@/types/types';
 
 // The component now accepts the services it needs to call directly.
 type ActivityService<T> = {
@@ -46,11 +47,22 @@ type ActivityFeedProps = {
   isLoading: boolean;
   refetchNotes: () => Promise<void>;
   refetchTasks: () => Promise<void>;
-  notesService: ActivityService<Note & { [key: string]: string }>;
-  tasksService: ActivityService<Task & { [key: string]: string }>;
+  notesService: ActivityService<Record<string, any>>;
+  tasksService: ActivityService<Record<string, any>>;
 };
 
 const INITIAL_ITEM_COUNT = 3;
+const ACTION_PREFIX: Record<'company' | 'group' | 'tag', 'COMPANY' | 'GROUP' | 'TAG'> = {
+  company: 'COMPANY',
+  group: 'GROUP',
+  tag: 'TAG',
+};
+
+const toUtcIsoDate = (date: Date) =>
+  new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString();
+
+const normalizeDateValue = (value: Date | string | null | undefined) =>
+  value instanceof Date ? value : value ? new Date(value) : undefined;
 
 export function ActivityFeed({
   entityId,
@@ -69,7 +81,14 @@ export function ActivityFeed({
   // All state and handlers are now self-contained in this component.
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [newNoteContent, setNewNoteContent] = useState('');
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<
+    | {
+        id: string;
+        title: string;
+        due_date?: Date | string | null;
+      }
+    | null
+  >(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>();
   const [notesExpanded, setNotesExpanded] = useState(false);
@@ -85,6 +104,7 @@ export function ActivityFeed({
     : tasks.slice(0, INITIAL_ITEM_COUNT);
   const entityIdKey = `${entityType}_id`;
   const entityNameKey = `${entityType}Name`;
+  const actionPrefix = ACTION_PREFIX[entityType];
 
   const handleAddNote = useCallback(async () => {
     if (!newNoteContent.trim()) return;
@@ -96,7 +116,7 @@ export function ActivityFeed({
         user_id: userId,
       });
       logActivity(
-        `${entityType.toUpperCase()}_NOTE_CREATED`,
+        `${actionPrefix}_NOTE_CREATED` as ActivityAction,
         'Note',
         newNote.id,
         { [entityNameKey]: entityName },
@@ -130,7 +150,7 @@ export function ActivityFeed({
         content: editingNote.content,
       });
       logActivity(
-        `${entityType.toUpperCase()}_NOTE_EDITED`,
+        `${actionPrefix}_NOTE_EDITED` as ActivityAction,
         'Note',
         editingNote.id,
         { [entityNameKey]: entityName },
@@ -157,7 +177,7 @@ export function ActivityFeed({
     async (noteId: string) => {
       if (!window.confirm('Are you sure you want to delete this note?')) return;
       await notesService.deleteById(noteId);
-      logActivity(`${entityType.toUpperCase()}_NOTE_REMOVED`, 'Note', noteId, {
+      logActivity(`${actionPrefix}_NOTE_REMOVED` as ActivityAction, 'Note', noteId, {
         [entityNameKey]: entityName,
       });
       toast.error('Note Deleted');
@@ -182,13 +202,13 @@ export function ActivityFeed({
     try {
       const newTask = await tasksService.create({
         title: newTaskTitle,
-        due_date: newTaskDueDate,
+        due_date: toUtcIsoDate(newTaskDueDate),
         [entityIdKey]: entityId,
         user_id: userId,
         completed: false,
       });
       logActivity(
-        `${entityType.toUpperCase()}_TASK_CREATED`,
+        `${actionPrefix}_TASK_CREATED` as ActivityAction,
         'Task',
         newTask.id,
         { [entityNameKey]: entityName, title: newTaskTitle },
@@ -223,12 +243,17 @@ export function ActivityFeed({
     }
     setIsSubmitting(true);
     try {
+      const dueDateValue = normalizeDateValue(editingTask.due_date);
+      if (!dueDateValue) {
+        toast.error('A valid due date is required.');
+        return;
+      }
       await tasksService.update(editingTask.id, {
         title: editingTask.title,
-        due_date: new Date(editingTask.due_date),
+        due_date: toUtcIsoDate(dueDateValue),
       });
       logActivity(
-        `${entityType.toUpperCase()}_TASK_EDITED`,
+        `${actionPrefix}_TASK_EDITED` as ActivityAction,
         'Task',
         editingTask.id,
         { [entityNameKey]: entityName, title: editingTask.title },
@@ -255,7 +280,9 @@ export function ActivityFeed({
     async (task: Task) => {
       const isNowComplete = !task.completed;
       await tasksService.update(task.id, { completed: isNowComplete });
-      const action = `${entityType.toUpperCase()}_TASK_${isNowComplete ? 'COMPLETED' : 'REOPENED'}`;
+      const action = `${actionPrefix}_TASK_${
+        isNowComplete ? 'COMPLETED' : 'REOPENED'
+      }` as ActivityAction;
       logActivity(action, 'Task', task.id, { [entityNameKey]: entityName });
       toast.success(
         `Task marked as ${isNowComplete ? 'complete' : 'incomplete'}.`,
@@ -276,7 +303,7 @@ export function ActivityFeed({
     async (taskId: string) => {
       if (!window.confirm('Are you sure you want to delete this task?')) return;
       await tasksService.deleteById(taskId);
-      logActivity(`${entityType.toUpperCase()}_TASK_REMOVED`, 'Task', taskId, {
+      logActivity(`${actionPrefix}_TASK_REMOVED` as ActivityAction, 'Task', taskId, {
         [entityNameKey]: entityName,
       });
       toast.error('Task Deleted');
@@ -463,18 +490,14 @@ export function ActivityFeed({
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {editingTask.due_date
-                                ? format(new Date(editingTask.due_date), 'PPP')
+                                ? format(normalizeDateValue(editingTask.due_date)!, 'PPP')
                                 : 'Set Due Date'}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <DayPicker
                               mode="single"
-                              selected={
-                                editingTask.due_date
-                                  ? new Date(editingTask.due_date)
-                                  : undefined
-                              }
+                              selected={normalizeDateValue(editingTask.due_date)}
                               onSelect={date =>
                                 setEditingTask({
                                   ...editingTask,
@@ -528,13 +551,13 @@ export function ActivityFeed({
                         </label>
                         {task.due_date && (
                           <Badge
-                            variant={
-                              new Date(task.due_date) < new Date() &&
-                              !task.completed
-                                ? 'destructive'
-                                : 'secondary'
-                            }
-                            className="shrink-0"
+                            variant="secondary"
+                            className={cn(
+                              'shrink-0',
+                              new Date(task.due_date) < new Date() && !task.completed
+                                ? 'bg-destructive/10 text-destructive border-destructive/20'
+                                : '',
+                            )}
                           >
                             {format(new Date(task.due_date), 'd MMM')}
                           </Badge>
@@ -544,7 +567,13 @@ export function ActivityFeed({
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => setEditingTask(task)}
+                            onClick={() =>
+                              setEditingTask({
+                                id: task.id,
+                                title: task.title,
+                                due_date: task.due_date,
+                              })
+                            }
                           >
                             <Pencil className="h-3 w-3" />
                           </Button>

@@ -71,7 +71,7 @@ export function AtAGlance({
                   outerRadius={50}
                   paddingAngle={5}
                 >
-                  {taskStatusData.map((entry, index) => (
+                  {taskStatusData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={CHART_COLORS[index % CHART_COLORS.length]}

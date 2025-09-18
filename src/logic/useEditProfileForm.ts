@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useDialog } from '@/contexts/DialogContext';
 import { useLogActivity } from '@/logic/useLogActivity';
 import { updateContactProfile } from '@/services/contact';
-import type { Company, Group, Tag } from '@/types/types';
+import type { ContactWithDetails } from '@/types/types';
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required.'),
@@ -20,23 +20,25 @@ const profileFormSchema = z.object({
     .default([]),
 });
 
-type ProfileFormData = z.infer<typeof profileFormSchema>;
+type ProfileFormValues = {
+  firstName: string;
+  surname?: string;
+  avatarUrl?: File | string | null;
+  companyId?: string | null;
+  groupId?: string | null;
+  tagIds: string[];
+};
 
-type ContactToEdit = {
-  id: string;
-  name: string;
-  avatar_url?: string | null;
-  gender?: string | null;
-  contact_groups?: Group[];
-  contact_tags?: Tag[];
-  contact_companies?: Company[];
-} | null;
-
-export function useEditProfileForm(contactToEdit: ContactToEdit) {
+export function useEditProfileForm(
+  contactToEdit: ContactWithDetails | null,
+): {
+  form: UseFormReturn<ProfileFormValues>;
+  onSubmit: SubmitHandler<ProfileFormValues>;
+} {
   const { closeDialog, dialogPayload } = useDialog();
   const { logActivity } = useLogActivity();
 
-  const form = useForm<ProfileFormData>({
+  const form = useForm({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       firstName: '',
@@ -46,7 +48,7 @@ export function useEditProfileForm(contactToEdit: ContactToEdit) {
       groupId: null,
       tagIds: [],
     },
-  });
+  }) as UseFormReturn<ProfileFormValues>;
 
   useEffect(() => {
     if (contactToEdit) {
@@ -61,21 +63,31 @@ export function useEditProfileForm(contactToEdit: ContactToEdit) {
         tagIds: contactToEdit.contact_tags?.map(t => t.id) || [],
       });
     }
-  }, [contactToEdit, form.reset]);
+  }, [contactToEdit, form]);
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const onSubmit = async (data: ProfileFormValues) => {
     if (!contactToEdit) return;
 
     await toast.promise(
       async () => {
-        await updateContactProfile(contactToEdit.id, data);
+        const payload = {
+          firstName: data.firstName,
+          surname: data.surname ?? '',
+          groupId: data.groupId ?? undefined,
+          companyId: data.companyId ?? undefined,
+          tagIds: data.tagIds ?? [],
+          avatarUrl: data.avatarUrl ?? undefined,
+        };
+
+        await updateContactProfile(contactToEdit.id, payload);
 
         logActivity('CONTACT_UPDATED', 'Contact', contactToEdit.id, {
           name: `${data.firstName} ${data.surname || ''}`.trim(),
         });
 
         if (
-          dialogPayload?.onActionSuccess &&
+          dialogPayload &&
+          'onActionSuccess' in dialogPayload &&
           typeof dialogPayload.onActionSuccess === 'function'
         ) {
           await dialogPayload.onActionSuccess();

@@ -1,9 +1,7 @@
 import { getTagByIdWithRank } from '@/services/tags';
-import type { Tag } from '@/types/types';
+import type { TagWithRank } from '@/types/types';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-
-type TagWithRank = Tag & { rank?: number; totalTags?: number };
 
 export default function useTag(tagId: string | undefined) {
   const [tag, setTag] = useState<TagWithRank | null>(null);

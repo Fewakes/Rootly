@@ -23,11 +23,16 @@ export const useAllGroups = () => {
 
         if (error) throw error;
 
-        const groupsWithData = data.map(group => ({
-          ...group,
-          contact_avatars: group.contacts.map(c => c.contacts).filter(Boolean),
-          contact_count: group.contacts.length,
-        }));
+        const groupsWithData = (data ?? []).map(group => {
+          const contacts = group.contacts ?? [];
+          return {
+            ...group,
+            contact_avatars: contacts
+              .map((c: any) => c.contacts)
+              .filter(Boolean),
+            contact_count: contacts.length,
+          } as GroupWithContacts;
+        });
 
         setGroups(groupsWithData);
       } catch (err: any) {
@@ -41,16 +46,4 @@ export const useAllGroups = () => {
   }, []);
 
   return { groups, loading, error };
-};
-
-export type GroupWithContacts = {
-  id: string;
-  name: string;
-  created_at: string;
-  contact_count: number;
-  contact_avatars: {
-    id: string;
-    name: string | null;
-    avatar_url: string | null;
-  }[];
 };

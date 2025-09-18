@@ -31,7 +31,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useActivities } from '@/logic/useActivity'; // ✨ Import hook
 import { getActivityIcon, formatActivityDetails } from '@/logic/activityHelper'; // ✨ Import helpers
-import type { ActivityLogEntry } from '@/types'; // ✨ Import central type if you have one
+import type { ActivityLogEntry } from '@/types/types';
 
 const PAGE_SIZE = 10;
 

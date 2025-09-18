@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import type { AssignEntity, ContactWithDetails } from '@/types/types';
+import type { AssignEntity } from '@/types/types';
 import {
   getAssignedContacts,
   getEligibleContacts,
   addContactToEntity,
   removeContactFromEntity,
 } from '@/services/assignContactService';
+import type { ContactWithDetails } from '@/services/assignContactService';
 
 export function useEntityContacts(entity: AssignEntity | null) {
   const [assigned, setAssigned] = useState<ContactWithDetails[]>([]);

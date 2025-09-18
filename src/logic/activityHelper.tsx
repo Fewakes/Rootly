@@ -12,13 +12,12 @@ import {
   History,
   XCircle,
 } from 'lucide-react';
+import type { ReactElement, ReactNode } from 'react';
+import type { ActivityLogEntry } from '@/types/types';
 
-type ActivityLogEntry = {
-  action: string;
-  details: Record<string, any>;
-};
+type ActivitySummary = Pick<ActivityLogEntry, 'action' | 'details'>;
 
-export const getActivityIcon = (action: string): JSX.Element => {
+export const getActivityIcon = (action: string): ReactElement => {
   const commonProps = { className: 'h-5 w-5 flex-shrink-0' };
   const normalizedAction = action?.toUpperCase() || '';
 
@@ -109,10 +108,10 @@ export const getActivityIcon = (action: string): JSX.Element => {
 };
 
 export const formatActivityDetails = (
-  activity: ActivityLogEntry,
-): JSX.Element => {
+  activity: ActivitySummary,
+): ReactElement => {
   const { action, details } = activity;
-  const Name = ({ children }: { children: React.ReactNode }) => (
+  const Name = ({ children }: { children: ReactNode }) => (
     <span className="font-semibold text-foreground">{children}</span>
   );
   const normalizedAction = action?.toUpperCase() || '';

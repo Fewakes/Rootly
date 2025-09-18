@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getContactById } from '@/services/contacts';
+import type { ContactWithDetails } from '@/types/types';
 
 export function useContactDetail() {
   const { id } = useParams<{ id: string }>();
-  const [contact, setContact] = useState(null);
+  const [contact, setContact] = useState<ContactWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

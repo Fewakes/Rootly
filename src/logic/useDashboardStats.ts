@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { subDays } from 'date-fns';
 
 const getDailyTrend = async (createAction: string, deleteAction: string) => {
   const startOfToday = new Date();
@@ -29,8 +28,6 @@ export const useDashboardStats = () => {
     tags: { total: 0, trend: 0 },
     groups: { total: 0, trend: 0 },
     companies: { total: 0, trend: 0 },
-    untaggedContacts: 0,
-    activitiesToday: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -46,8 +43,6 @@ export const useDashboardStats = () => {
           tagsTrend,
           groupsTrend,
           companiesTrend,
-          untaggedCount,
-          activitiesTodayCount,
         ] = await Promise.all([
           supabase.from('contacts').select('*', { count: 'exact', head: true }),
           supabase.from('tags').select('*', { count: 'exact', head: true }),
@@ -67,8 +62,6 @@ export const useDashboardStats = () => {
           tags: { total: tagsRes.count || 0, trend: tagsTrend },
           groups: { total: groupsRes.count || 0, trend: groupsTrend },
           companies: { total: companiesRes.count || 0, trend: companiesTrend },
-          untaggedContacts: untaggedCount,
-          activitiesToday: activitiesTodayCount,
         });
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);

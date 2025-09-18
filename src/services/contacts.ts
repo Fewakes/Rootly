@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabaseClient';
 import type { Contact, ContactWithDetails, NewContact } from '@/types/types';
 
-export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
+export const getContactsByUser = async (
+  userId: string,
+): Promise<ContactWithDetails[]> => {
   const { data, error } = await supabase
     .from('contacts')
     .select(
@@ -15,7 +17,7 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
       town,
       country,
       birthday,
-      link_name,s
+      link_name,
       link_url,
       gender,
       contact_groups(groups(id, name)),
@@ -31,12 +33,12 @@ export const getContactsByUser = async (userId: string): Promise<Contact[]> => {
     return [];
   }
 
-  return data.map((c: any) => ({
+  return (data ?? []).map((c: any) => ({
     ...c,
     contact_groups: c.contact_groups?.map((g: any) => g.groups) ?? [],
     contact_tags: c.contact_tags?.map((t: any) => t.tags) ?? [],
     contact_companies: c.contact_companies?.map((c: any) => c.companies) ?? [],
-  }));
+  })) as ContactWithDetails[];
 };
 // type Contact = {
 //   id: string;
@@ -77,7 +79,7 @@ export const getFavouriteContacts = async (): Promise<ContactWithDetails[]> => {
 
 export const getContactById = async (
   contactId: string,
-): Promise<Contact | null> => {
+): Promise<ContactWithDetails | null> => {
   try {
     const { data, error } = await supabase
       .from('contacts')
@@ -114,13 +116,14 @@ export const getContactById = async (
 
     if (!data) return null;
 
-    return {
+    const contact: ContactWithDetails = {
       ...data,
       contact_groups: data.contact_groups?.map((g: any) => g.groups) ?? [],
       contact_tags: data.contact_tags?.map((t: any) => t.tags) ?? [],
       contact_companies:
         data.contact_companies?.map((c: any) => c.companies) ?? [],
     };
+    return contact;
   } catch (err) {
     console.error('Unexpected error fetching contact:', (err as Error).message);
     return null;

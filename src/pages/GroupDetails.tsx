@@ -29,16 +29,18 @@ export default function GroupDetails() {
   const { openDialog, openDialogName } = useDialog();
   const navigate = useNavigate();
 
-  const entity = useMemo(
-    () => (id ? ({ id, type: 'group' } as const) : null),
-    [id],
-  );
-
   const {
     group,
     loading: isLoadingGroup,
     refetch: refetchGroup,
   } = useGroup(id);
+  const entity = useMemo(
+    () =>
+      id && group
+        ? ({ id, type: 'group' as const, name: group.name })
+        : null,
+    [id, group],
+  );
   const {
     assigned,
     eligible,
@@ -50,12 +52,12 @@ export default function GroupDetails() {
     items: notes,
     loading: isLoadingNotes,
     refetch: refetchNotes,
-  } = useGroupNotes(userId || '', id || '');
+  } = useGroupNotes(userId || '', id || '', group?.name ?? '');
   const {
     items: tasks,
     loading: isLoadingTasks,
     refetch: refetchTasks,
-  } = useGroupTasks(userId || '', id || '');
+  } = useGroupTasks(userId || '', id || '', group?.name ?? '');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -101,7 +103,14 @@ export default function GroupDetails() {
         name={group.name}
         description={group.description}
         icon={<Users />}
-        onEdit={() => openDialog('editGroup', { type: 'group', ...group })}
+        onEdit={() =>
+          openDialog('editGroup', {
+            type: 'group',
+            id: group.id,
+            name: group.name,
+            description: group.description ?? undefined,
+          })
+        }
         onDelete={handleDelete}
         isDeleting={isDeleting}
       />
@@ -119,7 +128,7 @@ export default function GroupDetails() {
           <AtAGlance
             rankLabel="Group Rank"
             rank={group.rank}
-            total={group.total_groups}
+            total={group.totalGroups}
             tasks={tasks}
           />
           <ActivityFeed
@@ -130,8 +139,7 @@ export default function GroupDetails() {
             user={user}
             notes={notes}
             tasks={tasks}
-            isLoadingNotes={isLoadingNotes}
-            isLoadingTasks={isLoadingTasks}
+            isLoading={isLoadingNotes || isLoadingTasks}
             refetchNotes={refetchNotes}
             refetchTasks={refetchTasks}
             notesService={groupNotesService}

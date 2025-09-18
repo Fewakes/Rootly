@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useActivities } from '@/logic/useActivity';
 import { getActivityIcon, formatActivityDetails } from '@/logic/activityHelper';
-import { ArrowRight, Loader2, ListTodo, Activity } from 'lucide-react';
+import { ArrowRight, Loader2, ListTodo } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ActivityFeed = ({ limit = 5 }: { limit?: number }) => {

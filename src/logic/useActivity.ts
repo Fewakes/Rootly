@@ -1,15 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { formatDistanceToNow } from 'date-fns';
-
-type ActivityLogEntry = {
-  id: string;
-  action: string;
-  details: Record<string, any>;
-  created_at: string;
-  entity_type?: string;
-  entity_id?: string;
-};
+import type { ActivityLogEntry } from '@/types/types';
 
 export const useActivities = ({
   page = 1,

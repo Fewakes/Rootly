@@ -11,7 +11,13 @@ import {
   tagNotesService,
   tagTasksService,
 } from '@/services/entityNotesTasks';
-import type { Note, Task } from '@/types/types';
+import type { ActivityAction } from '@/types/types';
+
+const ACTION_PREFIX: Record<'company' | 'group' | 'tag', 'COMPANY' | 'GROUP' | 'TAG'> = {
+  company: 'COMPANY',
+  group: 'GROUP',
+  tag: 'TAG',
+};
 
 const createEntityActivityHook = (
   entityType: 'company' | 'group' | 'tag',
@@ -39,6 +45,8 @@ const createEntityActivityHook = (
     const service = services[activityType][entityType];
     const entityIdKey = `${entityType}_id`;
     const entityNameKey = `${entityType}Name`;
+    const actionPrefix = ACTION_PREFIX[entityType];
+    const actionType = activityType === 'notes' ? 'NOTE' : 'TASK';
 
     const fetchItems = useCallback(async () => {
       if (!userId || !entityId) {
@@ -68,7 +76,7 @@ const createEntityActivityHook = (
         [entityIdKey]: entityId,
         user_id: userId,
       });
-      const action = `${entityType.toUpperCase()}_${activityType === 'notes' ? 'NOTE' : 'TASK'}_CREATED`;
+      const action: ActivityAction = `${actionPrefix}_${actionType}_CREATED` as ActivityAction;
       logActivity(
         action,
         activityType === 'notes' ? 'Note' : 'Task',
@@ -81,7 +89,7 @@ const createEntityActivityHook = (
 
     const updateItem = async (itemId: string, payload: Record<string, any>) => {
       await service.update(itemId, payload);
-      const action = `${entityType.toUpperCase()}_${activityType === 'notes' ? 'NOTE' : 'TASK'}_EDITED`;
+      const action: ActivityAction = `${actionPrefix}_${actionType}_EDITED` as ActivityAction;
       logActivity(action, activityType === 'notes' ? 'Note' : 'Task', itemId, {
         [entityNameKey]: entityName,
       });
@@ -92,7 +100,9 @@ const createEntityActivityHook = (
     const updateTaskStatus = async (itemId: string, completed: boolean) => {
       if (activityType !== 'tasks') return;
       await service.update(itemId, { completed });
-      const action = `${entityType.toUpperCase()}_TASK_${completed ? 'COMPLETED' : 'REOPENED'}`;
+      const action: ActivityAction = `${actionPrefix}_TASK_${
+        completed ? 'COMPLETED' : 'REOPENED'
+      }` as ActivityAction;
       logActivity(action, 'Task', itemId, { [entityNameKey]: entityName });
       toast.success(`Task marked as ${completed ? 'complete' : 'incomplete'}.`);
       await fetchItems();
@@ -100,7 +110,7 @@ const createEntityActivityHook = (
 
     const deleteItem = async (itemId: string) => {
       await service.deleteById(itemId);
-      const action = `${entityType.toUpperCase()}_${activityType === 'notes' ? 'NOTE' : 'TASK'}_REMOVED`;
+      const action: ActivityAction = `${actionPrefix}_${actionType}_REMOVED` as ActivityAction;
       logActivity(action, activityType === 'notes' ? 'Note' : 'Task', itemId, {
         [entityNameKey]: entityName,
       });

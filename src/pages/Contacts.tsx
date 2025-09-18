@@ -37,12 +37,9 @@ import {
 import { ContactListItem } from '@/features/contacts/ContactListItem';
 import { ContactCard } from '@/features/contacts/ContactCard';
 import { useAllContacts } from '@/logic/useAllContacts';
-import { useDeleteContact } from '@/logic/useDeleteContact';
-import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 import { useAllCompanies } from '@/logic/useAllCompanies';
 import { useAllGroups } from '@/logic/useAllGroups';
 import { useAllTags } from '@/logic/useAllTags';
-import type { ContactWithDetails } from '@/services/assignContactService';
 
 const CardSkeleton = () => (
   <div className="h-[210px] bg-muted rounded-lg animate-pulse" />

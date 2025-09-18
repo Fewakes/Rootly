@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getGroupById } from '@/services/groups';
-import type { Group } from '@/types/types';
+import type { GroupWithRank } from '@/types/types';
 
 export function useGroup(groupId: string | undefined) {
-  const [group, setGroup] = useState<Group | null>(null);
+  const [group, setGroup] = useState<GroupWithRank | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchGroup = useCallback(async () => {

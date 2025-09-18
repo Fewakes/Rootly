@@ -46,10 +46,9 @@ const service = (table: string) => ({
     return data;
   },
 
-  async deleteById(id: string) {
+  async deleteById(id: string): Promise<void> {
     const { error } = await supabase.from(table).delete().eq('id', id);
     if (error) throw error;
-    return true;
   },
 });
 

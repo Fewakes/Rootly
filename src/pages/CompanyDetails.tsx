@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
-import { toast } from 'sonner';
 import { Building } from 'lucide-react';
 
 import { useCompany } from '@/logic/useCompany';
@@ -20,7 +19,6 @@ import { AssignedContactsManager } from '@/features/entities/AssignedContactsMan
 import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
-import type { AssignEntity } from '@/types/types';
 
 export default function CompanyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -30,16 +28,18 @@ export default function CompanyDetails() {
   const { openDialog, openDialogName } = useDialog();
   const prevOpenDialogName = useRef(openDialogName);
 
-  const entity = useMemo(
-    () => (id ? ({ id, type: 'company' } as const) : null),
-    [id],
-  );
-
   const {
     company,
     loading: isLoadingCompany,
     refetch: refetchCompany,
   } = useCompany(id);
+  const entity = useMemo(
+    () =>
+      id && company
+        ? ({ id, type: 'company' as const, name: company.name })
+        : null,
+    [id, company],
+  );
   const {
     assigned,
     eligible,
@@ -53,12 +53,12 @@ export default function CompanyDetails() {
     items: notes,
     loading: isLoadingNotes,
     refetch: refetchNotes,
-  } = useCompanyNotes(userId || '', id || '');
+  } = useCompanyNotes(userId || '', id || '', company?.name ?? '');
   const {
     items: tasks,
     loading: isLoadingTasks,
     refetch: refetchTasks,
-  } = useCompanyTasks(userId || '', id || '');
+  } = useCompanyTasks(userId || '', id || '', company?.name ?? '');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -100,7 +100,13 @@ export default function CompanyDetails() {
         imageUrl={company.company_logo}
         icon={<Building />}
         onEdit={() =>
-          openDialog('editCompany', { type: 'company', ...company })
+          openDialog('editCompany', {
+            type: 'company',
+            id: company.id,
+            name: company.name,
+            description: company.description ?? undefined,
+            company_logo: company.company_logo ?? undefined,
+          })
         }
         onDelete={handleDelete}
         isDeleting={isDeleting}
@@ -119,7 +125,7 @@ export default function CompanyDetails() {
           <AtAGlance
             rankLabel="Company Rank"
             rank={company.rank}
-            total={company.total_companies}
+            total={company.totalCompanies}
             tasks={tasks}
           />
           <ActivityFeed

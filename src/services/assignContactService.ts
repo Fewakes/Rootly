@@ -3,7 +3,7 @@ import type { AssignEntity, ContactWithAvatar } from '@/types/types';
 
 export type ContactWithDetails = ContactWithAvatar & {
   email: string | null;
-  company: { id: string; name: string } | null;
+  company: { id: string; name: string; company_logo?: string | null } | null;
   group: { id: string; name: string } | null; // ✨ Changed from `groups` array to single object
   tags: { id: string; name: string; color: string | null }[];
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import type { CompanyWithContacts } from '@/types/types';
 
 export const useAllCompanies = () => {
   const [companies, setCompanies] = useState<CompanyWithContacts[]>([]);
@@ -24,13 +25,16 @@ export const useAllCompanies = () => {
 
         if (error) throw error;
 
-        const companiesWithCount = data.map(company => ({
-          ...company,
-          contact_avatars: company.contacts
-            .map(c => c.contacts)
-            .filter(Boolean),
-          contact_count: company.contacts.length,
-        }));
+        const companiesWithCount = (data ?? []).map(company => {
+          const contacts = company.contacts ?? [];
+          return {
+            ...company,
+            contact_avatars: contacts
+              .map((c: any) => c.contacts)
+              .filter(Boolean),
+            contact_count: contacts.length,
+          } as CompanyWithContacts;
+        });
 
         setCompanies(companiesWithCount);
       } catch (err: any) {

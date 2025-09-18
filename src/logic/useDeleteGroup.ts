@@ -1,25 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
 
 export function useDeleteGroup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get userId and initialize the logger
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  // Fetch userId when the component mounts
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity();
 
   const deleteGroup = useCallback(
     async (id: string, details: { groupName: string }): Promise<any | null> => {

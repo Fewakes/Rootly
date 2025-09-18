@@ -2,9 +2,9 @@ import { getUserAuthProfile } from '@/services/users';
 import { useEffect, useState } from 'react';
 
 type UserAuthProfile = {
-  email: string;
-  fullName: string;
-  avatarUrl: string;
+  email: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
 };
 
 export function useUserAuthProfile() {
@@ -16,7 +16,11 @@ export function useUserAuthProfile() {
     const fetchUser = async () => {
       try {
         const data = await getUserAuthProfile();
-        setUser(data);
+        setUser({
+          email: data.email ?? null,
+          fullName: data.fullName ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+        });
       } catch (err: any) {
         setError(err.message);
       } finally {

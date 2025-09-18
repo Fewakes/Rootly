@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useDialog } from '@/contexts/DialogContext';
 import { updateContactInfo } from '@/services/contact';
 import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
+import type { ContactWithDetails } from '@/types/types';
 
 // --- Form Validation Schema ---
 const contactInfoSchema = z.object({
@@ -27,34 +27,14 @@ const contactInfoSchema = z.object({
 type ContactInfoFormData = z.infer<typeof contactInfoSchema>;
 
 // --- Type definition for the contact object ---
-type Contact = {
-  id: string;
-  name: string;
-  email: string;
-  contact_number?: string | null;
-  town?: string | null;
-  country?: string | null;
-  birthday?: string | null;
-  link_name?: string | null;
-  link_url?: string | null;
-  contact_companies?: { id: string; name: string }[] | null;
-} | null;
-
 // --- Hook to manage the edit contact info form ---
-export function useEditContactInfoForm(contactToEdit: Contact) {
+export function useEditContactInfoForm(
+  contactToEdit: ContactWithDetails | null,
+) {
   const { closeDialog } = useDialog();
 
   // Initialize activity logger
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity();
 
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(contactInfoSchema),

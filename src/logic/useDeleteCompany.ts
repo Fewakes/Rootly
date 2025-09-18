@@ -1,23 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { deleteCompany as deleteCompanyService } from '@/services/companies';
 import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
 
 export function useDeleteCompany() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity();
 
   const deleteCompany = useCallback(
     async (

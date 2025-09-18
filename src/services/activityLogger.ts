@@ -1,7 +1,11 @@
 // src/services/activityLogService.ts
 
 import { supabase } from '@/lib/supabaseClient';
-import type { ActivityAction, LogActivityArgs } from '@/types/types';
+import type {
+  ActivityAction,
+  ActivityLogEntry,
+  LogActivityArgs,
+} from '@/types/types';
 
 function generateDescription(
   action: ActivityAction,

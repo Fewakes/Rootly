@@ -20,7 +20,14 @@ export function useGroupForm() {
   const { openDialogName, dialogPayload, closeDialog } = useDialog();
   const { logActivity, userId } = useLogActivity();
 
-  const isEditing = useMemo(() => !!dialogPayload?.id, [dialogPayload]);
+  const groupPayload = useMemo(() => {
+    if (dialogPayload && 'type' in dialogPayload && dialogPayload.type === 'group') {
+      return dialogPayload;
+    }
+    return null;
+  }, [dialogPayload]);
+
+  const isEditing = openDialogName === 'editGroup' && !!groupPayload;
   const open = openDialogName === 'addGroup' || openDialogName === 'editGroup';
 
   const form = useForm<GroupFormValues>({
@@ -31,10 +38,10 @@ export function useGroupForm() {
 
   useEffect(() => {
     if (open) {
-      if (dialogPayload) {
+      if (groupPayload) {
         form.reset({
-          name: dialogPayload.name || '',
-          description: (dialogPayload as any)?.description || '',
+          name: groupPayload.name || '',
+          description: groupPayload.description || '',
         });
       } else {
         form.reset({
@@ -43,7 +50,7 @@ export function useGroupForm() {
         });
       }
     }
-  }, [open, dialogPayload, form]);
+  }, [open, groupPayload, form]);
 
   const handleSubmit = async (data: GroupFormValues) => {
     if (!userId) {
@@ -52,17 +59,14 @@ export function useGroupForm() {
     }
 
     try {
-      if (isEditing) {
-        if (!dialogPayload?.id)
-          throw new Error('Group ID not found for editing.');
-
-        await updateGroup(dialogPayload.id, {
+      if (isEditing && groupPayload) {
+        await updateGroup(groupPayload.id, {
           name: data.name,
           description: data.description,
         });
 
         toast.success('Group updated successfully');
-        logActivity('GROUP_EDITED', 'Group', dialogPayload.id, {
+        logActivity('GROUP_EDITED', 'Group', groupPayload.id, {
           groupName: data.name,
         });
       } else {

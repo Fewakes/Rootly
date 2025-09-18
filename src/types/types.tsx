@@ -38,8 +38,9 @@ export type Company = {
   id: string;
   name: string;
   company_logo?: string | null;
+  description?: string | null;
   created_at: string;
-  user_count: number;
+  user_count?: number;
 };
 
 export type Group = {
@@ -61,7 +62,7 @@ export type Contact = {
   id: string;
   name: string;
   email: string | null;
-  avatar_url?: string | null;
+  avatar_url: string | null;
   contact_number?: string | null;
   town?: string | null;
   country?: string | null;
@@ -71,6 +72,23 @@ export type Contact = {
   link_url?: string | null;
   gender?: string | null;
   created_at: string;
+};
+
+export type NewContact = {
+  id?: string;
+  user_id: string;
+  name: string;
+  email: string | null;
+  avatar_url?: string | null;
+  contact_number?: string | null;
+  town?: string | null;
+  country?: string | null;
+  birthday?: string | null;
+  link_name?: string | null;
+  link_url?: string | null;
+  gender?: string | null;
+  favourite?: boolean;
+  created_at?: string;
 };
 
 export type Note = {
@@ -95,6 +113,12 @@ export type ProfessionalInfo = {
   skills: string[] | null;
 };
 
+export type UserProfile = {
+  email: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
+};
+
 // =================================================================
 //  Extended, Joined, & Helper Types
 // =================================================================
@@ -106,6 +130,13 @@ export type ContactWithDetails = Contact & {
   contact_groups: Group[];
   contact_tags: Tag[];
   contact_companies: Company[];
+};
+
+export type ContactWithAvatar = Pick<Contact, 'id' | 'name' | 'avatar_url'>;
+
+export type CompanyWithContacts = Company & {
+  contact_count: number;
+  contact_avatars: ContactWithAvatar[];
 };
 
 export type PopularCompany = Company & {
@@ -128,6 +159,31 @@ export type AssignEntity = {
   name: string;
   type: AssignEntityType;
   logo?: string | null; // ✅ FIX: Corrected type from 'company_logo'
+};
+
+export type GroupWithContacts = Group & {
+  contact_count: number;
+  contact_avatars: ContactWithAvatar[];
+};
+
+export type TagWithContacts = Tag & {
+  contact_count: number;
+  contact_avatars: ContactWithAvatar[];
+};
+
+export type TagWithRank = Tag & {
+  rank?: number;
+  totalTags?: number;
+};
+
+export type CompanyWithRank = Company & {
+  rank?: number;
+  totalCompanies?: number;
+};
+
+export type GroupWithRank = Group & {
+  rank?: number;
+  totalGroups?: number;
 };
 
 // =================================================================
@@ -218,4 +274,15 @@ export type LogActivityArgs = {
   entityType: 'Contact' | 'Note' | 'Task' | 'Company' | 'Group' | 'Tag';
   entityId?: string;
   details?: Record<string, any>;
+};
+
+export type ActivityLogEntry = {
+  id: string;
+  user_id: string;
+  action: ActivityAction;
+  entity_type: LogActivityArgs['entityType'];
+  entity_id?: string | null;
+  details?: Record<string, any> | null;
+  description: string;
+  created_at: string;
 };

@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Users } from 'lucide-react';
-import type { GroupWithContacts } from '@/logic/useAllGroups';
+import type { GroupWithContacts } from '@/types/types';
 import { getInitials } from '@/lib/utils';
 
 type GroupListItemProps = {
@@ -52,30 +52,27 @@ export const GroupListItem = ({ group }: GroupListItemProps) => {
       <div className="flex items-center justify-end flex-shrink-0 gap-6">
         <div className="flex items-center gap-4">
           <div className="flex -space-x-2">
-            {group.contact_avatars.slice(0, 4).map(
-              contact =>
-                contact && (
-                  <TooltipProvider key={contact.id} delayDuration={150}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link
-                          to={`/contacts/${contact.id}`}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <img
-                            src={contact.avatar_url || ''}
-                            alt="contact avatar"
-                            className="h-8 w-8 rounded-full object-cover ring-2 ring-background"
-                          />
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{contact.name || 'View Contact'}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ),
-            )}
+            {group.contact_avatars.slice(0, 4).map(contact => (
+              <TooltipProvider key={contact.id} delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to={`/contacts/${contact.id}`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <img
+                        src={contact.avatar_url || ''}
+                        alt="contact avatar"
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-background"
+                      />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{contact.name || 'View Contact'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
           </div>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Users className="h-4 w-4 text-muted-foreground" />

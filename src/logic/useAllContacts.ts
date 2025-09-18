@@ -1,12 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
-import type { ContactWithDetails } from '@/services/assignContactService';
+
+export type ContactListContact = {
+  id: string;
+  name: string;
+  email: string | null;
+  avatar_url?: string | null;
+  favourite?: boolean;
+  created_at: string;
+  company: { id: string; name: string; company_logo?: string | null } | null;
+  groups: { id: string; name: string }[];
+  tags: { id: string; name: string; color: string | null }[];
+};
 
 // Sorts contacts by favourite status, then alphabetically by name.
-export const sortContacts = (
-  contactList: ContactWithDetails[],
-): ContactWithDetails[] => {
+export const sortContacts = <T extends { name: string; favourite?: boolean }>(
+  contactList: T[],
+): T[] => {
   return [...contactList].sort((a, b) => {
     if (a.favourite && !b.favourite) return -1;
     if (b.favourite && !a.favourite) return 1;
@@ -16,7 +27,7 @@ export const sortContacts = (
 
 // Custom hook to fetch and manage all contacts for the main list view.
 export const useAllContacts = () => {
-  const [contacts, setContacts] = useState<ContactWithDetails[]>([]);
+  const [contacts, setContacts] = useState<ContactListContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,14 +44,14 @@ export const useAllContacts = () => {
 
       if (error) throw error;
 
-      const processedData = data.map(c => ({
+      const processedData: ContactListContact[] = data.map((c: any) => ({
         ...c,
         company: c.contact_companies[0]?.companies || null,
-        groups: c.contact_groups.map(g => g.groups),
-        tags: c.contact_tags.map(t => t.tags),
+        groups: c.contact_groups.map((g: any) => g.groups),
+        tags: c.contact_tags.map((t: any) => t.tags),
       }));
 
-      setContacts(sortContacts(processedData));
+      setContacts(sortContacts<ContactListContact>(processedData));
     } catch (err: any) {
       toast.error('Failed to load contacts.');
       setError(err.message);

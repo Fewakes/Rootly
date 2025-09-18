@@ -1,6 +1,6 @@
 // src/pages/ContactPage.tsx
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -8,13 +8,10 @@ import { toast } from 'sonner';
 import { useContactDetail } from '@/logic/useContactDetails';
 import { useContactNotes } from '@/logic/useContactNotes';
 import { useContactTasks } from '@/logic/useContactTasks';
-import {
-  useRecentActivity,
-  type ActivityItem,
-} from '@/logic/useRecentActivity';
+import { useRecentActivity } from '@/logic/useRecentActivity';
 
 // --- UI Components ---
-import { type Contact } from '@/features/contact/ContactHeaderCard';
+import type { ContactWithDetails } from '@/types/types';
 import { QuickActionsCard } from '@/features/contact/QuickActionsCard';
 import { RecentActivityCard } from '@/features/contact/RecentActivityCard';
 import { ContactHeaderCard } from '@/features/contact/ContactHeaderCard';
@@ -23,14 +20,10 @@ import { ContactDetailsCard } from '@/features/contact/ContactDetailsCard';
 export default function ContactPage() {
   const navigate = useNavigate();
 
-  const {
-    contact: initialContact,
-    loading: contactLoading,
-    error: contactError,
-    refetch: refetchContact,
-  } = useContactDetail();
+  const { contact: initialContact, loading: contactLoading, error: contactError } =
+    useContactDetail();
 
-  const [contact, setContact] = useState<Contact | null>(null);
+  const [contact, setContact] = useState<ContactWithDetails | null>(null);
 
   useEffect(() => {
     setContact(initialContact);
@@ -43,10 +36,9 @@ export default function ContactPage() {
     useContactTasks(contact?.id);
   const activity = useRecentActivity(notes, tasks);
 
-  const handleFavouriteChange = (updatedContact: Contact) => {
+  const handleFavouriteChange = (updatedContact: ContactWithDetails) => {
     setContact(updatedContact);
     // Also refetch to ensure any lists that sort by favourite are updated.
-    refetchContact();
   };
 
   // --- Loading and Error Guards ---
@@ -85,8 +77,6 @@ export default function ContactPage() {
           <div className="lg:col-span-2">
             <ContactDetailsCard
               contact={contact}
-              // FIX #2: Pass the refetch function to the details card.
-              onEditSuccess={refetchContact}
             />
           </div>
           <div className="lg:col-span-1">

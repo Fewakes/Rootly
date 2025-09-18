@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -88,7 +89,7 @@ export default function EditContactProfileDialog() {
     }
   }, [contactToEdit, open, form]);
 
-  const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       form.setValue('avatarUrl', file);

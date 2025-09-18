@@ -1,25 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { deleteTag } from '@/services/tags';
 import { useLogActivity } from './useLogActivity';
-import { getCurrentUserId } from '@/services/users';
 
 export function useDeleteTag() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Get userId and initialize the logger
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  // Fetch userId when the component mounts
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity();
 
   const removeTag = useCallback(
     async (tagId: string, details: { tagName: string }): Promise<boolean> => {

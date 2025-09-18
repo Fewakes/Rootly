@@ -4,7 +4,13 @@ import {
   TAG_BG_CLASSES,
   TAG_TEXT_CLASSES,
 } from '@/lib/utils';
-import type { Tag, PopularTag, TagColor, Contact } from '@/types/types';
+import type {
+  Tag,
+  PopularTag,
+  TagColor,
+  Contact,
+  TagWithRank,
+} from '@/types/types';
 
 export type ChartData = {
   id: string;
@@ -166,8 +172,12 @@ export const getTagsDataForChart = async (): Promise<ChartData[]> => {
         tag.color in TAG_SOLID_COLORS ? tag.color : 'rose';
 
       // Flatten nested structure: contact_tags[].contacts
-      const flattenedContacts =
-        tag.contact_tags?.map(ct => ct.contacts).filter(Boolean) ?? [];
+      const flattenedContacts: Pick<Contact, 'id' | 'avatar_url'>[] = (
+        tag.contact_tags?.map(ct => ct.contacts).filter(Boolean) ?? []
+      ).map((contact: any) => ({
+        id: contact.id,
+        avatar_url: contact.avatar_url ?? null,
+      }));
 
       return {
         id: tag.id,
@@ -187,7 +197,7 @@ export const getTagsDataForChart = async (): Promise<ChartData[]> => {
  */
 export async function getTagByIdWithRank(
   tagId: string,
-): Promise<(Tag & { rank: number; total_tags: number }) | null> {
+): Promise<TagWithRank | null> {
   const { data, error } = await supabase
     .rpc('get_tag_details_with_rank', { p_tag_id: tagId })
     .single<Tag & { rank: number; total_tags: number }>();
@@ -196,5 +206,12 @@ export async function getTagByIdWithRank(
     console.error('Error fetching tag by ID with rank:', error.message);
     return null;
   }
-  return data;
+  if (!data) return null;
+
+  const { total_tags, ...rest } = data;
+
+  return {
+    ...rest,
+    totalTags: total_tags,
+  };
 }

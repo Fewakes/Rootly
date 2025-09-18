@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -24,26 +24,12 @@ import {
   Loader2,
   Star,
 } from 'lucide-react';
-
-export type Contact = {
-  id: string;
-  name: string;
-  avatar_url?: string | null;
-  gender?: string | null;
-  favourite?: boolean;
-  contact_tags: { id: string; name: string; color: string }[];
-  contact_groups: { id: string; name: string }[];
-  contact_companies: {
-    id: string;
-    name: string;
-    company_logo?: string | null;
-  }[];
-};
+import type { ContactWithDetails } from '@/types/types';
 
 type ContactHeaderCardProps = {
-  contact: Contact;
-  onFavouriteChange: (updatedContact: Contact) => void;
-  onActionSuccess: () => void;
+  contact: ContactWithDetails;
+  onFavouriteChange: (updatedContact: ContactWithDetails) => void;
+  onActionSuccess?: () => void;
 };
 
 export function ContactHeaderCard({
@@ -61,7 +47,7 @@ export function ContactHeaderCard({
     setLocalContact(contact);
   }, [contact]);
 
-  const handleToggleFavourite = async (e: React.MouseEvent) => {
+  const handleToggleFavourite = async (e: MouseEvent) => {
     e.stopPropagation();
     setLocalContact(prev => ({ ...prev, favourite: !prev.favourite }));
     const { success } = await toggleFavourite(
@@ -78,14 +64,14 @@ export function ContactHeaderCard({
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation();
     const success = await deleteContact(localContact.id, {
       name: localContact.name,
     });
     if (success) {
       navigate('/contacts');
-      onActionSuccess();
+      onActionSuccess?.();
     }
   };
 

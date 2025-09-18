@@ -43,6 +43,17 @@ export default function Groups() {
       let valA = a[key as keyof typeof a];
       let valB = b[key as keyof typeof b];
 
+       if (valA === undefined || valA === null) {
+         return valB === undefined || valB === null
+           ? 0
+           : direction === 'asc'
+             ? 1
+             : -1;
+       }
+       if (valB === undefined || valB === null) {
+         return direction === 'asc' ? -1 : 1;
+       }
+
       if (typeof valA === 'string') valA = valA.toLowerCase();
       if (typeof valB === 'string') valB = valB.toLowerCase();
 

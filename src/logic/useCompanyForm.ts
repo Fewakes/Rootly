@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import type { ChangeEvent } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,7 +25,14 @@ export function useCompanyForm() {
   const { openDialogName, dialogPayload, closeDialog } = useDialog();
   const { logActivity, userId } = useLogActivity();
 
-  const isEditing = useMemo(() => !!dialogPayload?.id, [dialogPayload]);
+  const companyPayload = useMemo(() => {
+    if (dialogPayload && 'type' in dialogPayload && dialogPayload.type === 'company') {
+      return dialogPayload;
+    }
+    return null;
+  }, [dialogPayload]);
+
+  const isEditing = openDialogName === 'editCompany' && !!companyPayload;
   const open =
     openDialogName === 'addCompany' || openDialogName === 'editCompany';
 
@@ -38,13 +46,13 @@ export function useCompanyForm() {
 
   useEffect(() => {
     if (open) {
-      if (dialogPayload) {
+      if (companyPayload) {
         form.reset({
-          name: dialogPayload.name || '',
-          description: (dialogPayload as any)?.description || '',
+          name: companyPayload.name || '',
+          description: companyPayload.description || '',
           logoFile: undefined,
         });
-        setLogoPreview((dialogPayload as any)?.company_logo || null);
+        setLogoPreview(companyPayload.company_logo || null);
       } else {
         form.reset({
           name: '',
@@ -54,14 +62,16 @@ export function useCompanyForm() {
         setLogoPreview(null);
       }
     }
-  }, [open, dialogPayload, form]);
+  }, [open, companyPayload, form]);
 
-  const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    onChange: (value: File | undefined) => void,
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      form.setValue('logoFile', file, { shouldValidate: true });
-      setLogoPreview(URL.createObjectURL(file));
-    }
+    onChange(file);
+    setLogoPreview(file ? URL.createObjectURL(file) : null);
+    form.trigger('logoFile');
     e.target.value = '';
   };
 
@@ -83,12 +93,10 @@ export function useCompanyForm() {
         company_logo: logoUrl,
       };
 
-      if (isEditing) {
-        if (!dialogPayload?.id)
-          throw new Error('Company ID not found for editing.');
-        await updateCompany(dialogPayload.id, companyData);
+      if (isEditing && companyPayload) {
+        await updateCompany(companyPayload.id, companyData);
         toast.success('Company updated successfully');
-        logActivity('COMPANY_EDITED', 'Company', dialogPayload.id, {
+        logActivity('COMPANY_EDITED', 'Company', companyPayload.id, {
           companyName: data.name,
         });
       } else {

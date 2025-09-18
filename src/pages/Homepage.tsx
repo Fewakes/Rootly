@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
 import {
   Users,
   Tag,
-  UserPlus,
   Briefcase,
   Users2,
   Zap,
-  PlusCircle,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useDashboardStats } from '@/logic/useDashboardStats';
 import { useFavouriteContacts } from '@/logic/useFavouriteContacts';
-import { useDialog } from '@/contexts/DialogContext';
 
 import ActivityFeed from '@/features/homepage/ActivityFeed';
 import { GroupsDistributionWidget } from '@/features/homepage/GroupsDistributionWidget';
@@ -23,9 +18,7 @@ import { TagsDistributionWidget } from '@/features/homepage/TagsDistributionWidg
 import { CompaniesDistributionWidget } from '@/features/homepage/CompaniesDistributionWidget';
 import FavouriteContacts from '@/features/homepage/FavouriteContacts';
 import UpcomingTasks from '@/features/homepage/UpcomingTasks';
-import { useUserAuthProfile } from '@/logic/useUserAuthProfile';
 import { useUserId } from '@/logic/useUserId';
-import { getUserAuthProfile } from '@/services/users';
 import { CallToActionBanner } from '@/features/homepage/CallToActionBanner';
 
 const StatCardSkeleton = () => (
@@ -34,11 +27,9 @@ const StatCardSkeleton = () => (
 
 export default function Homepage() {
   const { userId: id } = useUserId();
-  const { fullName } = getUserAuthProfile();
-  const { openDialog } = useDialog();
 
   const { stats, loading: statsLoading } = useDashboardStats();
-  const { contacts: favouriteContactsData = [], isLoading: contactsLoading } =
+  const { contacts: favouriteContactsData = [], loading: contactsLoading } =
     useFavouriteContacts();
 
   const isLoading = statsLoading || contactsLoading;

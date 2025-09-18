@@ -25,12 +25,16 @@ export const useAllTags = () => {
 
         if (error) throw error;
 
-        const tagsWithData = data.map(tag => ({
-          ...tag,
-
-          contact_avatars: tag.contacts.map(c => c.contacts).filter(Boolean),
-          contact_count: tag.contacts.length,
-        }));
+        const tagsWithData = (data ?? []).map(tag => {
+          const contacts = tag.contacts ?? [];
+          return {
+            ...tag,
+            contact_avatars: contacts
+              .map((c: any) => c.contacts)
+              .filter(Boolean),
+            contact_count: contacts.length,
+          } as TagWithContacts;
+        });
 
         setTags(tagsWithData);
       } catch (err: any) {
@@ -44,16 +48,4 @@ export const useAllTags = () => {
   }, []);
 
   return { tags, loading, error };
-};
-
-export type TagWithContacts = {
-  id: string;
-  name: string;
-  color: string | null;
-  created_at: string;
-  contact_count: number;
-  contact_avatars: {
-    id: string;
-    avatar_url: string | null;
-  }[];
 };

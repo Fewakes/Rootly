@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getCompanyById } from '@/services/companies';
-import type { Company } from '@/types/types';
-
-type CompanyWithRank = Company & { rank?: number; totalCompanies?: number };
+import type { CompanyWithRank } from '@/types/types';
 
 export function useCompany(companyId: string | undefined) {
   const [company, setCompany] = useState<CompanyWithRank | null>(null);

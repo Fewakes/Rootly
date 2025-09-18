@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { isBefore, parseISO } from 'date-fns';
 import type { Task } from '@/types/types';
 
-type UnifiedTask = Omit<Task, 'due_date'> & {
+export type UnifiedTask = Omit<Task, 'due_date'> & {
   due_date: string | null;
   origin: 'contact' | 'group' | 'company' | 'tag';
   entity: {

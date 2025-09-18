@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDialog } from '@/contexts/DialogContext';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ import { AssignedContactsManager } from '@/features/entities/AssignedContactsMan
 import { AtAGlance } from '@/features/entities/AtAGlance';
 import { ActivityFeed } from '@/features/entities/ActivityFeed';
 import EntityDetailsSkeleton from '@/features/entities/EntityDetailsSkeleton';
-import { TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
+import { TAG_TEXT_CLASSES } from '@/lib/utils';
 import { useDeleteTag } from '@/logic/useDeleteTag';
 import { useEntityContacts } from '@/logic/useEntityContacts';
 
@@ -27,12 +27,18 @@ export default function TagDetails() {
   const { openDialog, openDialogName } = useDialog();
   const navigate = useNavigate();
 
-  const entity = useMemo(
-    () => (id ? ({ id, type: 'tag' } as const) : null),
-    [id],
-  );
-
   const { tag, loading: isLoadingTag, refetch: refetchTag } = useTag(id);
+  const entity = useMemo(
+    () =>
+      id && tag
+        ? ({
+            id,
+            type: 'tag' as const,
+            name: tag.name,
+          })
+        : null,
+    [id, tag],
+  );
   const {
     assigned,
     eligible,
@@ -44,12 +50,12 @@ export default function TagDetails() {
     items: notes,
     loading: isLoadingNotes,
     refetch: refetchNotes,
-  } = useTagNotes(userId || '', id || '');
+  } = useTagNotes(userId || '', id || '', tag?.name ?? '');
   const {
     items: tasks,
     loading: isLoadingTasks,
     refetch: refetchTasks,
-  } = useTagTasks(userId || '', id || '');
+  } = useTagTasks(userId || '', id || '', tag?.name ?? '');
 
   const { removeTag, isLoading: isDeleting } = useDeleteTag();
 
@@ -95,7 +101,15 @@ export default function TagDetails() {
         name={tag.name}
         description={tag.description}
         icon={<TagIcon style={{ color: TAG_TEXT_CLASSES[tag.color] || '' }} />}
-        onEdit={() => openDialog('editTag', { type: 'tag', ...tag })}
+        onEdit={() =>
+          openDialog('editTag', {
+            type: 'tag',
+            id: tag.id,
+            name: tag.name,
+            color: tag.color,
+            description: tag.description ?? undefined,
+          })
+        }
         onDelete={handleDelete}
         isDeleting={isDeleting}
       />
@@ -113,7 +127,7 @@ export default function TagDetails() {
           <AtAGlance
             rankLabel="Tag Rank"
             rank={tag.rank}
-            total={tag.total_tags}
+            total={tag.totalTags}
             tasks={tasks}
           />
           <ActivityFeed
@@ -124,8 +138,7 @@ export default function TagDetails() {
             user={user}
             notes={notes}
             tasks={tasks}
-            isLoadingNotes={isLoadingNotes}
-            isLoadingTasks={isLoadingTasks}
+            isLoading={isLoadingNotes || isLoadingTasks}
             refetchNotes={refetchNotes}
             refetchTasks={refetchTasks}
             notesService={tagNotesService}

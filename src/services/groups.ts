@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Group, PopularGroup, Contact } from '@/types/types';
+import type { Group, PopularGroup, Contact, GroupWithRank } from '@/types/types';
 
 /**
  * Fetches all groups and includes a count of associated contacts.
@@ -39,7 +39,7 @@ export const getPopularGroups = async (
     return [];
   }
 
-  return data || [];
+  return Array.isArray(data) ? (data as PopularGroup[]) : [];
 };
 
 /**
@@ -105,7 +105,7 @@ export async function deleteGroup(id: string): Promise<Group | null> {
  */
 export async function getGroupById(
   groupId: string,
-): Promise<(Group & { rank: number; total_groups: number }) | null> {
+): Promise<GroupWithRank | null> {
   const { data, error } = await supabase
     .rpc('get_group_details_with_rank', { p_group_id: groupId })
     .returns<(Group & { rank: number; total_groups: number }) | null>()
@@ -115,14 +115,24 @@ export async function getGroupById(
     console.error('Error fetching group by ID with rank:', error.message);
     return null;
   }
-  return data;
+  if (!data) return null;
+
+  const { total_groups, ...rest } = data as Group & {
+    rank: number;
+    total_groups: number;
+  };
+
+  return {
+    ...rest,
+    totalGroups: total_groups,
+  };
 }
 
 /**
  * Fetches all groups and includes a list of associated contacts.
  */
 export const getAllGroupsWithContactCounts = async (): Promise<
-  (Group & { value: number; contacts: Pick<Contact, 'id' | 'avatar_url'>[] })[]
+  { id: string; name: string; value: number; contacts: Pick<Contact, 'id' | 'avatar_url'>[] }[]
 > => {
   type RawGroup = Group & {
     contacts: { contacts: Pick<Contact, 'id' | 'avatar_url'> | null }[];
@@ -139,9 +149,13 @@ export const getAllGroupsWithContactCounts = async (): Promise<
   }
 
   const mapped = (data ?? []).map(g => {
-    const flattened = g.contacts
-      ?.map(cg => cg.contacts)
-      .filter(Boolean) as Pick<Contact, 'id' | 'avatar_url'>[];
+    const flattened: { id: string; avatar_url: string | null }[] = (g.contacts ?? [])
+      .map(cg => cg.contacts)
+      .filter(Boolean)
+      .map((contact: any) => ({
+        id: contact.id,
+        avatar_url: contact.avatar_url ?? null,
+      }));
 
     return {
       id: g.id,

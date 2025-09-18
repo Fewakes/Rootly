@@ -105,7 +105,11 @@ export default function CompanyDialog() {
                             type="file"
                             className="sr-only"
                             accept="image/*"
-                            onChange={handleLogoChange}
+                            name={field.name}
+                            ref={field.ref}
+                            onChange={event =>
+                              handleLogoChange(event, field.onChange)
+                            }
                           />
                         </label>
                       </Button>
@@ -119,7 +123,7 @@ export default function CompanyDialog() {
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => closeDialog(false)}
+                onClick={closeDialog}
               >
                 Cancel
               </Button>

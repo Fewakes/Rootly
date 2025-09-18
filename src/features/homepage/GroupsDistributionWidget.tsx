@@ -49,7 +49,14 @@ export const GroupsDistributionWidget = () => {
     const fetchData = async () => {
       try {
         const data = await getAllGroupsWithContactCounts();
-        setAllGroups(data);
+        const normalized = data.map(group => ({
+          ...group,
+          contacts: group.contacts.map(contact => ({
+            id: contact.id,
+            avatar_url: contact.avatar_url ?? null,
+          })),
+        }));
+        setAllGroups(normalized);
       } catch (err) {
         setError('Failed to load group data.');
       } finally {

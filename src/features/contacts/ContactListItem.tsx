@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Trash2, Star, Loader2, Briefcase, Users, Tag } from 'lucide-react';
 import { cn, getInitials, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import type { ContactWithDetails } from '@/services/assignContactService';
+import type { ContactListContact } from '@/logic/useAllContacts';
 import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 import { useDeleteContact } from '@/logic/useDeleteContact';
 import type { TagColor } from '@/types/types';
@@ -23,7 +23,7 @@ const getTagTextClass = (color: string | null) =>
   TAG_TEXT_CLASSES[color as TagColor] || 'text-gray-800';
 
 type ContactListItemProps = {
-  contact: ContactWithDetails;
+  contact: ContactListContact;
   onActionComplete: () => void;
 };
 

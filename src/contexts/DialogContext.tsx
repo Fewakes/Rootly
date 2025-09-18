@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { Contact } from '@/types/types';
+import type { ContactWithDetails } from '@/types/types';
 
 type GroupPayload = {
   type: 'group';
@@ -33,7 +33,7 @@ type AddContactPayload = {
 
 type EditContactPayload = {
   type: 'editContact' | 'editProfile' | 'editContactInfo';
-  contact: Contact;
+  contact: ContactWithDetails;
   onActionSuccess?: SuccessCallback;
 };
 

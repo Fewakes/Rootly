@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { parseISO, differenceInDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import {
   Tags,
   CircleCheck,
   Contact as ContactIcon,
-  ArrowRight,
   NotebookPen,
   Loader2,
 } from 'lucide-react';
@@ -28,24 +27,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getAllUpcomingTasks } from '@/services/getAllUpcomingTasks';
+import { getAllUpcomingTasks, type UnifiedTask } from '@/services/getAllUpcomingTasks';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(...inputs));
 }
-
-export type Task = {
-  id: string;
-  title: string;
-  due_date: string;
-  created_at: string;
-  completed: boolean;
-  origin: 'contact' | 'group' | 'company' | 'tag';
-  entity: {
-    id: string | null;
-    name: string;
-  };
-};
 
 type UpcomingTasksProps = {
   currentUserId: string | null;
@@ -54,8 +40,8 @@ type UpcomingTasksProps = {
 type EntityType = 'contact' | 'group' | 'company' | 'tag';
 
 export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
-  const [allFetchedTasks, setAllFetchedTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [allFetchedTasks, setAllFetchedTasks] = useState<UnifiedTask[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Simplified filtering state
@@ -78,9 +64,12 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
       setLoading(true);
       try {
         const fetchedTasks = await getAllUpcomingTasks(currentUserId);
-        const sortedTasks = fetchedTasks.sort(
+        const tasksWithDueDate = fetchedTasks.filter(
+          task => task.due_date !== null,
+        ) as (UnifiedTask & { due_date: string })[];
+        const sortedTasks = tasksWithDueDate.sort(
           (a, b) =>
-            new Date(a.due_date).getTime() - new Date(b.due_date).getTime(),
+            parseISO(a.due_date).getTime() - parseISO(b.due_date).getTime(),
         );
         setAllFetchedTasks(sortedTasks);
       } catch (err) {
@@ -103,7 +92,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
       now.setHours(0, 0, 0, 0);
 
       tasksToProcess = tasksToProcess.filter(task => {
-        const dueDate = parseISO(task.due_date);
+        const dueDate = parseISO(task.due_date!);
         const daysDifference = differenceInDays(dueDate, now);
         if (daysDifference < 0) return false;
         if (dateFilter === '0') {
@@ -138,8 +127,9 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
   };
 
   const getDueDateBadge = (
-    dueDate: string,
-  ): { text: string; className: string } => {
+    dueDate: string | null,
+  ): { text: string; className: string } | null => {
+    if (!dueDate) return null;
     const due = parseISO(dueDate);
     const now = new Date();
     const startOfToday = new Date(
@@ -172,7 +162,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
     };
   };
 
-  const getAssociatedEntityDisplay = (task: Task) => {
+  const getAssociatedEntityDisplay = (task: UnifiedTask) => {
     let icon = null;
     let link = '#';
     const typeDisplay =
@@ -224,7 +214,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
               <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={entityFilterType}
-                onValueValueChange={value =>
+                onValueChange={value =>
                   setEntityFilterType(value as EntityType | 'none')
                 }
               >
@@ -300,15 +290,17 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
                         {task.title}
                       </span>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs mt-1">
-                        <Badge
-                          className={cn(
-                            'whitespace-nowrap',
-                            dueDateBadge.className,
-                          )}
-                        >
-                          <CalendarDays className="h-3 w-3 mr-1.5" />
-                          {dueDateBadge.text}
-                        </Badge>
+                        {dueDateBadge && (
+                          <Badge
+                            className={cn(
+                              'whitespace-nowrap',
+                              dueDateBadge.className,
+                            )}
+                          >
+                            <CalendarDays className="h-3 w-3 mr-1.5" />
+                            {dueDateBadge.text}
+                          </Badge>
+                        )}
                         {entityDisplay.name !== 'General' && (
                           <Link
                             to={entityDisplay.link}

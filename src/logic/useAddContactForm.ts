@@ -4,11 +4,8 @@ import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
-
 import { useDialog } from '@/contexts/DialogContext';
 import { insertContact, uploadAvatar } from '@/services/contacts';
-import { getCurrentUserId } from '@/services/users';
 import default_woman from '@/assets/default_woman.svg';
 import default_man from '@/assets/default_man.svg';
 import type { NewContact } from '@/types/types';
@@ -42,16 +39,7 @@ export function useAddContactForm() {
   const navigate = useNavigate();
   const { closeDialog } = useDialog();
 
-  const [userId, setUserId] = useState<string | null>(null);
-  const { logActivity } = useLogActivity(userId);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const id = await getCurrentUserId();
-      setUserId(id);
-    };
-    fetchUser();
-  }, []);
+  const { logActivity, userId } = useLogActivity();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

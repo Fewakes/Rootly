@@ -84,7 +84,7 @@ export async function getAllCompanies() {
 
 type UpdateContactProfilePayload = {
   firstName: string;
-  surname: string;
+  surname?: string;
   groupId?: string;
   tagIds?: string[];
   avatarUrl?: string | File;
@@ -123,7 +123,7 @@ export async function updateContactProfile(
     avatarPublicUrl = urlData.publicUrl;
   }
 
-  const fullName = `${data.firstName} ${data.surname}`.trim();
+  const fullName = `${data.firstName} ${data.surname ?? ''}`.trim();
   const { error: contactUpdateError } = await supabase
     .from('contacts')
     .update({

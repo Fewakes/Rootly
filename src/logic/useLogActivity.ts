@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import {
-  type ActivityAction,
-  logActivity as logToSupabase,
-} from '@/services/activityLogger';
+import { logActivity as logToSupabase } from '@/services/activityLogger';
+import type { ActivityAction, LogActivityArgs } from '@/types/types';
 
 export function useLogActivity() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -28,7 +26,7 @@ export function useLogActivity() {
 
   const logActivity = async (
     action: ActivityAction,
-    entityType: string,
+    entityType: LogActivityArgs['entityType'],
     entityId?: string,
     details?: Record<string, any>,
   ) => {

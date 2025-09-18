@@ -19,7 +19,7 @@ export function useFavouriteContacts(): UseFavouriteContactsReturn {
     try {
       const favs = await getFavouriteContacts();
 
-      setContacts(sortContacts(favs || []));
+      setContacts(sortContacts<ContactWithDetails>(favs || []));
     } catch (error) {
       console.error('Failed to fetch favourite contacts:', error);
       toast.error('Could not load favourites.');

@@ -23,15 +23,17 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
-import type { Contact } from '@/types/types';
+import type { ContactWithDetails } from '@/types/types';
 import { useToggleContactFavourite } from '@/logic/useToggleContactFavourite';
 
 type FavouriteContactsProps = {
-  favouriteContacts: Contact[];
+  favouriteContacts: ContactWithDetails[];
 };
 
 const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
-  const [contacts, setContacts] = useState(favouriteContacts);
+  const [contacts, setContacts] = useState<ContactWithDetails[]>(
+    favouriteContacts,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const CONTACTS_PER_PAGE = 4;
 
@@ -113,7 +115,7 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
                     className="flex items-center gap-3 flex-grow min-w-0 p-0.5 -m-0.5 rounded-lg"
                   >
                     <img
-                      src={contact.avatar_url}
+                      src={contact.avatar_url ?? ''}
                       alt={`${contact.name}`}
                       className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                     />

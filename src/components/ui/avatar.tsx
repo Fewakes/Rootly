@@ -1,8 +1,6 @@
 import { cn } from '@/lib/utils';
 import { cva } from 'class-variance-authority';
 import * as React from 'react';
-import default_woman from '@/assets/default_woman.svg';
-import default_man from '@/assets/default_man.svg';
 
 const avatarVariants = cva(
   'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
@@ -33,7 +31,7 @@ const Avatar = React.forwardRef<
 Avatar.displayName = 'Avatar';
 
 const AvatarImage = React.forwardRef<
-  React.ImgHTMLAttributes<HTMLImageElement>,
+  HTMLImageElement,
   React.ImgHTMLAttributes<HTMLImageElement>
 >(({ className, ...props }, ref) => (
   <img

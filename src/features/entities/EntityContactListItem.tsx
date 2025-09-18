@@ -1,5 +1,6 @@
 import { cn, TAG_BG_CLASSES, TAG_TEXT_CLASSES } from '@/lib/utils';
 import type { ContactWithDetails } from '@/services/assignContactService';
+import type { TagColor } from '@/types/types';
 
 import {
   MoreHorizontal,
@@ -94,24 +95,32 @@ export default function EntityContactListItem({
                 <TagIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div className="flex flex-wrap items-center gap-1">
                   {contact.tags.length > 0 ? (
-                    contact.tags.map(tag => (
-                      <Badge
-                        key={tag.id}
-                        className={cn(
-                          'font-normal',
-                          tag.color &&
-                            TAG_BG_CLASSES[tag.color] &&
-                            TAG_TEXT_CLASSES[tag.color]
-                            ? [
-                                TAG_BG_CLASSES[tag.color],
-                                TAG_TEXT_CLASSES[tag.color],
-                              ]
-                            : 'bg-muted text-muted-foreground hover:bg-muted',
-                        )}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))
+                    contact.tags.map(tag => {
+                      const colorKey =
+                        tag.color &&
+                        Object.prototype.hasOwnProperty.call(
+                          TAG_BG_CLASSES,
+                          tag.color,
+                        )
+                          ? (tag.color as TagColor)
+                          : null;
+                      return (
+                        <Badge
+                          key={tag.id}
+                          className={cn(
+                            'font-normal',
+                            colorKey
+                              ? [
+                                  TAG_BG_CLASSES[colorKey],
+                                  TAG_TEXT_CLASSES[colorKey],
+                                ]
+                              : 'bg-muted text-muted-foreground hover:bg-muted',
+                          )}
+                        >
+                          {tag.name}
+                        </Badge>
+                      );
+                    })
                   ) : (
                     <span className="italic text-sm text-muted-foreground">
                       No Tags

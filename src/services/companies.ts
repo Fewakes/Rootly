@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { Company } from '@/types/types';
+import type { Company, CompanyWithRank } from '@/types/types';
 
 export async function getAllCompanies(): Promise<Company[]> {
   const { data, error } = await supabase
@@ -55,19 +55,26 @@ export async function deleteCompany(companyId: string): Promise<boolean> {
 
 export async function getCompanyById(
   companyId: string,
-): Promise<Company | null> {
+): Promise<CompanyWithRank | null> {
   const { data, error } = await supabase
     .rpc('get_company_details_with_rank', {
       p_company_id: companyId,
     })
-    .single();
+    .single<Company & { rank?: number; total_companies?: number }>();
 
   if (error) {
     console.error('Error fetching company by ID with rank:', error.message);
     throw error;
   }
 
-  return data;
+  if (!data) return null;
+
+  const { total_companies, ...rest } = data;
+
+  return {
+    ...rest,
+    totalCompanies: total_companies,
+  };
 }
 
 export async function updateCompany(

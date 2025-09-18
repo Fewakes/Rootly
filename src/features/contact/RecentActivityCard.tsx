@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,15 +16,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import {
-  MessageSquare,
-  CheckCircle,
-  Pencil,
-  Trash2,
-  Save,
-  X,
-  CalendarIcon,
-} from 'lucide-react';
+import { MessageSquare, CheckCircle, Pencil, Trash2, CalendarIcon } from 'lucide-react';
 import type { ActivityItem } from '@/logic/useRecentActivity';
 import { taskSchema } from '@/logic/useContactTasks';
 
@@ -296,11 +288,12 @@ export function RecentActivityCard({
                       </div>
                       {item.status === 'pending' && item.due_date && (
                         <Badge
-                          variant={
+                          variant="secondary"
+                          className={cn(
                             new Date() > item.due_date
-                              ? 'destructive'
-                              : 'secondary'
-                          }
+                              ? 'bg-destructive/10 text-destructive border-destructive/20'
+                              : '',
+                          )}
                         >
                           Due {format(item.due_date, 'd MMM')}
                         </Badge>
