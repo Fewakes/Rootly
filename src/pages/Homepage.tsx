@@ -4,9 +4,17 @@ import {
   Briefcase,
   Users2,
   Zap,
+  CircleHelp,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 import { useDashboardStats } from '@/logic/useDashboardStats';
 import { useFavouriteContacts } from '@/logic/useFavouriteContacts';
@@ -34,9 +42,30 @@ export default function Homepage() {
 
   const isLoading = statsLoading || contactsLoading;
 
+  const handleShowHelp = () => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new Event('cta:show'));
+  };
+
   return (
     <>
       <main className="max-w-7xl mx-auto p-6 space-y-10">
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="fixed bottom-6 right-6 z-50 shadow-md text-muted-foreground hover:text-primary"
+                onClick={handleShowHelp}
+                aria-label="Show getting started tips"
+              >
+                <CircleHelp className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Show getting started tips</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <CallToActionBanner />
         {/* Section 1: Dashboard Stats */}
 
@@ -98,24 +127,26 @@ export default function Homepage() {
 
         {/* Section 2: Main Grid */}
 
-        <section className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
-          {/* Left column: Favourite Contacts, Upcoming Tasks, Activity Feed */}
-
-          <div className="w-full lg:w-3/5 space-y-8 ">
+        <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:grid-rows-3 gap-8 max-w-7xl mx-auto items-stretch">
+          <div className="lg:col-start-1 lg:row-start-1 h-full">
             <FavouriteContacts favouriteContacts={favouriteContactsData} />
-            <UpcomingTasks currentUserId={id} />
-            <ActivityFeed limit={5} />
+          </div>
+          <div className="lg:col-start-2 lg:row-start-1 h-full">
+            <TagsDistributionWidget />
           </div>
 
-          {/* Right column: Distribution Widgets */}
+          <div className="lg:col-start-1 lg:row-start-2 h-full">
+            <UpcomingTasks currentUserId={id} />
+          </div>
+          <div className="lg:col-start-2 lg:row-start-2 h-full">
+            <GroupsDistributionWidget />
+          </div>
 
-          <div className="w-full lg:w-2/5">
-            {/* 1. Add this wrapper div with sticky positioning */}
-            <div className=" top-8 space-y-8 flex flex-col">
-              <TagsDistributionWidget />
-              <GroupsDistributionWidget />
-              <CompaniesDistributionWidget />
-            </div>
+          <div className="lg:col-start-1 lg:row-start-3 h-full">
+            <ActivityFeed limit={5} />
+          </div>
+          <div className="lg:col-start-2 lg:row-start-3 h-full">
+            <CompaniesDistributionWidget />
           </div>
         </section>
       </main>

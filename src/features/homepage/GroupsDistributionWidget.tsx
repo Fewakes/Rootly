@@ -162,7 +162,7 @@ export const GroupsDistributionWidget = () => {
   };
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       {/* Card Header Section */}
       <CardHeader className="">
         <CardTitle className="text-lg flex items-center gap-2">
@@ -175,7 +175,9 @@ export const GroupsDistributionWidget = () => {
       </CardHeader>
 
       {/* Card Content Section */}
-      <CardContent className="min-h-[300px]">{renderContent()}</CardContent>
+      <CardContent className="flex-1 min-h-[300px] flex flex-col">
+        {renderContent()}
+      </CardContent>
 
       {/* Card Footer Section */}
       <CardFooter className="flex justify-end border-t px-6">

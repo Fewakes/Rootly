@@ -198,7 +198,7 @@ export default function UpcomingTasks({ currentUserId }: UpcomingTasksProps) {
   };
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">

@@ -83,7 +83,7 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
   };
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Star className="h-5 w-5 text-primary" />
@@ -93,7 +93,7 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
 
       <CardContent
         className={cn(
-          'min-h-[320px] ',
+          'flex-1 min-h-[320px]',
 
           contacts.length === 0 && 'flex flex-col items-center justify-center',
         )}
@@ -248,7 +248,7 @@ const FavouriteContacts = ({ favouriteContacts }: FavouriteContactsProps) => {
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-end border-t px-6">
+      <CardFooter className="flex justify-end border-t px-6 mt-auto">
         {contacts.length > CONTACTS_PER_PAGE ? (
           <div className="flex items-center gap-2">
             <Button

@@ -88,13 +88,15 @@ const ActivityFeed = ({ limit = 5 }: { limit?: number }) => {
   };
 
   return (
-    <Card>
-      <CardTitle className="ml-5 text-xl flex items-center gap-2">
+    <Card className="h-full flex flex-col">
+      <CardTitle className="ml-5 mt-5 text-xl flex items-center gap-2">
         <ListTodo className="h-5 w-5 text-primary" /> Recent Activity
       </CardTitle>
 
-      <CardContent className="p-0 min-h-82">{renderContent()}</CardContent>
-      <CardFooter className="flex justify-end border-t px-6 ">
+      <CardContent className="p-0 flex-1 min-h-82 flex flex-col">
+        {renderContent()}
+      </CardContent>
+      <CardFooter className="flex justify-end border-t px-6">
         <Button
           variant="link"
           size="sm"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -58,11 +58,34 @@ const actions = [
   },
 ];
 
+const CTA_STORAGE_KEY = 'rootly.ctaDismissed';
+
 export const CallToActionBanner = () => {
   const { openDialog } = useDialog();
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const dismissed = window.localStorage.getItem(CTA_STORAGE_KEY);
+    setIsVisible(!dismissed);
+
+    const handleShow = () => {
+      setIsVisible(true);
+      window.localStorage.removeItem(CTA_STORAGE_KEY);
+    };
+
+    window.addEventListener('cta:show', handleShow);
+    return () => window.removeEventListener('cta:show', handleShow);
+  }, []);
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CTA_STORAGE_KEY, 'true');
+    }
+  };
 
   // This function is now updated to call the correct service function
   const handleLoadDemoData = async () => {
@@ -96,7 +119,7 @@ export const CallToActionBanner = () => {
           variant="ghost"
           size="icon"
           className="absolute top-4 right-4 h-6 w-6 text-muted-foreground hover:text-foreground"
-          onClick={() => setIsVisible(false)}
+          onClick={handleDismiss}
           aria-label="Dismiss banner"
         >
           <X className="h-4 w-4" />
