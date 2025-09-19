@@ -35,9 +35,13 @@ export const CompanyListItem = ({
     >
       {/* Left Section: Company Logo & Name */}
       <div className="flex items-center gap-4 w-1/3">
-        <Avatar className="h-10 w-10 border">
-          <AvatarImage src={company.company_logo || ''} alt={company.name} />
-          <AvatarFallback className="bg-muted">
+        <Avatar className="h-10 w-10 border rounded-lg">
+          <AvatarImage
+            src={company.company_logo || ''}
+            alt={company.name}
+            className="rounded-lg"
+          />
+          <AvatarFallback className="rounded-lg bg-muted">
             <Briefcase className="h-5 w-5 text-muted-foreground" />
           </AvatarFallback>
         </Avatar>

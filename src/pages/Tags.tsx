@@ -19,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useDialog } from '@/contexts/DialogContext';
@@ -34,8 +33,9 @@ import {
   TrendingUp,
   Users,
   Tag as TagIcon,
-  Gauge,
   PieChart,
+  Clock,
+  Pin,
   X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -45,9 +45,6 @@ import { Link } from 'react-router-dom';
 
 import { TagListItem } from '@/features/tags/TagListItem';
 import { useFavoriteTags } from '@/logic/useFavoriteTags';
-
-type ColorFilter = 'all' | TagColor;
-type PerformanceFilter = 'all' | 'high-impact' | 'growth' | 'untagged';
 
 type InsightStatProps = {
   label: string;
@@ -75,7 +72,7 @@ const InsightStat = ({ label, value, helper, loading, icon: Icon }: InsightStatP
     {loading ? (
       <Skeleton className="mt-3 h-7 w-20" />
     ) : (
-      <div className="mt-3 flex items-baseline justify-end gap-2">
+      <div className="mt-3 flex items-baseline justify-between gap-2">
         <p className="text-2xl font-semibold text-foreground">{value}</p>
         {helper ? (
           <span className="text-sm italic text-muted-foreground whitespace-nowrap">
@@ -89,7 +86,7 @@ const InsightStat = ({ label, value, helper, loading, icon: Icon }: InsightStatP
 
 const TrendingTagSkeleton = () => (
   <div className="flex items-center justify-between rounded-lg border border-dashed border-border/80 p-3">
-    <Skeleton className="h-10 w-10 rounded-full" />
+    <Skeleton className="h-10 w-10 rounded-lg" />
     <div className="flex-1 px-3">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="mt-2 h-3 w-20" />
@@ -105,8 +102,16 @@ const TrendingTagItem = ({
 }: TrendingTagItemProps) => {
   const hasColour = !!(tag.color && TAG_BG[tag.color as TagColor]);
   const iconClasses = cn(
-    'flex h-10 w-10 items-center justify-center rounded-full shadow-sm',
-    hasColour ? `${TAG_BG[tag.color as TagColor]} text-white` : 'bg-muted text-muted-foreground',
+    'flex h-10 w-10 items-center justify-center rounded-lg shadow-sm text-sm font-semibold',
+    index === 0
+      ? 'bg-primary text-white'
+      : index === 1
+        ? 'bg-blue-600 text-white'
+        : index === 2
+          ? 'bg-slate-300 text-slate-800'
+          : hasColour
+            ? `${TAG_BG[tag.color as TagColor]} text-white`
+            : 'bg-muted text-muted-foreground',
   );
 
   let deltaLabel = '';
@@ -125,11 +130,12 @@ const TrendingTagItem = ({
   }
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-background/70 p-3">
+    <Link
+      to={`/tags/${tag.id}`}
+      className="flex items-center justify-between rounded-lg border border-border bg-background/70 p-3 transition-colors hover:border-primary/60 hover:text-primary"
+    >
       <div className="flex items-center gap-3">
-        <div className={iconClasses}>
-          <TagIcon className="h-5 w-5" />
-        </div>
+        <div className={iconClasses}>{index < 3 ? index + 1 : <TagIcon className="h-5 w-5" />}</div>
         <div>
           <p className="text-sm font-semibold text-foreground">{tag.name}</p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -141,8 +147,10 @@ const TrendingTagItem = ({
           ) : null}
         </div>
       </div>
-      <Badge variant="secondary">#{index + 1}</Badge>
-    </div>
+      <Badge variant="secondary" className="uppercase tracking-wide border-border/70">
+        Trending
+      </Badge>
+    </Link>
   );
 };
 
@@ -152,9 +160,6 @@ export default function Tags() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name-asc');
-  const [performanceFilter, setPerformanceFilter] =
-    useState<PerformanceFilter>('all');
-  const [colorFilter, setColorFilter] = useState<ColorFilter>('all');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
@@ -176,6 +181,7 @@ export default function Tags() {
         activeTags: 0,
         inactiveTags: 0,
         coverage: 0,
+        newThisMonth: 0,
         topTag: null as TagWithContacts | null,
       };
     }
@@ -189,6 +195,9 @@ export default function Tags() {
     const inactiveTags = totalTags - activeTags;
     const averageContacts = Math.round(totalContacts / totalTags);
     const coverage = Math.round((activeTags / totalTags) * 100);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newThisMonth = tags.filter(tag => new Date(tag.created_at) >= thirtyDaysAgo).length;
     const topTag = tags.reduce<TagWithContacts | null>((prev, current) => {
       if (!prev) return current;
       if (current.contact_count > prev.contact_count) return current;
@@ -208,19 +217,9 @@ export default function Tags() {
       activeTags,
       inactiveTags,
       coverage,
+      newThisMonth,
       topTag,
     };
-  }, [tags]);
-
-  const colorOptions = useMemo(() => {
-    if (!Array.isArray(tags)) return [] as TagColor[];
-    const unique = new Set<TagColor>();
-    tags.forEach(tag => {
-      if (tag.color && TAG_BG[tag.color as TagColor]) {
-        unique.add(tag.color as TagColor);
-      }
-    });
-    return Array.from(unique);
   }, [tags]);
 
   const trendingTags = useMemo(() => {
@@ -235,6 +234,16 @@ export default function Tags() {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       })
+      .slice(0, 3);
+  }, [tags]);
+
+  const recentTags = useMemo(() => {
+    if (!Array.isArray(tags)) return [] as TagWithContacts[];
+    return [...tags]
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )
       .slice(0, 5);
   }, [tags]);
 
@@ -249,23 +258,6 @@ export default function Tags() {
       result = result.filter(tag =>
         tag.name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
-    }
-
-    if (colorFilter !== 'all') {
-      result = result.filter(tag => tag.color === colorFilter);
-    }
-
-    if (performanceFilter !== 'all') {
-      const average = Math.max(tagStats.averageContacts, 1);
-      if (performanceFilter === 'high-impact') {
-        result = result.filter(tag => tag.contact_count >= average);
-      } else if (performanceFilter === 'growth') {
-        result = result.filter(
-          tag => tag.contact_count > 0 && tag.contact_count < average,
-        );
-      } else if (performanceFilter === 'untagged') {
-        result = result.filter(tag => tag.contact_count === 0);
-      }
     }
 
     const [key, direction] = sortBy.split('-');
@@ -293,14 +285,7 @@ export default function Tags() {
     });
 
     return result;
-  }, [
-    tags,
-    searchTerm,
-    sortBy,
-    performanceFilter,
-    colorFilter,
-    tagStats.averageContacts,
-  ]);
+  }, [tags, searchTerm, sortBy]);
 
   const paginatedTags = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -349,10 +334,12 @@ export default function Tags() {
   };
 
   const handlePinTag = (id: string) => {
+    if (!id || favouriteTagsLoading || favouriteTagsMutating) return;
     addFavoriteTag(id);
   };
 
   const handleUnpinTag = (id: string) => {
+    if (favouriteTagsMutating) return;
     removeFavoriteTag(id);
   };
 
@@ -384,41 +371,47 @@ export default function Tags() {
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <InsightStat
             label="Total Tags"
-            value={numberFormatter.format(tagStats.totalTags)}
-            helper="Active taxonomy entries"
+            value={numberFormatter.format(Number(tagStats.totalTags ?? 0))}
+            helper={
+              loading
+                ? undefined
+                : `${numberFormatter.format(tagStats.activeTags ?? 0)} active`
+            }
             loading={loading}
             icon={TagIcon}
           />
           <InsightStat
-            label="Tagged Contacts"
-            value={numberFormatter.format(tagStats.totalContacts)}
-            helper="Contacts linked to at least one tag"
+            label="Contacts Linked"
+            value={numberFormatter.format(Number(tagStats.totalContacts ?? 0))}
+            helper={`Avg ${numberFormatter.format(tagStats.averageContacts ?? 0)} per tag`}
             loading={loading}
             icon={Users}
           />
           <InsightStat
-            label="Avg Contacts per Tag"
-            value={numberFormatter.format(tagStats.averageContacts)}
-            helper="Balanced distribution target"
-            loading={loading}
-            icon={Gauge}
-          />
-          <InsightStat
             label="Active Coverage"
             value={`${tagStats.coverage}%`}
-            helper={`${tagStats.activeTags} active · ${tagStats.inactiveTags} idle`}
+            helper={`${numberFormatter.format(Number(tagStats.activeTags ?? 0))} active · ${numberFormatter.format(Number(tagStats.inactiveTags ?? 0))} idle`}
             loading={loading}
             icon={PieChart}
+          />
+          <InsightStat
+            label="New This Month"
+            value={numberFormatter.format(Number(tagStats.newThisMonth ?? 0))}
+            helper={
+              tagStats.newThisMonth > 0 && recentTags[0]
+                ? `Latest: ${recentTags[0].name}`
+                : 'No tags created in the last 30 days'
+            }
+            loading={loading}
+            icon={Clock}
           />
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] xl:items-stretch">
         <Card
-          className={cn(
-            'flex h-full flex-col',
-            shouldScrollTagList && 'xl:max-h-[820px]'
-          )}
+          className="flex h-full flex-col"
+          style={shouldScrollTagList ? { maxHeight: '960px' } : undefined}
         >
           <CardHeader className="border-b">
             <div className="flex flex-col gap-6">
@@ -426,27 +419,12 @@ export default function Tags() {
                 <div>
                   <CardTitle>Tag Library</CardTitle>
                   <CardDescription>
-                    Refine your taxonomy with search, performance views, and color filters.
+                    Refine your taxonomy with search and tailored ordering options.
                   </CardDescription>
                 </div>
               </div>
 
-              <Tabs
-                value={performanceFilter}
-                onValueChange={value => {
-                  setPerformanceFilter(value as PerformanceFilter);
-                  setCurrentPage(1);
-                }}
-              >
-                <TabsList>
-                  <TabsTrigger value="all">All Tags</TabsTrigger>
-                  <TabsTrigger value="high-impact">High Impact</TabsTrigger>
-                  <TabsTrigger value="growth">Growth Opportunity</TabsTrigger>
-                  <TabsTrigger value="untagged">Unassigned</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div className="relative w-full lg:max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -460,35 +438,7 @@ export default function Tags() {
                   />
                 </div>
 
-                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                  <Select
-                    value={colorFilter}
-                    onValueChange={value => {
-                      setColorFilter(value as ColorFilter);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="All colors" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All colors</SelectItem>
-                      {colorOptions.map(color => (
-                        <SelectItem key={color} value={color}>
-                          <span className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                'h-2.5 w-2.5 rounded-full',
-                                TAG_BG_CLASSES[color] ?? 'bg-muted',
-                              )}
-                            />
-                            {color.charAt(0).toUpperCase() + color.slice(1)}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
+                <div className="flex w-full flex-wrap gap-3 sm:flex-row sm:items-center sm:justify-end">
                   <Select
                     value={sortBy}
                     onValueChange={value => {
@@ -497,7 +447,7 @@ export default function Tags() {
                     }}
                   >
                     <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Sort by..." />
+                      <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="name-asc">Name (A-Z)</SelectItem>
@@ -580,17 +530,18 @@ export default function Tags() {
         </Card>
 
         <div
-          className={cn(
-            'flex h-full flex-col gap-6',
-            shouldScrollTagList && 'xl:max-h-[820px]'
-          )}
+          className="flex h-full flex-col gap-6"
+          style={shouldScrollTagList ? { maxHeight: '960px' } : undefined}
         >
           <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Favourite Tags</CardTitle>
-              <CardDescription>
-                Pin the categories you reach for most to keep them front of mind.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Pinned Tags</CardTitle>
+                <CardDescription>
+                  Keep your go-to tags handy for quick filtering.
+                </CardDescription>
+              </div>
+              <Pin className="hidden h-5 w-5 text-muted-foreground sm:block" />
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="space-y-3">
@@ -602,7 +553,7 @@ export default function Tags() {
                         className="flex items-center justify-between rounded-lg border border-border bg-background/70 p-3"
                       >
                         <div className="flex flex-1 items-center gap-3">
-                          <Skeleton className="h-2.5 w-2.5 rounded-full" />
+                          <Skeleton className="h-2.5 w-2.5 rounded-sm" />
                           <div className="flex-1 space-y-2">
                             <Skeleton className="h-4 w-24" />
                             <Skeleton className="h-3 w-32" />
@@ -624,7 +575,7 @@ export default function Tags() {
                       >
                         <span
                           className={cn(
-                            'h-2.5 w-2.5 rounded-full',
+                            'h-2.5 w-2.5 rounded-sm',
                             tag.color && TAG_BG_CLASSES[tag.color as TagColor]
                               ? TAG_BG_CLASSES[tag.color as TagColor]
                               : 'bg-muted'
@@ -651,8 +602,7 @@ export default function Tags() {
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    You haven't pinned any favourites yet. Save the tags you rely on most to
-                    access them quickly.
+                    You haven't pinned any tags yet. Pin the tags you rely on most to access them quickly.
                   </p>
                 )}
               </div>
@@ -678,7 +628,7 @@ export default function Tags() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground sm:ml-2">
-                    Favourite tags stay synced to your account.
+                    Pinned tags stay synced to your account.
                   </p>
                 </div>
               ) : favoriteTagDetails.length > 0 ? (
@@ -692,34 +642,60 @@ export default function Tags() {
           <Card className="flex flex-1 flex-col min-h-[320px]">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Top Trending Tags</CardTitle>
+                <CardTitle>Trending Tags</CardTitle>
                 <CardDescription>
-                  Tags with the strongest contact engagement this period.
+                  Tags gaining the most engagement alongside fresh additions.
                 </CardDescription>
               </div>
               <TrendingUp className="hidden h-5 w-5 text-muted-foreground sm:block" />
             </CardHeader>
-            <CardContent className="flex-1 space-y-3 pr-1">
-              {loading ? (
-                <>
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <TrendingTagSkeleton key={`trending-skeleton-${index}`} />
-                  ))}
-                </>
-              ) : trendingTags.length > 0 ? (
-                trendingTags.map((tag, index) => (
-                  <TrendingTagItem
-                    key={tag.id}
-                    tag={tag}
-                    index={index}
-                    averageContacts={tagStats.averageContacts}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Assign tags to contacts to surface trending insights.
-                </p>
-              )}
+            <CardContent className="flex-1 space-y-4 pr-1">
+              <div className="space-y-3">
+                {loading ? (
+                  <>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <TrendingTagSkeleton key={`trending-skeleton-${index}`} />
+                    ))}
+                  </>
+                ) : trendingTags.length > 0 ? (
+                  trendingTags.map((tag, index) => (
+                    <TrendingTagItem
+                      key={tag.id}
+                      tag={tag}
+                      index={index}
+                      averageContacts={tagStats.averageContacts}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Assign tags to contacts to surface trending insights.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2 border-t border-dashed border-border pt-3">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" /> Recently Added
+                </div>
+                {recentTags.length > 0 ? (
+                  recentTags.map(tag => (
+                    <Link
+                      key={tag.id}
+                      to={`/tags/${tag.id}`}
+                      className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 p-3 text-sm transition-colors hover:border-primary/50 hover:text-primary"
+                    >
+                      <span className="font-medium">{tag.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(tag.created_at).toLocaleDateString()}
+                      </span>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Newly created tags will appear here.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
