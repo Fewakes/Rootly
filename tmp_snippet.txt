@@ -1,0 +1,56 @@
+const TrendingTagItem = ({
+  tag,
+  index,
+  averageContacts,
+}: TrendingTagItemProps) => {
+  const hasColour = !!(tag.color && TAG_BG[tag.color as TagColor]);
+  const iconClasses = cn(
+    'flex h-10 w-10 items-center justify-center rounded-full shadow-sm',
+    hasColour ? `${TAG_BG[tag.color as TagColor]} text-white` : 'bg-muted text-muted-foreground',
+  );
+
+  let deltaLabel = '';
+  let deltaClass = 'text-muted-foreground';
+  if (averageContacts > 0) {
+    const delta = tag.contact_count - averageContacts;
+    if (delta > 0) {
+      deltaLabel = `↑ ${delta} above avg`;
+      deltaClass = 'text-emerald-600';
+    } else if (delta < 0) {
+      deltaLabel = `↓ ${Math.abs(delta)} below avg`;
+      deltaClass = 'text-amber-600';
+    } else {
+      deltaLabel = 'Matches avg engagement';
+    }
+  }
+
+  return (
+    <Link
+      to={`/tags/${tag.id}`}
+      className="flex items-center justify-between rounded-lg border border-border bg-background/70 p-3 transition-colors hover:border-primary/60 hover:text-primary"
+    >
+      <div className="flex items-center gap-3">
+        <div className={iconClasses}>
+          {index < 3 ? (
+            <span className="text-sm font-semibold">{index + 1}</span>
+          ) : (
+            <TagIcon className="h-5 w-5" />
+          )}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">{tag.name}</p>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Users className="h-3 w-3" />
+            <span>{numberFormatter.format(tag.contact_count)} contacts</span>
+          </div>
+          {deltaLabel ? (
+            <p className={cn('mt-1 text-xs font-medium', deltaClass)}>{deltaLabel}</p>
+          ) : null}
+        </div>
+      </div>
+      <Badge variant="secondary" className="uppercase tracking-wide">
+        Trending
+      </Badge>
+    </Link>
+  );
+};

@@ -1,7 +1,13 @@
 //New
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import EntityContactListItem from '@/features/entities/EntityContactListItem';
@@ -56,8 +62,20 @@ export function AssignedContactsManager({
   return (
     <Card className="flex flex-col flex-1">
       <Tabs defaultValue="assigned" className="flex flex-col flex-1">
-        <CardHeader>
-          <TabsList className="grid grid-cols-2 w-full sm:w-[300px]">
+        <CardHeader className="space-y-4">
+          <div className="space-y-1">
+            <CardTitle className="text-lg font-semibold text-foreground">
+              Contact assignments
+            </CardTitle>
+            <CardDescription>
+              Keep tagged contacts organized: everything on the
+              <strong className="mx-1 text-foreground">Assigned</strong> tab is
+              already linked, while the
+              <strong className="mx-1 text-foreground">Available</strong> tab
+              shows teammates you can add with one click.
+            </CardDescription>
+          </div>
+          <TabsList className="grid w-full grid-cols-2 sm:w-[320px]">
             <TabsTrigger value="assigned">
               Assigned ({assigned.length})
             </TabsTrigger>
