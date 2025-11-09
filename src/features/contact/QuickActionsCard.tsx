@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -67,11 +67,11 @@ export function QuickActionsCard({
     };
 
     return (
-      <div className="p-1">
+      <div className="space-y-3">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleNoteSubmit)}
-            className="space-y-2"
+            className="space-y-3"
           >
             <FormField
               control={form.control}
@@ -80,7 +80,7 @@ export function QuickActionsCard({
                 <FormItem>
                   <FormControl>
                     <Textarea
-                      placeholder="Add a new note..."
+                      placeholder="Capture a quick update for the team"
                       maxLength={80}
                       {...field}
                       autoFocus
@@ -103,7 +103,7 @@ export function QuickActionsCard({
             <div className="flex justify-end gap-2 pt-1">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setMode('idle')}
               >
@@ -141,11 +141,11 @@ export function QuickActionsCard({
     };
 
     return (
-      <div className="p-1">
+      <div className="space-y-3">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleTaskSubmit)}
-            className="space-y-2"
+            className="space-y-3"
           >
             <FormField
               control={form.control}
@@ -154,7 +154,7 @@ export function QuickActionsCard({
                 <FormItem>
                   <FormControl>
                     <Input
-                      placeholder="Add a new task..."
+                      placeholder="Give this task a clear title"
                       maxLength={70}
                       {...field}
                       autoFocus
@@ -185,7 +185,7 @@ export function QuickActionsCard({
                         <Button
                           variant={'outline'}
                           className={cn(
-                            'w-full pl-3 text-left font-normal',
+                            'w-full justify-between text-left font-normal',
                             !field.value && 'text-muted-foreground',
                           )}
                         >
@@ -217,7 +217,7 @@ export function QuickActionsCard({
             <div className="flex justify-end gap-2 pt-1">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setMode('idle')}
               >
@@ -238,34 +238,29 @@ export function QuickActionsCard({
   };
 
   const IdleView = () => (
-    <div className="flex flex-col gap-3">
-      <Button
-        variant="outline"
-        className="justify-start"
-        onClick={() => setMode('note')}
-      >
-        <MessageSquare className="h-4 w-4 mr-3" /> Add a Note
+    <div className="flex flex-col gap-2">
+      <Button className="justify-start gap-3" onClick={() => setMode('note')}>
+        <MessageSquare className="h-4 w-4" /> Add a note
       </Button>
-      <Button
-        variant="outline"
-        className="justify-start"
-        onClick={() => setMode('task')}
-      >
-        <CheckCircle className="h-4 w-4 mr-3" /> Create a Task
+      <Button className="justify-start gap-3" onClick={() => setMode('task')}>
+        <CheckCircle className="h-4 w-4" /> Create a task
       </Button>
-      <Button variant="outline" className="justify-start" disabled>
-        <Send className="h-4 w-4 mr-3" /> Send Email
+      <Button className="justify-start gap-3" disabled>
+        <Send className="h-4 w-4" /> Send email
       </Button>
-      <Button variant="outline" className="justify-start" disabled>
-        <PhoneCall className="h-4 w-4 mr-3" /> Log a Call
+      <Button className="justify-start gap-3" disabled>
+        <PhoneCall className="h-4 w-4" /> Log a call
       </Button>
     </div>
   );
 
   return (
-    <Card className="shadow-md h-full">
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>Quick actions</CardTitle>
+        <CardDescription>
+          Capture notes or tasks in seconds so momentum never stalls.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {mode === 'idle' ? (

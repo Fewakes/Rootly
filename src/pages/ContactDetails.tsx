@@ -14,8 +14,7 @@ import { useRecentActivity } from '@/logic/useRecentActivity';
 import type { ContactWithDetails } from '@/types/types';
 import { QuickActionsCard } from '@/features/contact/QuickActionsCard';
 import { RecentActivityCard } from '@/features/contact/RecentActivityCard';
-import { ContactHeaderCard } from '@/features/contact/ContactHeaderCard';
-import { ContactDetailsCard } from '@/features/contact/ContactDetailsCard';
+import { ContactProfileCard } from '@/features/contact/ContactProfileCard';
 
 export default function ContactPage() {
   const navigate = useNavigate();
@@ -68,31 +67,16 @@ export default function ContactPage() {
 
   // --- Main Render ---
   return (
-    <div className="bg-white min-h-screen p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* This is your original layout structure, fully restored. */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <ContactHeaderCard
-              contact={contact}
-              onFavouriteChange={handleFavouriteChange}
-              onActionSuccess={refetchContact}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <ContactDetailsCard
-              contact={contact}
-              onEditSuccess={refetchContact}
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <QuickActionsCard
-              contactName={contact.name}
-              addNote={addNote}
-              addTask={addTask}
-            />
-          </div>
-          <div className="lg:col-span-2">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
+        <ContactProfileCard
+          contact={contact}
+          onFavouriteChange={handleFavouriteChange}
+          onActionSuccess={refetchContact}
+        />
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <div className="space-y-6 xl:col-span-8">
             <RecentActivityCard
               activity={activity}
               contactName={contact.name}
@@ -101,6 +85,13 @@ export default function ContactPage() {
               updateTask={updateTask}
               deleteTask={deleteTask}
               updateTaskStatus={updateTaskStatus}
+            />
+          </div>
+          <div className="space-y-6 xl:col-span-4">
+            <QuickActionsCard
+              contactName={contact.name}
+              addNote={addNote}
+              addTask={addTask}
             />
           </div>
         </div>

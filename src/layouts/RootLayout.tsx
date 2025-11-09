@@ -6,7 +6,6 @@ import AppSidebar from '@/features/Layout/app-sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
-import EditContactInfoDialog from '@/features/contact/EditContactInfoDialog';
 import TagDialog from '@/features/tags/TagDialog';
 import GroupDialog from '@/features/groups/GroupDialog';
 import CompanyDialog from '@/features/companies/CompanyDialog';
@@ -51,7 +50,6 @@ export default function RootLayout() {
 
         <AddContactDialog />
         <EditContactProfileDialog />
-        <EditContactInfoDialog />
         <TagDialog />
         <GroupDialog />
         <CompanyDialog />

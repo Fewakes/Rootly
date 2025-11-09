@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -96,9 +96,14 @@ export function RecentActivityCard({
   };
 
   return (
-    <Card className="shadow-md h-full flex flex-col">
-      <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Activity</CardTitle>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <CardTitle>Notes & tasks</CardTitle>
+          <CardDescription>
+            Review everything logged against {contactName} and keep items current.
+          </CardDescription>
+        </div>
         <Tabs value={filter} onValueChange={value => setFilter(value as any)}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
@@ -108,66 +113,65 @@ export function RecentActivityCard({
         </Tabs>
       </CardHeader>
 
-      <CardContent className="flex-grow space-y-3 overflow-y-auto pr-2 h-[450px]">
-        {filteredActivity.length === 0 && (
-          <p className="text-sm text-center text-gray-500 py-8">
-            No {filter !== 'all' ? filter : ''} activity found.
-          </p>
-        )}
+      <CardContent className="flex flex-1 flex-col gap-3 overflow-hidden">
+        <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '32rem' }}>
+          {filteredActivity.length === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No {filter !== 'all' ? filter : ''} activity yet.
+            </p>
+          )}
 
-        {filteredActivity.map(item => {
-          const originalId = item.id.replace(/^(note|task)-/, '');
-          const isEditingNote = editingNote?.id === originalId;
-          const isEditingTask = editingTask?.id === originalId;
+          {filteredActivity.map(item => {
+            const originalId = item.id.replace(/^(note|task)-/, '');
+            const isEditingNote = editingNote?.id === originalId;
+            const isEditingTask = editingTask?.id === originalId;
 
-          return (
-            <div key={item.id} className="bg-muted/40 p-3 rounded-lg border">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                <div className="flex items-center gap-2 font-semibold">
-                  {item.type === 'note' ? (
-                    <MessageSquare className="h-4 w-4 text-blue-500" />
-                  ) : (
+            return (
+              <div key={item.id} className="rounded-lg border bg-muted/20 p-4">
+                <div className="mb-2 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2 text-foreground">
+                    {item.type === 'note' ? (
+                      <MessageSquare className="h-4 w-4 text-blue-500" />
+                    ) : (
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   )}
                   <span className="capitalize">{item.type}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <span>{format(item.date, 'd MMM, yyyy')}</span>
-                  <div className="group relative">
-                    <div className="flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() =>
-                          item.type === 'note'
-                            ? setEditingNote({
-                                id: originalId,
-                                content: item.content,
-                              })
-                            : setEditingTask({
-                                id: originalId,
-                                title: item.content,
-                                due_date: item.due_date,
-                              })
-                        }
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-destructive/70 hover:text-destructive"
-                        onClick={() =>
-                          item.type === 'note'
-                            ? deleteNote(originalId, contactName)
-                            : deleteTask(originalId, contactName)
-                        }
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() =>
+                      item.type === 'note'
+                        ? setEditingNote({
+                            id: originalId,
+                            content: item.content,
+                          })
+                        : setEditingTask({
+                            id: originalId,
+                            title: item.content,
+                            due_date: item.due_date,
+                          })
+                    }
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive/70 hover:text-destructive"
+                    onClick={() =>
+                      item.type === 'note'
+                        ? deleteNote(originalId, contactName)
+                        : deleteTask(originalId, contactName)
+                    }
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span className="sr-only">Remove</span>
+                  </Button>
                 </div>
               </div>
 
@@ -188,7 +192,7 @@ export function RecentActivityCard({
                       <div className="flex justify-end gap-1">
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => setEditingNote(null)}
                         >
                           Cancel
@@ -249,7 +253,7 @@ export function RecentActivityCard({
                       <div className="flex justify-end gap-1">
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => setEditingTask(null)}
                         >
                           Cancel
@@ -301,9 +305,10 @@ export function RecentActivityCard({
                     </div>
                   ))}
               </div>
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

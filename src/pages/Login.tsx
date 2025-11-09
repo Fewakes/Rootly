@@ -1,15 +1,30 @@
 import { LoginForm } from '@/features/auth/login-form';
 import { supabase } from '@/lib/supabaseClient';
 import { GalleryVerticalEnd } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Login() {
   const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    const origin =
+      typeof window !== 'undefined' ? window.location.origin : null;
+
+    if (!origin) {
+      toast.error('Unable to resolve the redirect URL for Supabase login.');
+      return;
+    }
+
+    const redirectTo = `${origin}/auth/callback`;
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://localhost:5173/auth/callback',
+        redirectTo,
       },
     });
+
+    if (error) {
+      console.error('Google login failed', error);
+      toast.error('Unable to start the Google login flow. Please try again.');
+    }
   };
 
   return (
